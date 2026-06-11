@@ -1,0 +1,897 @@
+/* LOOPHOLE — ui: DOM hud, overlays, input, audio, persistence, boot. */
+(function () {
+  'use strict';
+  const LP = globalThis.LP;
+  const { U, HEX, RNG, Game } = LP;
+  const C = () => LP.CONTENT;
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, html) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html != null) e.innerHTML = html;
+    return e;
+  };
+
+  /* ───────── persistence ───────── */
+  const KEY = 'loophole_v1';
+  const defaultMeta = () => ({
+    echoes: [], codex: [], runs: 0, wins: 0, best: null,
+    asc: 0, muted: false, values: false, hints: [],
+  });
+  let store = { v: 1, meta: defaultMeta(), run: null };
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const got = JSON.parse(raw);
+      if (got && got.v === 1) store = got;
+      if (!got.meta) store.meta = defaultMeta();
+    }
+  } catch (e) { /* fresh soil */ }
+  const save = () => {
+    try {
+      store.run = (game && !game.over) ? game.serialize() : null;
+      localStorage.setItem(KEY, JSON.stringify(store));
+    } catch (e) { /* storage may be unavailable; the garden lives on in RAM */ }
+  };
+  const meta = store.meta;
+
+  /* ───────── audio: a small synth, no assets ───────── */
+  const AU = {
+    ctx: null, master: null,
+    init() {
+      if (this.ctx) return;
+      try {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        this.master = this.ctx.createGain();
+        this.master.gain.value = meta.muted ? 0 : 0.5;
+        this.master.connect(this.ctx.destination);
+      } catch (e) { this.ctx = null; }
+    },
+    setMuted(m) { meta.muted = m; if (this.master) this.master.gain.value = m ? 0 : 0.5; save(); },
+    blip(freq, dur, type, vol, glide) {
+      if (!this.ctx) return;
+      const t = this.ctx.currentTime;
+      const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+      o.type = type || 'triangle';
+      o.frequency.setValueAtTime(freq, t);
+      if (glide) o.frequency.exponentialRampToValueAtTime(glide, t + dur);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(vol || 0.08, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(this.master);
+      o.start(t); o.stop(t + dur + 0.05);
+    },
+    bell(freq, dur, vol) {
+      if (!this.ctx) return;
+      [[1, 1], [2.7, 0.4], [4.1, 0.18]].forEach(([m, v]) => this.blip(freq * m, dur, 'sine', (vol || 0.07) * v));
+    },
+    noise(dur, cutoff, vol, rampDown) {
+      if (!this.ctx) return;
+      const t = this.ctx.currentTime;
+      const n = Math.floor(this.ctx.sampleRate * dur);
+      const buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+      const src = this.ctx.createBufferSource(); src.buffer = buf;
+      const f = this.ctx.createBiquadFilter();
+      f.type = 'lowpass'; f.frequency.setValueAtTime(cutoff, t);
+      if (rampDown) f.frequency.exponentialRampToValueAtTime(Math.max(60, cutoff * 0.2), t + dur);
+      const g = this.ctx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(vol, t + dur * 0.25);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(f); f.connect(g); g.connect(this.master);
+      src.start(t);
+    },
+    plant(pt) {
+      const f = { moss: 392, frond: 440, ant: 330, myc: 494, crys: 587, bloom: 523, heart: 196 }[pt] || 440;
+      this.blip(f, 0.22, 'triangle', 0.07);
+      this.blip(f * 1.5, 0.3, 'sine', 0.03);
+    },
+    tend() { this.blip(720, 0.09, 'sine', 0.045); },
+    prune() { this.blip(240, 0.14, 'triangle', 0.05, 180); },
+    breath() { this.noise(0.7, 700, 0.05, true); this.blip(98, 0.7, 'sine', 0.035); },
+    echo() { this.bell(880, 1.8, 0.05); },
+    offer() { this.blip(523, 0.18, 'sine', 0.05); setTimeout(() => this.blip(784, 0.4, 'sine', 0.05), 140); },
+    take() { this.bell(659, 0.9, 0.05); },
+    storm() { this.noise(1.1, 320, 0.12, true); },
+    cascade(n) {
+      const ps = [523, 587, 659, 784, 880, 1047];
+      for (let i = 0; i < Math.min(n, 6); i++)
+        setTimeout(() => this.blip(ps[i], 0.3, 'sine', 0.05), i * 90);
+    },
+    pulse() { this.blip(62, 0.32, 'sine', 0.1); },
+    stageUp() { [392, 494, 587, 784].forEach((f, i) => setTimeout(() => this.blip(f, 0.5, 'triangle', 0.05), i * 110)); },
+    dissolved() { this.blip(110, 2.2, 'sine', 0.08, 50); },
+    coalesce() {
+      [196, 294, 392, 494, 587, 880].forEach((f, i) =>
+        setTimeout(() => { this.blip(f, 4.5, 'sine', 0.045); this.blip(f * 1.002, 4.5, 'sine', 0.03); }, i * 380));
+    },
+  };
+  document.addEventListener('pointerdown', () => AU.init(), { once: true });
+  document.addEventListener('keydown', () => AU.init(), { once: true });
+
+  /* ───────── state ───────── */
+  let game = null;
+  let R = null;             /* renderer */
+  let tool = null;          /* {type:'plant',pt} | {type:'tend'} | {type:'prune'} | {type:'art', i} */
+  let overlayQueue = [];
+  let overlayOpen = false;
+  let processing = false;
+  let lastIncome = null;
+  let titleGarden = null;
+  let prevC = null;
+
+  /* ───────── toasts ───────── */
+  function toast(msg, cls, ms) {
+    const t = el('div', 'toast ' + (cls || ''), msg);
+    $('toasts').appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 600); }, ms || 4200);
+  }
+  function hint(id) {
+    if (meta.hints.includes(id)) return;
+    meta.hints.push(id);
+    const h = C().HINTS[id];
+    if (h) toast(h, 'hint', 7000);
+    save();
+  }
+
+  /* ───────── overlays (one at a time) ───────── */
+  let overlayDismissible = false;
+  let overlayCleanup = null;
+  function pushOverlay(builder, opts) {
+    overlayQueue.push({ b: builder, d: !opts || opts.dismissible !== false });
+    if (!overlayOpen) nextOverlay();
+  }
+  function nextOverlay() {
+    const item = overlayQueue.shift();
+    if (!item) { overlayOpen = false; return; }
+    overlayOpen = true;
+    overlayDismissible = item.d;
+    const wrap = $('overlay');
+    wrap.innerHTML = '';
+    wrap.classList.remove('hidden');
+    item.b(wrap, closeOverlay);
+  }
+  function closeOverlay() {
+    if (overlayCleanup) { overlayCleanup(); overlayCleanup = null; }
+    $('overlay').classList.add('hidden');
+    $('overlay').innerHTML = '';
+    setTimeout(nextOverlay, 120);
+  }
+
+  /* echo overlay: slow type-on murmur */
+  function echoOverlay(idx) {
+    return (wrap, close) => {
+      AU.echo();
+      if (!meta.echoes.includes(idx)) { meta.echoes.push(idx); save(); }
+      const box = el('div', 'echobox');
+      const sig = R.sigilCanvas('murmur' + idx, 30, 'uncommon');
+      sig.className = 'echosigil';
+      box.appendChild(sig);
+      const head = el('div', 'echohead', '— murmur ' + C().roman(idx) + ' —');
+      const txt = el('div', 'echotext');
+      box.appendChild(head); box.appendChild(txt);
+      const hintLine = el('div', 'echohint', '( click to return to the garden )');
+      box.appendChild(hintLine);
+      wrap.appendChild(box);
+      const full = C().ECHOES[idx];
+      let i = 0;
+      const tick = setInterval(() => {
+        i += 1;
+        txt.textContent = full.slice(0, i);
+        if (i >= full.length) clearInterval(tick);
+      }, 26);
+      wrap.onclick = () => {
+        if (i < full.length) { i = full.length; txt.textContent = full; return; }
+        clearInterval(tick); wrap.onclick = null; close();
+      };
+    };
+  }
+
+  /* artifact offer overlay */
+  function offerOverlay(specs) {
+    return (wrap, close) => {
+      AU.offer();
+      hint('offer');
+      const box = el('div', 'offerbox');
+      box.appendChild(el('div', 'offerhead', 'the garden offers'));
+      const row = el('div', 'offerrow');
+      const choose = i => {
+        const res = game.takeOffer(i);
+        if (res.artifact) {
+          AU.take();
+          meta.codex.push({ n: res.artifact.name, r: res.artifact.rarity });
+          toast('« ' + res.artifact.name + ' » joins the garden', 'good');
+        }
+        save(); buildRail(); updateHUD(); close();
+      };
+      specs.forEach((spec, i) => {
+        const a = C().buildArtifact(spec);
+        const card = el('div', 'artcard r-' + a.rarity);
+        const sig = R.sigilCanvas(a.sigilSeed, 46, a.rarity);
+        sig.className = 'artsigil';
+        card.appendChild(sig);
+        card.appendChild(el('div', 'artname', a.name));
+        card.appendChild(el('div', 'artrarity', a.rarity + ' · ' + (i + 1)));
+        card.appendChild(el('div', 'artdesc', a.desc));
+        card.appendChild(el('div', 'artflavor', a.flavor));
+        card.onclick = () => choose(i);
+        row.appendChild(card);
+      });
+      box.appendChild(row);
+      const pass = el('button', 'ghostbtn', 'let it pass (+3 order) · P');
+      pass.onclick = () => choose(-1);
+      box.appendChild(pass);
+      wrap.appendChild(box);
+      const keys = e => {
+        if (e.key >= '1' && e.key <= '3' && specs[+e.key - 1]) choose(+e.key - 1);
+        if (e.key === 'p' || e.key === 'P') choose(-1);
+      };
+      window.addEventListener('keydown', keys);
+      overlayCleanup = () => window.removeEventListener('keydown', keys);
+    };
+  }
+
+  /* generic card overlay */
+  function panelOverlay(html, opts) {
+    return (wrap, close) => {
+      const box = el('div', 'panelbox' + (opts && opts.wide ? ' wide' : ''));
+      box.innerHTML = html;
+      const x = el('button', 'closex', '×');
+      x.onclick = close;
+      box.appendChild(x);
+      wrap.appendChild(box);
+      if (opts && opts.wire) opts.wire(box, close);
+    };
+  }
+
+  /* ───────── HUD ───────── */
+  function updateHUD() {
+    if (!game) return;
+    const st = C().STAGES[game.stage - 1];
+    $('stagename').textContent = st.name + ' · ' + C().roman(game.stage - 1);
+    $('stageblurb').textContent = st.blurb;
+    $('order').textContent = Math.floor(game.order);
+    $('income').textContent = lastIncome != null ? ('+' + lastIncome) : '';
+    $('turn').textContent = game.turn;
+    $('seedlabel').textContent = game.seed;
+    drawCohRing();
+    const wb = $('widenbtn');
+    wb.classList.toggle('hidden', !(game.widenReady && !game.over));
+    /* coalesce panel */
+    const cp = $('coalesce');
+    if (game.stage === 6 && !game.over) {
+      cp.classList.remove('hidden');
+      const checks = game.coalesceChecks();
+      $('cochecks').innerHTML = checks.map(c =>
+        `<div class="check ${c.ok ? 'ok' : ''}">${c.ok ? '❀' : '·'} ${c.label}${c.val ? ' <span class="val">' + c.val + '</span>' : ''}</div>`).join('');
+      const btn = $('cobtn');
+      btn.disabled = !game.coalesceReady();
+      btn.classList.toggle('ready', game.coalesceReady());
+    } else cp.classList.add('hidden');
+    /* palette lock state + affordability */
+    for (const t of C().PATTERN_ORDER) {
+      const card = $('card-' + t);
+      if (!card) continue;
+      const def = C().PATTERNS[t];
+      card.classList.toggle('locked', def.stage > game.stage);
+      card.classList.toggle('broke', game.order < def.cost);
+      const lock = card.querySelector('.cardlock');
+      if (lock) lock.textContent = def.stage > game.stage ? ('stage ' + C().roman(def.stage - 1)) : '';
+    }
+    $('card-tend').classList.toggle('broke', game.order < game.tendCost());
+    document.body.classList.toggle('lowcoh', game.lowStreak > 0);
+  }
+
+  function drawCohRing() {
+    const cv = $('cohring');
+    const dpr = 2;
+    cv.width = 56 * dpr; cv.height = 56 * dpr;
+    const cx = cv.getContext('2d');
+    cx.scale(dpr, dpr);
+    const Cv = game.coherence(), T = game.target();
+    cx.clearRect(0, 0, 56, 56);
+    cx.lineWidth = 4.5; cx.lineCap = 'round';
+    cx.strokeStyle = 'rgba(120,110,95,0.25)';
+    cx.beginPath(); cx.arc(28, 28, 21, -Math.PI / 2, Math.PI * 1.5); cx.stroke();
+    const grad = cx.createLinearGradient(0, 56, 56, 0);
+    grad.addColorStop(0, '#7c9e57'); grad.addColorStop(1, '#cfe6a4');
+    cx.strokeStyle = grad;
+    cx.beginPath(); cx.arc(28, 28, 21, -Math.PI / 2, -Math.PI / 2 + Cv * Math.PI * 2); cx.stroke();
+    if (T != null) {
+      const a = -Math.PI / 2 + T * Math.PI * 2;
+      cx.strokeStyle = '#e6c86a'; cx.lineWidth = 2;
+      cx.beginPath();
+      cx.moveTo(28 + Math.cos(a) * 15, 28 + Math.sin(a) * 15);
+      cx.lineTo(28 + Math.cos(a) * 27, 28 + Math.sin(a) * 27);
+      cx.stroke();
+    }
+    let trend = '';
+    if (prevC != null) trend = Cv > prevC + 0.001 ? ' ▴' : (Cv < prevC - 0.001 ? ' ▾' : '');
+    $('cohtxt').innerHTML = Math.round(Cv * 100) + '%<span class="trend ' +
+      (trend.includes('▴') ? 'up' : trend.includes('▾') ? 'down' : '') + '">' + trend + '</span>';
+    $('cohtarget').textContent = T != null ? ('reach ' + Math.round(T * 100) + '%') : 'hold & weave';
+  }
+
+  /* ───────── palette ───────── */
+  function buildPalette() {
+    const pal = $('cards');
+    pal.innerHTML = '';
+    for (const t of C().PATTERN_ORDER) {
+      const def = C().PATTERNS[t];
+      const card = el('div', 'card');
+      card.id = 'card-' + t;
+      const ic = R.iconCanvas(t, 40); ic.className = 'cardicon';
+      card.appendChild(ic);
+      card.appendChild(el('div', 'cardname', def.name));
+      card.appendChild(el('div', 'cardcost', '✦' + def.cost));
+      card.appendChild(el('div', 'cardkey', def.hotkey));
+      card.appendChild(el('div', 'cardlock', ''));
+      card.onclick = () => selectTool({ type: 'plant', pt: t });
+      card.onmouseenter = e => showCardTip(card, def);
+      card.onmouseleave = hideTip;
+      pal.appendChild(card);
+    }
+    const tendCard = el('div', 'card'); tendCard.id = 'card-tend';
+    const ti = R.iconCanvas('tend', 40); ti.className = 'cardicon';
+    tendCard.appendChild(ti);
+    tendCard.appendChild(el('div', 'cardname', 'tend'));
+    tendCard.appendChild(el('div', 'cardcost', '✦1'));
+    tendCard.appendChild(el('div', 'cardkey', 'T'));
+    tendCard.onclick = () => selectTool({ type: 'tend' });
+    tendCard.onmouseenter = () => showCardTip(tendCard, { name: 'tend', rule: 'scrub one cell by 30%. humble, load-bearing.', long: 'the gardener’s own hand. reduces one cell’s entropy by 30% for 1 order. early on it is most of what you have; later it is how you hold a line while the garden gets there.' });
+    tendCard.onmouseleave = hideTip;
+    pal.appendChild(tendCard);
+    const pruneCard = el('div', 'card'); pruneCard.id = 'card-prune';
+    const pi = R.iconCanvas('prune', 40); pi.className = 'cardicon';
+    pruneCard.appendChild(pi);
+    pruneCard.appendChild(el('div', 'cardname', 'prune'));
+    pruneCard.appendChild(el('div', 'cardcost', '↩30%'));
+    pruneCard.appendChild(el('div', 'cardkey', 'X'));
+    pruneCard.onclick = () => selectTool({ type: 'prune' });
+    pruneCard.onmouseenter = () => showCardTip(pruneCard, { name: 'prune', rule: 'remove one of your patterns, refund 30% of its cost.', long: 'every garden is also edited. clear carpet to make room for what matters; move colonies that have eaten themselves out of work.' });
+    pruneCard.onmouseleave = hideTip;
+    pal.appendChild(pruneCard);
+  }
+
+  function syncToolClasses() {
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('sel'));
+    document.querySelectorAll('.railart').forEach(c => c.classList.remove('sel'));
+    const t = tool;
+    if (t && t.type === 'plant' && $('card-' + t.pt)) $('card-' + t.pt).classList.add('sel');
+    if (t && t.type === 'tend') $('card-tend').classList.add('sel');
+    if (t && t.type === 'prune') $('card-prune').classList.add('sel');
+  }
+
+  function selectTool(t) {
+    if (processing || (game && game.over)) return;
+    if (tool && t && tool.type === t.type && tool.pt === t.pt && tool.i === t.i) t = null; /* toggle off */
+    tool = t;
+    syncToolClasses();
+    if (t && t.type === 'art') {
+      const n = document.querySelectorAll('.railart')[t.i];
+      if (n) n.classList.add('sel');
+      const a = game.artifacts[t.i];
+      R.mode = { type: 'art', can: a && a.active && a.active.can ? k => a.active.can(game, k) : null };
+    } else R.mode = t && (t.type === 'plant' || t.type === 'tend') ? t : null;
+  }
+
+  /* ───────── artifact rail ───────── */
+  function buildRail() {
+    const rail = $('artifacts');
+    rail.innerHTML = '';
+    game.artifacts.forEach((a, i) => {
+      const d = el('div', 'railart r-' + a.rarity);
+      const sig = R.sigilCanvas(a.sigilSeed, 30, a.rarity);
+      d.appendChild(sig);
+      if (a.charges != null) {
+        const pips = el('div', 'pips', '●'.repeat(Math.max(0, a.charges)));
+        d.appendChild(pips);
+        if (a.charges <= 0) d.classList.add('spent');
+      }
+      d.onmouseenter = () => showArtTip(d, a);
+      d.onmouseleave = hideTip;
+      if (a.active && a.charges > 0) {
+        d.classList.add('usable');
+        d.onclick = () => {
+          if (a.active.target === 'none') {
+            const res = game.useArtifact(i, null);
+            if (res.ok) { afterAction(res.events); toast(a.name + ' — spent', 'good'); buildRail(); }
+          } else selectTool({ type: 'art', i });
+        };
+      }
+      rail.appendChild(d);
+    });
+  }
+
+  /* ───────── tooltips ───────── */
+  function showCardTip(anchor, def) {
+    const tip = $('tip');
+    tip.innerHTML = `<div class="tipname">${def.name}</div><div class="tiprule">${def.rule || ''}</div><div class="tiplong">${def.long || ''}</div>`;
+    placeTip(anchor);
+  }
+  function showArtTip(anchor, a) {
+    const tip = $('tip');
+    tip.innerHTML = `<div class="tipname">${a.name} <span class="tiprare r-${a.rarity}">${a.rarity}</span></div>
+      <div class="tiplong">${a.desc}</div><div class="tipflavor">${a.flavor}</div>
+      ${a.active ? '<div class="tiprule">' + (a.active.target === 'cell' ? 'click sigil, then a cell' : 'click sigil to invoke') + (a.charges != null ? ' · ' + a.charges + ' left' : '') + '</div>' : ''}`;
+    placeTip(anchor);
+  }
+  function placeTip(anchor) {
+    const tip = $('tip');
+    tip.classList.remove('hidden');
+    const r = anchor.getBoundingClientRect();
+    const tr = tip.getBoundingClientRect();
+    let x = U.clamp(r.left + r.width / 2 - tr.width / 2, 8, window.innerWidth - tr.width - 8);
+    let y = r.top - tr.height - 10;
+    if (y < 8) y = r.bottom + 10;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }
+  function hideTip() { $('tip').classList.add('hidden'); }
+
+  function cellTip(k, ev) {
+    const tip = $('celltip');
+    if (!k || !game) { tip.classList.add('hidden'); return; }
+    const c = game.cells.get(k);
+    if (!c) { tip.classList.add('hidden'); return; }
+    let lines = [`<b>${Math.round(c.e * 100)}%</b> entropy`];
+    if (c.pat) {
+      const p = c.pat, n = C().PATTERNS[p.t].name;
+      if (p.t === 'moss') lines.push(`${n} · ${p.age >= 3 ? 'mature' : 'young'} (age ${p.age})`);
+      else if (p.t === 'frond') lines.push(`${n} · depth ${p.depth}`);
+      else if (p.t === 'ant') lines.push(`${n} · ${p.pop} foragers`);
+      else if (p.t === 'myc') lines.push(`${n} · ${p.links.length} links`);
+      else if (p.t === 'heart') lines.push(`${n} · network ${(game.netOf.get(k) || { cells: { size: 1 } }).cells.size}`);
+      else lines.push(n);
+    }
+    if (game.aura.get(k)) lines.push('within a crystal aura');
+    if (c.trail) lines.push('a remembered path');
+    tip.innerHTML = lines.join('<br>');
+    tip.classList.remove('hidden');
+    tip.style.left = (ev.clientX + 14) + 'px';
+    tip.style.top = (ev.clientY + 12) + 'px';
+  }
+
+  /* ───────── event flow ───────── */
+  function handleEvents(evs) {
+    if (!evs) return;
+    R.onTurnEvents(evs);
+    for (const e of evs) {
+      switch (e.t) {
+        case 'income': lastIncome = e.n; break;
+        case 'echo':
+          /* bank it immediately — a closed tab must not swallow a murmur */
+          if (!meta.echoes.includes(e.idx)) { meta.echoes.push(e.idx); save(); }
+          pushOverlay(echoOverlay(e.idx));
+          break;
+        case 'widenReady':
+          toast('the world strains at its rim — widen it when you are ready.', 'stage', 6000);
+          hint('widen');
+          break;
+        case 'offer': pushOverlay(offerOverlay(e.specs), { dismissible: false }); break;
+        case 'stageUp': {
+          AU.stageUp();
+          const st = C().STAGES[e.stage - 1];
+          toast(`<b>${st.name}</b> — ${st.blurb}` + (e.unlocks.length ? `<br>unlocked: ${e.unlocks.map(u => C().PATTERNS[u].name).join(', ')}` : ''), 'stage', 6000);
+          hint('expand');
+          for (const u of e.unlocks) hint(u);
+          buildPalette(); /* relock states */
+          syncToolClasses();
+          break;
+        }
+        case 'storm': AU.storm(); break;
+        case 'stormWarn': $('stormbanner').textContent = 'a squall gathers — ' + (e.inTurns === 1 ? 'next turn' : 'in ' + e.inTurns + ' turns'); $('stormbanner').classList.remove('hidden'); hint('storm'); break;
+        case 'cascade': if (e.n >= 2) { AU.cascade(e.n); if (e.n >= 4) toast(e.n + ' blossoms in one breath', 'good'); } break;
+        case 'pulse': AU.pulse(); break;
+        case 'find': toast('the foragers return with something strange — « ' + e.name + ' »', 'good', 6000); AU.take(); buildRail(); meta.codex.push({ n: e.name, r: 'found' }); break;
+        case 'dissolveWarn': toast('the garden thins — coherence below 22% (' + e.streak + '/3)', 'warn', 5200); break;
+        case 'dissolved': onDissolved(); break;
+        case 'saved': toast('« ' + e.via + ' » intercedes. the garden holds.', 'good', 6000); buildRail(); break;
+        case 'coalesceReady': hint('coalesce'); break;
+        case 'demon': break;
+        case 'wither': break;
+      }
+    }
+    const late = game.takeLateEcho();
+    if (late != null) {
+      if (!meta.echoes.includes(late)) { meta.echoes.push(late); save(); }
+      pushOverlay(echoOverlay(late));
+    }
+    if (!evs.some(e => e.t === 'stormWarn')) $('stormbanner').classList.add('hidden');
+  }
+
+  function afterAction(evs) {
+    handleEvents(evs);
+    updateHUD();
+    R.dirty();
+    save();
+  }
+
+  function endTurn() {
+    if (!game || game.over || processing || overlayOpen) return;
+    processing = true;
+    AU.breath();
+    $('endturn').classList.add('breathing');
+    prevC = game.coherence();
+    const evs = game.endTurn();
+    handleEvents(evs);
+    updateHUD();
+    R.dirty();
+    save();
+    setTimeout(() => { processing = false; $('endturn').classList.remove('breathing'); }, 320);
+  }
+
+  /* ───────── board input ───────── */
+  function bindBoard() {
+    const wrap = $('boardwrap');
+    wrap.addEventListener('mousemove', ev => {
+      if (!game) return;
+      const rect = wrap.getBoundingClientRect();
+      const k = R.cellAt(ev.clientX - rect.left, ev.clientY - rect.top);
+      R.hovered = k;
+      cellTip(k, ev);
+      R.auraFor = null;
+      if (k) {
+        const c = game.cells.get(k);
+        if ((c.pat && c.pat.t === 'crys') || (tool && tool.type === 'plant' && tool.pt === 'crys')) R.auraFor = k;
+      }
+    });
+    wrap.addEventListener('mouseleave', () => { R.hovered = null; cellTip(null); });
+    wrap.addEventListener('click', ev => {
+      if (R.cinematic) { R.skipCinematic(); return; }
+      if (!game || game.over || processing || overlayOpen) return;
+      const rect = wrap.getBoundingClientRect();
+      const k = R.cellAt(ev.clientX - rect.left, ev.clientY - rect.top);
+      if (!k || !tool) return;
+      let res = null;
+      if (tool.type === 'plant') {
+        res = game.plant(tool.pt, k);
+        if (res.ok) AU.plant(tool.pt);
+      } else if (tool.type === 'tend') {
+        res = game.tend(k);
+        if (res.ok) AU.tend();
+      } else if (tool.type === 'prune') {
+        const c = game.cells.get(k);
+        if (!c.pat) { toast('nothing to prune there', 'warn'); return; }
+        res = game.prune(k);
+        if (res.ok) { AU.prune(); toast('pruned (+' + res.events[0].refund + ' order)'); }
+      } else if (tool.type === 'art') {
+        res = game.useArtifact(tool.i, k);
+        if (res.ok) { AU.take(); buildRail(); selectTool(null); }
+      }
+      if (res && !res.ok && res.why) toast(res.why, 'warn');
+      if (res && res.ok) afterAction(res.events);
+    });
+    wrap.addEventListener('contextmenu', ev => { ev.preventDefault(); selectTool(null); });
+    window.addEventListener('resize', () => { R.layout(); R.dirty(); });
+    window.addEventListener('keydown', ev => {
+      if (ev.key === 'Escape') {
+        if (overlayOpen) { if (overlayDismissible) closeOverlay(); return; }
+        if (tool) selectTool(null);
+        else menuOverlay();
+        return;
+      }
+      if (overlayOpen || !game || game.over) return;
+      if (ev.key === ' ') { ev.preventDefault(); endTurn(); return; }
+      if (ev.key === 't' || ev.key === 'T') selectTool({ type: 'tend' });
+      if (ev.key === 'x' || ev.key === 'X') selectTool({ type: 'prune' });
+      for (const t of C().PATTERN_ORDER)
+        if (ev.key === C().PATTERNS[t].hotkey) selectTool({ type: 'plant', pt: t });
+    });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+  }
+
+  /* ───────── menus & screens ───────── */
+  function menuOverlay() {
+    pushOverlay(panelOverlay(`
+      <div class="paneltitle">a moment of stillness</div>
+      <div class="menulist">
+        <button id="m-resume">return to the garden</button>
+        <button id="m-help">how it works</button>
+        <button id="m-murmurs">murmurs (${meta.echoes.length}/24)</button>
+        <button id="m-sound">sound: ${meta.muted ? 'off' : 'on'}</button>
+        <button id="m-values">entropy values: ${meta.values ? 'shown' : 'hidden'}</button>
+        <button id="m-abandon" class="danger">let this garden go</button>
+      </div>`, {
+      wire(box, close) {
+        box.querySelector('#m-resume').onclick = close;
+        box.querySelector('#m-help').onclick = () => { close(); helpOverlay(); };
+        box.querySelector('#m-murmurs').onclick = () => { close(); murmursOverlay(); };
+        box.querySelector('#m-sound').onclick = () => { AU.setMuted(!meta.muted); close(); };
+        box.querySelector('#m-values').onclick = () => { meta.values = !meta.values; R.valuesMode = meta.values; save(); close(); };
+        box.querySelector('#m-abandon').onclick = () => { close(); store.run = null; save(); showTitle(); };
+      }
+    }));
+  }
+
+  function helpOverlay() {
+    const pats = C().PATTERN_ORDER.map(t => {
+      const d = C().PATTERNS[t];
+      return `<div class="helppat"><b>${d.name}</b> <span class="muted">✦${d.cost} · stage ${C().roman(d.stage - 1)}</span><br>${d.rule}</div>`;
+    }).join('');
+    pushOverlay(panelOverlay(`
+      <div class="paneltitle">how it works</div>
+      <div class="helpbody">
+        <p>every turn, entropy seeps in — from the rim, from the air, sometimes in squalls. grey is disorder. color is order. <b>coherence</b> is how much of the board you’ve made make sense.</p>
+        <p>spend <b>✦ order</b> to plant living patterns. they replicate, link, eat, bloom, and pay for themselves — find the combinations that run away on their own. reach a stage’s coherence target and a golden choice appears: <b>let the world widen</b>. new ground arrives wild, pressure rises, new patterns unlock. you choose when — order keeps gathering while you prepare — but linger too long in one stage and the dark grows impatient.</p>
+        <p>if coherence stays under 22% for three turns, the stream takes the garden back.</p>
+        ${pats}
+        <p class="muted">tend (T) scrubs a cell · prune (X) removes & refunds · space ends the turn · right-click clears your hand · artifacts live on the right — some want clicking.</p>
+        <p class="muted">moss pays only beside disorder. ants starve in paradise. keep a frontier; you are not here to finish the world, only to keep it waking.</p>
+      </div>`, { wide: true }));
+  }
+
+  function murmursOverlay() {
+    const items = [];
+    for (let i = 0; i < 24; i++) {
+      if (meta.echoes.includes(i)) items.push(`<div class="murmur"><span class="mnum">${C().roman(i)}</span>${C().ECHOES[i].replace(/\n/g, '<br>')}</div>`);
+      else items.push(`<div class="murmur locked"><span class="mnum">${C().roman(i)}</span>· · ·</div>`);
+    }
+    const seen = [...new Set(meta.codex.map(a => a.n))];
+    const codex = seen.length
+      ? `<div class="codexhead">artifacts encountered · ${seen.length}</div><div class="codexlist">${seen.slice(0, 60).map(n => `<span class="endart">${n}</span>`).join(' ')}</div>`
+      : '';
+    pushOverlay(panelOverlay(`
+      <div class="paneltitle">murmurs</div>
+      <div class="murmurlist">${items.join('')}</div>
+      <div class="muted center">${meta.echoes.length < 24 ? 'the rest are still in the soil. they surface as you play.' : 'all of it, gathered. thank you for listening.'}</div>
+      ${codex}`,
+      { wide: true }));
+  }
+
+  function statsHTML(g) {
+    const p = g.stats.planted;
+    const arts = g.artifacts.map(a => `<span class="endart r-${a.rarity}">${a.name}</span>`).join(' ') || '<span class="muted">none</span>';
+    return `
+      <div class="statgrid">
+        <div>turns</div><div>${g.turn}</div>
+        <div>peak coherence</div><div>${Math.round(g.stats.peakC * 100)}%</div>
+        <div>planted</div><div>${Object.keys(p).map(k => p[k] + ' ' + k).join(', ') || '—'}</div>
+        <div>entropy devoured by ants</div><div>${g.stats.eaten.toFixed(1)}</div>
+        <div>blossoms born</div><div>${g.stats.blooms}${g.stats.cascadeBest >= 3 ? ' (best cascade ' + g.stats.cascadeBest + ')' : ''}</div>
+        <div>widest network</div><div>${g.stats.netBest} cells</div>
+        <div>squalls weathered</div><div>${g.stats.stormsSeen}</div>
+        <div>murmurs surfaced</div><div>${g.echoesThisRun}</div>
+      </div>
+      <div class="endarts">${arts}</div>
+      <div class="muted center">seed · ${g.seed}${meta.asc ? ' · deeper spring ' + meta.asc : ''}</div>`;
+  }
+
+  function onDissolved() {
+    AU.dissolved();
+    meta.runs++;
+    store.run = null; save();
+    setTimeout(() => pushOverlay((wrap, close) => {
+      const box = el('div', 'panelbox endbox');
+      box.innerHTML = `
+        <div class="paneltitle">the stream takes it back</div>
+        <p class="endnote">nothing is lost that was ever only borrowed. the murmurs you found are still yours.<br>the loophole is patient.</p>
+        ${statsHTML(game)}
+        <div class="endbtns">
+          <button id="e-again">begin again</button>
+          <button id="e-replant" class="ghostbtn">replant this seed</button>
+          <button id="e-title" class="ghostbtn">title</button>
+        </div>`;
+      box.querySelector('#e-again').onclick = () => { close(); newRun(); };
+      box.querySelector('#e-replant').onclick = () => { close(); newRun(game.seed); };
+      box.querySelector('#e-title').onclick = () => { close(); showTitle(); };
+      wrap.appendChild(box);
+    }, { dismissible: false }), 900);
+  }
+
+  function beginCoalescence() {
+    if (!game.coalesceReady()) return;
+    game.beginCoalescence();
+    meta.runs++; meta.wins++;
+    if (meta.best == null || game.turn < meta.best) meta.best = game.turn;
+    store.run = null; save();
+    document.body.classList.add('cinema');
+    AU.coalesce();
+    R.awakening(game, () => {
+      document.body.classList.remove('cinema');
+      /* the confession must precede the landing, even on a first-garden win */
+      if (!meta.echoes.includes(18)) { meta.echoes.push(18); save(); pushOverlay(echoOverlay(18)); }
+      pushOverlay(echoOverlay(23));
+      pushOverlay((wrap, close) => {
+        const box = el('div', 'panelbox endbox');
+        box.innerHTML = `
+          <div class="paneltitle">the garden remembers</div>
+          <p class="endnote">it woke. for a moment the whole board was one pattern, and the pattern was looking.</p>
+          ${statsHTML(game)}
+          <div class="endbtns">
+            <button id="e-deeper">deeper spring (ascend to ${Math.min(5, meta.asc + 1)})</button>
+            <button id="e-again" class="ghostbtn">begin again</button>
+            <button id="e-title" class="ghostbtn">title</button>
+          </div>`;
+        box.querySelector('#e-deeper').onclick = () => { meta.asc = Math.min(5, meta.asc + 1); save(); close(); newRun(); };
+        box.querySelector('#e-again').onclick = () => { close(); newRun(); };
+        box.querySelector('#e-title').onclick = () => { close(); showTitle(); };
+        wrap.appendChild(box);
+      }, { dismissible: false });
+    });
+  }
+
+  /* ───────── title ───────── */
+  function makeTitleGarden() {
+    const g = new Game('the-first-garden');
+    const plantAt = (t, q, r) => { const k = HEX.key(q, r); if (g.canPlant(t, k).ok) g.plant(t, k); };
+    plantAt('moss', 0, 0); plantAt('moss', 1, 0); plantAt('moss', 0, 1);
+    for (let i = 0; i < 16; i++) {
+      if (g.widenReady) g.widen();
+      if (g.pendingOffer) g.takeOffer(0);
+      if (i === 4) { plantAt('frond', 1, -1); plantAt('moss', -1, 1); }
+      if (i === 8) plantAt('frond', -1, 0);
+      g.order += 4;
+      g.endTurn();
+    }
+    return g;
+  }
+
+  function showTitle() {
+    game = null;
+    titleGarden = titleGarden || makeTitleGarden();
+    R.attach(titleGarden);
+    R.dirty();
+    $('hud').classList.add('hidden');
+    $('palette').classList.add('hidden');
+    $('rail').classList.add('hidden');
+    $('coalesce').classList.add('hidden');
+    const t = $('title');
+    t.classList.remove('hidden');
+    $('t-continue').classList.toggle('hidden', !store.run);
+    $('t-murmurs').textContent = `murmurs · ${meta.echoes.length}/24`;
+    $('t-meta').textContent =
+      (meta.runs ? `${meta.runs} garden${meta.runs > 1 ? 's' : ''} grown · ${meta.wins} awakened` : 'no gardens yet') +
+      (meta.best ? ` · swiftest awakening ${meta.best} turns` : '') +
+      (meta.asc ? ` · deeper spring ${meta.asc}` : '');
+  }
+  function hideTitle() {
+    $('title').classList.add('hidden');
+    $('hud').classList.remove('hidden');
+    $('palette').classList.remove('hidden');
+    $('rail').classList.remove('hidden');
+  }
+
+  function newRun(seed) {
+    if (!seed) seed = C().prettySeed(Math.random);
+    game = new Game(seed, { ascension: meta.asc, echoes: meta.echoes });
+    lastIncome = null; prevC = null;
+    R.attach(game);
+    hideTitle();
+    buildPalette(); buildRail(); updateHUD();
+    R.valuesMode = meta.values;
+    selectTool({ type: 'plant', pt: 'moss' });
+    save();
+    hint('start');
+    setTimeout(() => hint('tend'), 9000);
+  }
+
+  function continueRun() {
+    try {
+      game = Game.fromJSON(store.run);
+    } catch (e) { toast('that garden could not be recalled', 'warn'); store.run = null; save(); return; }
+    lastIncome = null; prevC = null;
+    R.attach(game);
+    hideTitle();
+    buildPalette(); buildRail(); updateHUD();
+    R.valuesMode = meta.values;
+    selectTool(null);
+    if (game.pendingOffer) pushOverlay(offerOverlay(game.pendingOffer), { dismissible: false });
+    toast('the garden kept growing in your absence. (it didn’t. it waited.)', '', 5000);
+  }
+
+  /* ───────── dev / screenshot driver (?shot=title|early|mid|late|offer|echo|help|murmurs|end|awaken) ───────── */
+  function shotSetup(kind) {
+    const err = el('pre');
+    err.id = 'errlog';
+    err.style.cssText = 'position:fixed;top:0;left:0;z-index:999;color:#f66;background:rgba(0,0,0,.7);font-size:11px;max-width:50vw;white-space:pre-wrap;padding:4px;';
+    document.body.appendChild(err);
+    window.addEventListener('error', e => {
+      err.textContent += (e.error && e.error.stack ? e.error.stack : e.message) + '\n';
+    });
+    window.addEventListener('unhandledrejection', e => { err.textContent += 'promise: ' + e.reason + '\n'; });
+    if (kind === 'title') return;
+    newRun('showcase');
+    const g = game;
+    const P = (t, q, r) => { g.order += 60; const k = HEX.key(q, r); if (g.canPlant(t, k).ok) g.plant(t, k); };
+    const T = n => {
+      for (let i = 0; i < n; i++) {
+        if (g.widenReady) { const r = g.widen(); if (r.ok) R.onTurnEvents(r.events.filter(e => e.t === 'stageUp')); }
+        if (g.pendingOffer) g.takeOffer(0);
+        g.order += 12;
+        const evs = g.endTurn();
+        R.onTurnEvents(evs.filter(e => e.t === 'stormWarn' || e.t === 'stageUp'));
+      }
+    };
+    if (kind === 'early') {
+      P('moss', 0, 0); P('moss', 1, 0); P('moss', 0, 1); P('moss', -1, 0);
+      T(3); P('frond', 0, -1); P('moss', -1, 1); T(4);
+    } else if (kind !== 'offer' && kind !== 'echo' && kind !== 'help' && kind !== 'murmurs') {
+      P('moss', 0, 0); P('moss', 1, 0); P('moss', 0, 1); P('moss', -1, 1); P('moss', -1, 0); P('moss', 0, -1); P('moss', 1, -1);
+      T(4); P('frond', 2, -1); P('frond', -2, 1); P('frond', 2, 0); T(3);
+      P('ant', 3, 0); P('ant', -3, 2); T(4);
+      P('myc', 1, 1); P('myc', -1, -1); T(3); P('crys', 3, -2); P('myc', 2, 1); T(3);
+      if (kind !== 'mid') {
+        P('myc', 0, 2); P('myc', -2, 0); T(3);
+        for (const [q, r] of [[1, 2], [2, 2], [1, 3], [-2, -1], [-1, -2]]) P('bloom', q, r);
+        T(2); P('heart', 0, -2); T(6);
+      } else T(2);
+      /* curate: guarantee living exemplars of each pattern for the shot */
+      const force = (t, q, r, fix) => {
+        const k = HEX.key(q, r), c = g.cells.get(k);
+        if (!c) return;
+        if (!c.pat || c.pat.t !== t) c.pat = g._mkPat(t);
+        Object.assign(c.pat, fix || {});
+        c.e = Math.min(c.e, 0.18);
+      };
+      force('frond', 2, -1, { depth: 6 }); force('frond', -2, 1, { depth: 4 }); force('frond', 2, 0, { depth: 5 });
+      if (kind !== 'mid') {
+        force('heart', 0, -2, {});
+        force('bloom', 1, 2, { age: 2 }); force('bloom', 2, 2, { age: 1 }); force('bloom', 1, 3, { age: 3 });
+        force('ant', 3, 0, { pop: 14 });
+      }
+      g._recompute();
+    }
+    overlayQueue = []; closeOverlay();
+    if (kind === 'offer') { game.pendingOffer = C().rollOffer(game); pushOverlay(offerOverlay(game.pendingOffer)); }
+    if (kind === 'echo') pushOverlay(echoOverlay(7));
+    if (kind === 'help') helpOverlay();
+    if (kind === 'murmurs') { meta.echoes = [0, 1, 2, 3, 4, 5, 6, 7]; murmursOverlay(); }
+    if (kind === 'end') { game.stats.peakC = 0.87; onDissolved(); }
+    if (kind === 'cells') { R.valuesMode = true; }
+    if (kind === 'widen') { game.widenReady = true; }
+    if (kind === 'awaken') {
+      document.body.classList.add('cinema');
+      R.awakening(game, () => { document.body.classList.remove('cinema'); pushOverlay(echoOverlay(23)); });
+    }
+    buildRail(); updateHUD(); R.dirty();
+  }
+
+  /* ───────── boot ───────── */
+  function boot() {
+    R = new LP.Renderer($('board'), $('fx'));
+    bindBoard();
+    R.start();
+    $('endturn').onclick = endTurn;
+    $('cobtn').onclick = beginCoalescence;
+    $('widenbtn').onclick = () => {
+      if (!game || processing || overlayOpen) return;
+      const res = game.widen();
+      if (res.ok) { AU.stageUp(); handleEvents(res.events); updateHUD(); R.dirty(); save(); }
+    };
+    $('menubtn').onclick = () => menuOverlay();
+    $('t-new').onclick = () => {
+      pushOverlay(panelOverlay(`
+        <div class="paneltitle">new garden</div>
+        <p class="muted">a seed makes the same world twice. share one, or trust the wind.</p>
+        <input id="seedin" type="text" spellcheck="false" placeholder="${C().prettySeed(Math.random)}">
+        <div class="endbtns">
+          <button id="s-go">plant it</button>
+          <button id="s-rand" class="ghostbtn">trust the wind</button>
+        </div>`, {
+        wire(box, close) {
+          const inp = box.querySelector('#seedin');
+          inp.focus();
+          const go = () => { close(); newRun(inp.value.trim() || undefined); };
+          box.querySelector('#s-go').onclick = go;
+          inp.onkeydown = e => { if (e.key === 'Enter') go(); };
+          box.querySelector('#s-rand').onclick = () => { close(); newRun(); };
+        }
+      }));
+    };
+    $('t-continue').onclick = continueRun;
+    $('t-murmurs').onclick = () => murmursOverlay();
+    $('t-help').onclick = () => helpOverlay();
+    showTitle();
+    LP.dev = { game: () => game, renderer: () => R, newRun, endTurn };
+    try {
+      const shot = new URLSearchParams(location.search).get('shot');
+      if (shot) shotSetup(shot);
+    } catch (e) { /* shrug */ }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>loophole — a thermodynamic garden</title>
+<style>
+  :root {
+    --loam: #0d0a08; --loam2: #171210; --line: #352c22; --line2: #4a3e30;
+    --text: #e8e2d4; --muted: #9a8f7c; --moss: #7c9e57; --mossglow: #cfe6a4;
+    --dew: #d7ecde; --dewblue: #9ed2c8; --gold: #e6c86a; --warn: #c97b6a;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: var(--loam); color: var(--text); font-family: var(--sans);
+    font-size: 14px; overflow: hidden; user-select: none;
+    -webkit-font-smoothing: antialiased;
+  }
+  .hidden { display: none !important; }
+  .muted { color: var(--muted); }
+  .center { text-align: center; }
+  button {
+    font-family: var(--sans); font-size: 14px; color: var(--text);
+    background: rgba(46,38,28,0.65); border: 1px solid var(--line2);
+    border-radius: 999px; padding: 9px 22px; cursor: pointer;
+    transition: all .18s ease; letter-spacing: .02em;
+  }
+  button:hover { border-color: var(--moss); box-shadow: 0 0 14px rgba(124,158,87,0.25); }
+  button:disabled { opacity: .4; cursor: default; box-shadow: none; }
+  button.danger:hover { border-color: var(--warn); box-shadow: 0 0 14px rgba(201,123,106,0.2); }
+  .ghostbtn { background: transparent; border-color: var(--line2); color: #b8ad99; }
+  .ghostbtn:hover { color: var(--text); }
+
+  #app { display: flex; flex-direction: column; height: 100%; }
+
+  /* ── hud ── */
+  #hud {
+    display: flex; align-items: center; gap: 18px; padding: 8px 16px;
+    border-bottom: 1px solid var(--line); background: rgba(18,14,11,0.8);
+    z-index: 5; min-height: 64px;
+  }
+  #stagebox { min-width: 200px; }
+  #stagename { font-family: var(--serif); font-size: 19px; letter-spacing: .04em; color: var(--mossglow); }
+  #stageblurb { font-size: 11.5px; color: var(--muted); font-style: italic; margin-top: 1px; }
+  #cohwrap { display: flex; align-items: center; gap: 9px; }
+  #cohring { width: 56px; height: 56px; }
+  #cohtxt { font-size: 17px; font-family: var(--serif); }
+  #cohtarget { font-size: 11px; color: var(--muted); }
+  #orderbox { font-size: 17px; display: flex; align-items: baseline; gap: 6px; }
+  #orderbox .glyph { color: var(--gold); }
+  #income { font-size: 11.5px; color: var(--moss); }
+  #widenbtn {
+    font-family: var(--serif); letter-spacing: .04em; border-color: var(--gold); color: var(--gold);
+    animation: gentle 2.4s ease-in-out infinite;
+  }
+  .trend { font-size: 12px; }
+  .trend.up { color: var(--moss); }
+  .trend.down { color: var(--warn); }
+  .codexhead { font-size: 10.5px; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; margin: 14px 0 8px; }
+  .codexlist { line-height: 2.1; font-size: 11px; }
+  #turnbox { margin-left: auto; text-align: right; font-size: 12px; color: var(--muted); }
+  #seedlabel { font-style: italic; }
+  #menubtn { padding: 6px 13px; font-size: 16px; }
+
+  /* ── board ── */
+  #mid { flex: 1; display: flex; min-height: 0; }
+  #boardwrap { position: relative; flex: 1; overflow: hidden; }
+  #boardwrap canvas { position: absolute; inset: 0; }
+  body.lowcoh #boardwrap::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    box-shadow: inset 0 0 120px rgba(160,80,60,0.25);
+  }
+  #stormbanner {
+    position: absolute; top: 74px; left: 50%; transform: translateX(-50%);
+    background: rgba(36,40,46,0.85); border: 1px solid #4a545e; color: #c8d2da;
+    padding: 6px 18px; border-radius: 999px; font-size: 12.5px; z-index: 6;
+    font-style: italic; letter-spacing: .03em;
+  }
+  #celltip {
+    position: fixed; z-index: 30; pointer-events: none;
+    background: rgba(20,16,12,0.92); border: 1px solid var(--line2);
+    padding: 7px 11px; border-radius: 8px; font-size: 12px; line-height: 1.5;
+    max-width: 240px;
+  }
+
+  /* ── rail ── */
+  #rail {
+    width: 190px; border-left: 1px solid var(--line); background: rgba(16,12,10,0.7);
+    padding: 12px 10px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto;
+  }
+  #railhead { font-size: 11px; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; }
+  #artifacts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .railart {
+    position: relative; width: 44px; height: 44px; border-radius: 10px;
+    border: 1px solid var(--line2); display: flex; align-items: center; justify-content: center;
+    background: rgba(30,24,18,0.6); cursor: default; transition: all .15s;
+  }
+  .railart canvas { width: 30px; height: 30px; }
+  .railart.usable { cursor: pointer; }
+  .railart.usable:hover, .railart.sel { border-color: var(--gold); box-shadow: 0 0 12px rgba(230,200,106,0.3); }
+  .railart.spent { opacity: .35; }
+  .railart.r-legendary { border-color: rgba(230,200,106,0.55); }
+  .railart.r-uncommon { border-color: rgba(158,210,200,0.45); }
+  .railart .pips { position: absolute; bottom: -6px; right: -2px; font-size: 8px; color: var(--gold); letter-spacing: 1px; }
+
+  #coalesce {
+    border: 1px solid var(--line2); border-radius: 12px; padding: 10px;
+    background: rgba(28,22,16,0.7);
+  }
+  #coalesce .panelhead { font-family: var(--serif); font-size: 14px; color: var(--mossglow); margin-bottom: 7px; }
+  .check { font-size: 11.5px; color: var(--muted); padding: 2.5px 0; }
+  .check.ok { color: var(--mossglow); }
+  .check .val { color: var(--text); opacity: .75; }
+  #cobtn { width: 100%; margin-top: 9px; font-family: var(--serif); letter-spacing: .06em; }
+  #cobtn.ready { border-color: var(--gold); color: var(--gold); animation: gentle 2.4s ease-in-out infinite; }
+  @keyframes gentle { 0%,100% { box-shadow: 0 0 8px rgba(230,200,106,0.18);} 50% { box-shadow: 0 0 22px rgba(230,200,106,0.45);} }
+
+  /* ── palette ── */
+  #palette {
+    display: flex; align-items: center; gap: 14px; padding: 10px 16px;
+    border-top: 1px solid var(--line); background: rgba(18,14,11,0.85); z-index: 5;
+  }
+  #cards { display: flex; gap: 9px; flex: 1; }
+  .card {
+    position: relative; width: 86px; padding: 7px 6px 6px; border-radius: 12px;
+    border: 1px solid var(--line2); background: rgba(32,26,19,0.65);
+    text-align: center; cursor: pointer; transition: all .15s ease;
+  }
+  .card:hover { transform: translateY(-3px); border-color: var(--moss); }
+  .card.sel { border-color: var(--mossglow); box-shadow: 0 0 16px rgba(167,196,123,0.25); background: rgba(44,40,26,0.8); }
+  .card.locked { opacity: .35; pointer-events: auto; cursor: default; }
+  .card.locked:hover { transform: none; border-color: var(--line2); }
+  .card.broke:not(.locked) { opacity: .6; }
+  .cardicon { width: 40px; height: 40px; display: block; margin: 0 auto; }
+  .cardname { font-size: 11.5px; margin-top: 3px; letter-spacing: .02em; }
+  .cardcost { font-size: 10.5px; color: var(--gold); margin-top: 1px; }
+  .cardkey {
+    position: absolute; top: 4px; right: 7px; font-size: 9px; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 4px; padding: 0 3px;
+  }
+  .cardlock { position: absolute; top: 4px; left: 7px; font-size: 9px; color: var(--muted); font-style: italic; }
+  #endturn {
+    width: 76px; height: 76px; border-radius: 50%; font-family: var(--serif);
+    font-size: 13px; line-height: 1.15; border: 1.5px solid var(--line2);
+    background: radial-gradient(circle at 38% 32%, rgba(60,52,36,0.9), rgba(30,24,18,0.9));
+    animation: breathe 5s ease-in-out infinite;
+  }
+  #endturn:hover { border-color: var(--gold); }
+  #endturn.breathing { animation: exhale .35s ease-out; }
+  @keyframes breathe { 0%,100% { transform: scale(1);} 50% { transform: scale(1.045);} }
+  @keyframes exhale { 0% { transform: scale(.94);} 100% { transform: scale(1);} }
+
+  /* ── toasts ── */
+  #toasts { position: fixed; left: 18px; bottom: 116px; z-index: 25; display: flex; flex-direction: column; gap: 8px; max-width: 340px; }
+  .toast {
+    background: rgba(24,19,14,0.92); border: 1px solid var(--line2); border-radius: 10px;
+    padding: 9px 14px; font-size: 12.5px; line-height: 1.45; opacity: 0; transform: translateY(8px);
+    transition: all .4s ease; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.hint { border-color: rgba(158,210,200,0.4); font-style: italic; color: #cfdcd2; }
+  .toast.good { border-color: rgba(207,230,164,0.45); }
+  .toast.warn { border-color: rgba(201,123,106,0.55); color: #e0c0b4; }
+  .toast.stage { border-color: var(--gold); font-family: var(--serif); font-size: 13.5px; }
+
+  /* ── tooltips ── */
+  #tip {
+    position: fixed; z-index: 40; width: 250px; pointer-events: none;
+    background: rgba(22,17,13,0.95); border: 1px solid var(--line2); border-radius: 10px;
+    padding: 10px 13px; font-size: 12px; line-height: 1.5;
+  }
+  .tipname { font-family: var(--serif); font-size: 14px; color: var(--mossglow); margin-bottom: 3px; }
+  .tiprule { color: var(--dewblue); font-size: 11.5px; margin-bottom: 4px; }
+  .tiplong { color: var(--text); opacity: .85; }
+  .tipflavor { color: var(--muted); font-style: italic; margin-top: 5px; font-size: 11.5px; }
+  .tiprare { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
+  .r-common { color: var(--moss); } .r-uncommon { color: var(--dewblue); } .r-legendary { color: var(--gold); }
+
+  /* ── overlays ── */
+  #overlay {
+    position: fixed; inset: 0; z-index: 50; background: rgba(10,8,6,0.72);
+    backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center;
+  }
+  .panelbox {
+    position: relative; background: rgba(22,17,13,0.97); border: 1px solid var(--line2);
+    border-radius: 16px; padding: 26px 30px; max-width: 460px; width: min(92vw, 460px);
+    max-height: 84vh; overflow-y: auto; box-shadow: 0 18px 60px rgba(0,0,0,0.55);
+  }
+  .panelbox.wide { max-width: 640px; width: min(94vw, 640px); }
+  .paneltitle { font-family: var(--serif); font-size: 21px; color: var(--mossglow); margin-bottom: 12px; letter-spacing: .02em; }
+  .closex { position: absolute; top: 10px; right: 12px; border: none; background: none; font-size: 20px; color: var(--muted); padding: 4px 8px; }
+  .closex:hover { color: var(--text); box-shadow: none; }
+  .menulist { display: flex; flex-direction: column; gap: 9px; }
+  .menulist button { width: 100%; }
+  .helpbody p { margin-bottom: 10px; line-height: 1.55; }
+  .helppat { padding: 7px 0; border-top: 1px dashed var(--line); font-size: 12.5px; line-height: 1.5; }
+  input[type=text] {
+    width: 100%; background: rgba(14,11,8,0.9); color: var(--text); border: 1px solid var(--line2);
+    border-radius: 10px; padding: 10px 14px; font-size: 14px; font-family: var(--serif);
+    font-style: italic; outline: none; margin: 10px 0 4px;
+  }
+  input[type=text]:focus { border-color: var(--moss); }
+
+  /* echo */
+  .echobox { max-width: 560px; text-align: center; padding: 30px; cursor: pointer; }
+  .echosigil { display: block; margin: 0 auto 16px; opacity: .8; width: 30px; height: 30px; }
+  .echohead { font-size: 11px; letter-spacing: .25em; color: var(--muted); margin-bottom: 18px; text-transform: uppercase; }
+  .echotext {
+    font-family: var(--serif); font-style: italic; font-size: 19px; line-height: 1.75;
+    color: var(--dew); white-space: pre-wrap; min-height: 120px;
+  }
+  .echohint { margin-top: 26px; font-size: 11px; color: var(--muted); opacity: .7; }
+
+  /* offer */
+  .offerbox { text-align: center; }
+  .offerhead { font-family: var(--serif); font-size: 22px; color: var(--mossglow); margin-bottom: 18px; letter-spacing: .03em; }
+  .offerrow { display: flex; gap: 14px; justify-content: center; margin-bottom: 16px; }
+  .artcard {
+    width: 180px; background: rgba(26,21,15,0.95); border: 1px solid var(--line2);
+    border-radius: 14px; padding: 16px 13px; cursor: pointer; transition: all .18s ease;
+  }
+  .artcard:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.5); }
+  .artcard.r-legendary { border-color: rgba(230,200,106,0.6); }
+  .artcard.r-legendary:hover { box-shadow: 0 12px 34px rgba(230,200,106,0.18); }
+  .artcard.r-uncommon { border-color: rgba(158,210,200,0.5); }
+  .artcard.r-common { border-color: rgba(124,158,87,0.45); }
+  .artsigil { width: 46px; height: 46px; display: block; margin: 0 auto 8px; }
+  .artname { font-family: var(--serif); font-size: 14.5px; margin-bottom: 2px; }
+  .artrarity { font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; margin-bottom: 8px; }
+  .artcard.r-legendary .artrarity { color: var(--gold); }
+  .artcard.r-uncommon .artrarity { color: var(--dewblue); }
+  .artcard.r-common .artrarity { color: var(--moss); }
+  .artdesc { font-size: 12px; line-height: 1.5; min-height: 52px; }
+  .artflavor { font-size: 11px; color: var(--muted); font-style: italic; margin-top: 8px; }
+
+  /* murmurs */
+  .murmurlist { max-height: 56vh; overflow-y: auto; margin-bottom: 12px; padding-right: 6px; }
+  .murmur {
+    font-family: var(--serif); font-style: italic; font-size: 14.5px; line-height: 1.65;
+    color: var(--dew); padding: 12px 4px; border-bottom: 1px dashed var(--line);
+  }
+  .murmur.locked { color: var(--muted); opacity: .5; }
+  .mnum { display: block; font-size: 10px; letter-spacing: .2em; color: var(--muted); font-style: normal; margin-bottom: 4px; text-transform: uppercase; }
+
+  /* end screens */
+  .endbox { text-align: center; }
+  .endnote { font-family: var(--serif); font-style: italic; color: var(--dew); line-height: 1.6; margin-bottom: 16px; }
+  .statgrid {
+    display: grid; grid-template-columns: auto auto; gap: 4px 18px; text-align: left;
+    font-size: 12.5px; margin: 0 auto 14px; width: fit-content;
+  }
+  .statgrid div:nth-child(odd) { color: var(--muted); }
+  .endarts { margin-bottom: 12px; line-height: 1.9; }
+  .endart { font-size: 11.5px; border: 1px solid var(--line2); padding: 2px 9px; border-radius: 999px; margin: 0 2px; white-space: nowrap; }
+  .endart.r-legendary { border-color: rgba(230,200,106,0.5); color: var(--gold); }
+  .endart.r-uncommon { border-color: rgba(158,210,200,0.45); color: var(--dewblue); }
+  .endbtns { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+
+  /* ── title ── */
+  #title {
+    position: fixed; inset: 0; z-index: 45; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center, rgba(13,10,8,0.25) 0%, rgba(13,10,8,0.88) 78%);
+  }
+  #titlecol { text-align: center; max-width: 560px; padding: 20px; }
+  #wordmark { font-family: var(--serif); font-size: 58px; letter-spacing: .14em; color: var(--text); text-shadow: 0 2px 30px rgba(207,230,164,0.25); }
+  #subtitle { font-family: var(--serif); font-style: italic; font-size: 15px; color: var(--mossglow); margin: 4px 0 26px; letter-spacing: .06em; }
+  #epigraph {
+    font-family: var(--serif); font-style: italic; font-size: 13.5px; color: var(--muted);
+    line-height: 1.7; margin-bottom: 30px;
+  }
+  #epigraph .loop { color: var(--dewblue); }
+  #titlebtns { display: flex; flex-direction: column; gap: 10px; width: 250px; margin: 0 auto 22px; }
+  #t-meta { font-size: 11.5px; color: var(--muted); font-style: italic; }
+
+  body.cinema #hud, body.cinema #palette, body.cinema #rail, body.cinema #stormbanner, body.cinema #celltip, body.cinema #toasts, body.cinema #tip { display: none; }
+
+  @media (max-width: 900px) {
+    #rail { width: 150px; }
+    .card { width: 72px; }
+    #stagebox { min-width: 130px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hud" class="hidden">
+    <div id="stagebox">
+      <div id="stagename">substrate · i</div>
+      <div id="stageblurb"></div>
+    </div>
+    <div id="cohwrap">
+      <canvas id="cohring"></canvas>
+      <div>
+        <div id="cohtxt">—</div>
+        <div id="cohtarget"></div>
+      </div>
+    </div>
+    <button id="widenbtn" class="hidden">let the world widen ◈</button>
+    <div id="orderbox"><span class="glyph">✦</span><span id="order">0</span><span id="income"></span></div>
+    <div id="turnbox">turn <span id="turn">1</span><br><span id="seedlabel"></span></div>
+    <button id="menubtn" title="menu (esc)">≡</button>
+  </header>
+
+  <div id="mid">
+    <main id="boardwrap">
+      <canvas id="board"></canvas>
+      <canvas id="fx"></canvas>
+      <div id="stormbanner" class="hidden"></div>
+    </main>
+    <aside id="rail" class="hidden">
+      <div id="railhead">artifacts</div>
+      <div id="artifacts"></div>
+      <div id="coalesce" class="hidden">
+        <div class="panelhead">the waking</div>
+        <div id="cochecks"></div>
+        <button id="cobtn" disabled>coalesce</button>
+      </div>
+    </aside>
+  </div>
+
+  <footer id="palette" class="hidden">
+    <div id="cards"></div>
+    <button id="endturn" title="end turn (space)">let the<br>world<br>breathe</button>
+  </footer>
+</div>
+
+<div id="toasts"></div>
+<div id="tip" class="hidden"></div>
+<div id="celltip" class="hidden"></div>
+<div id="overlay" class="hidden"></div>
+
+<div id="title" class="hidden">
+  <div id="titlecol">
+    <div id="wordmark">loophole</div>
+    <div id="subtitle">a thermodynamic garden</div>
+    <div id="epigraph">
+      “decrease the total entropy of an isolated closed system<br>
+      without interfering with it from outside.”<br>
+      <span class="loop">there is no outside. that’s the loophole.</span>
+    </div>
+    <div id="titlebtns">
+      <button id="t-continue" class="hidden">return to the garden</button>
+      <button id="t-new">new garden</button>
+      <button id="t-murmurs" class="ghostbtn">murmurs · 0/24</button>
+      <button id="t-help" class="ghostbtn">how it works</button>
+    </div>
+    <div id="t-meta"></div>
+  </div>
+</div>
+
+<script src="js/core.js"></script>
+<script src="js/content.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
