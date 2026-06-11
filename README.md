@@ -6,7 +6,7 @@
 A turn-based generative-art strategy game about entropy, consciousness, and our place in
 both — vanilla HTML/Canvas/JS, zero dependencies, saves to localStorage.
 
-**▶ play it: open [`loophole/index.html`](loophole/index.html) locally, or via GitHub Pages at `<this-repo's-pages-url>/loophole/`**
+**▶ play it: [booherbg.github.io/entropy-game-test/loophole](https://booherbg.github.io/entropy-game-test/loophole/)** — or just open [`loophole/index.html`](loophole/index.html) locally.
 
 ![the garden holds against the noise](loophole/shots/late.png)
 
