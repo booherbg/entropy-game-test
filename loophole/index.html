@@ -273,6 +273,12 @@
   .evonode.owned .en-cost { color: var(--moss); }
   .evonode.locked { opacity: .5; }
 
+  /* stats over time */
+  .statlegend { display: flex; gap: 16px; margin-bottom: 10px; font-size: 11.5px; }
+  .statlegend .lg::before { content: '—'; margin-right: 5px; font-weight: bold; }
+  .lg-c { color: var(--mossglow); } .lg-o { color: var(--gold); } .lg-p { color: var(--moss); } .lg-b { color: #b89ad2; }
+  .statcanvas { width: 100%; display: block; border: 1px solid var(--line); border-radius: 8px; background: rgba(14,11,8,0.5); }
+
   /* murmurs */
   .murmurlist { max-height: 56vh; overflow-y: auto; margin-bottom: 12px; padding-right: 6px; }
   .murmur {
@@ -394,6 +400,7 @@
 <script src="js/core.js"></script>
 <script src="js/content.js"></script>
 <script src="js/render.js"></script>
+<script src="js/audio.js"></script>
 <script src="js/ui.js"></script>
 </body>
 </html>

@@ -127,6 +127,7 @@
         cascadeBest: 0, netBest: 0, frondMaxed: 0, stormsSeen: 0,
         peakC: 0, spent: 0, income: 0,
       };
+      this.series = []; /* per-turn [turn, coherence‰, order, patterns, blight] for the graph */
       if (!opts.blank) this._init();
     }
 
@@ -317,7 +318,7 @@
       for (let i = 0; i < Math.min(n, cands.length); i++) {
         const cc = cands[i];
         cc.pat = this._mkPat(t);
-        cc.pat.fresh = 1;
+        /* NOT marked fresh — these were free, so they must not earn a full prune refund */
         this.stats.planted[t] = (this.stats.planted[t] || 0) + 1;
         ev.push({ t: 'plant', k: HEX.key(cc.q, cc.r), pt: t, via: 'hands' });
       }
@@ -505,6 +506,9 @@
 
       const C = this.coherence();
       this.stats.peakC = Math.max(this.stats.peakC, C);
+      let patCount = 0; for (const c of this.cells.values()) if (c.pat) patCount++;
+      this.series.push([this.turn, Math.round(C * 1000), Math.round(this.order), patCount, this.blight.size]);
+      if (this.series.length > 160) this.series.shift();
       this._stageCheck(C, ev);
       this._lossCheck(C, ev);
       this._timedOccasions(ev);
@@ -1016,8 +1020,9 @@
     _clearBlight(k, ev, how) {
       if (!this.blight.has(k)) return;
       this.blight.delete(k);
-      this.grantInsight('blightcleared', 2);
+      /* every clearing pays — order, and a little insight for the effort */
       this.order += 2;
+      this.insight += 1;
       this.stats.blightCleared = (this.stats.blightCleared || 0) + 1;
       if (ev) ev.push({ t: 'blightClear', k, how });
     }
@@ -1203,7 +1208,7 @@
       /* adopt the older self */
       for (const f of ['turn', 'stage', 'order', 'carry', 'lowStreak', 'finds', 'echoOwned',
         'echoesThisRun', 'widenReady', 'turnsInStage', 'insight', 'insightFrac', 'evolutions',
-        'radius', 'stormI', 'blightI', 'blightQueue', 'blight', 'firedOcc', 'stats']) this[f] = g[f];
+        'radius', 'stormI', 'blightI', 'blightQueue', 'blight', 'terra', 'firedOcc', 'stats', 'series']) this[f] = g[f];
       this.cells = g.cells;
       this.artifacts = g.artifacts;
       this.rng.s = g.rng.s;
@@ -1244,6 +1249,7 @@
         artifacts: this.artifacts.map(a => ({ spec: a.spec, charges: a.charges == null ? null : a.charges })),
         pendingOffer: this.pendingOffer,
         stats: this.stats,
+        series: this.series,
         cells,
       };
     }
@@ -1290,6 +1296,7 @@
       });
       g.pendingOffer = o.pendingOffer || null;
       g.stats = o.stats;
+      g.series = o.series || [];
       for (const cd of o.cells) {
         const c = g._mkCell(cd[0], cd[1], cd[2] / 1e4, SO[cd[4]] || 'loam');
         c.eMin = cd[3] / 1e4;

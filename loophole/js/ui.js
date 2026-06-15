@@ -31,7 +31,10 @@
   } catch (e) { /* fresh soil */ }
   const save = () => {
     try {
-      store.run = (game && !game.over) ? game.serialize() : null;
+      /* only a live game writes the run snapshot. when there's no game (title
+         screen), leave any existing snapshot untouched — don't wipe it. code
+         that means to clear a run sets store.run = null explicitly before saving. */
+      if (game) store.run = game.over ? null : game.serialize();
       localStorage.setItem(KEY, JSON.stringify(store));
     } catch (e) { /* storage may be unavailable; the garden lives on in RAM */ }
   };
@@ -43,13 +46,18 @@
     init() {
       if (this.ctx) return;
       try {
-        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        this.ctx = LP._audioCtx || (LP._audioCtx = new (window.AudioContext || window.webkitAudioContext)());
         this.master = this.ctx.createGain();
         this.master.gain.value = meta.muted ? 0 : 0.5;
         this.master.connect(this.ctx.destination);
       } catch (e) { this.ctx = null; }
     },
-    setMuted(m) { meta.muted = m; if (this.master) this.master.gain.value = m ? 0 : 0.5; save(); },
+    setMuted(m) {
+      meta.muted = m;
+      if (this.master) this.master.gain.value = m ? 0 : 0.5;
+      if (LP.Music) LP.Music.setMuted(m);
+      save();
+    },
     blip(freq, dur, type, vol, glide) {
       if (!this.ctx) return;
       const t = this.ctx.currentTime;
@@ -111,8 +119,17 @@
         setTimeout(() => { this.blip(f, 4.5, 'sine', 0.045); this.blip(f * 1.002, 4.5, 'sine', 0.03); }, i * 380));
     },
   };
-  document.addEventListener('pointerdown', () => AU.init(), { once: true });
-  document.addEventListener('keydown', () => AU.init(), { once: true });
+  function startAudio() {
+    AU.init();
+    if (LP.Music && !LP.Music.running) {
+      LP.Music.muted = meta.muted;
+      LP.Music.start(game ? game.seed : 'loophole');
+      if (game) LP.Music.setState(game.stage, game.coherence());
+      else if (titleGarden) LP.Music.setState(1, titleGarden.coherence());
+    }
+  }
+  document.addEventListener('pointerdown', startAudio, { once: true });
+  document.addEventListener('keydown', startAudio, { once: true });
 
   /* ───────── state ───────── */
   let game = null;
@@ -132,6 +149,7 @@
     requestAnimationFrame(() => t.classList.add('show'));
     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 600); }, ms || 4200);
   }
+  function music(name) { if (LP.Music) LP.Music.cue(name); }
   function hint(id) {
     if (meta.hints.includes(id)) return;
     meta.hints.push(id);
@@ -272,6 +290,7 @@
     const st = C().STAGES[game.stage - 1];
     $('stagename').textContent = st.name + ' · ' + C().roman(game.stage - 1);
     $('stageblurb').textContent = st.blurb;
+    if (LP.Music && LP.Music.running) LP.Music.setState(game.stage, game.coherence());
     $('order').textContent = Math.floor(game.order);
     $('income').textContent = lastIncome != null ? ('+' + lastIncome) : '';
     $('insight').textContent = game.insight;
@@ -513,7 +532,7 @@
           break;
         case 'offer': pushOverlay(offerOverlay(e.specs), { dismissible: false }); break;
         case 'stageUp': {
-          AU.stageUp();
+          AU.stageUp(); music('stage');
           const st = C().STAGES[e.stage - 1];
           toast(`<b>${st.name}</b> — ${st.blurb}` + (e.unlocks.length ? `<br>unlocked: ${e.unlocks.map(u => C().PATTERNS[u].name).join(', ')}` : ''), 'stage', 6000);
           hint('expand');
@@ -522,11 +541,11 @@
           syncToolClasses();
           break;
         }
-        case 'storm': AU.storm(); break;
+        case 'storm': AU.storm(); music('storm'); break;
         case 'blightSpawn': AU.blight(); hint('blight'); toast('rot takes hold — ' + (e.kind === 'wisp' ? 'a wisp drifts in' : 'it will spread'), 'warn', 5000); break;
         case 'blightClear': AU.tend(); break;
         case 'stormWarn': $('stormbanner').textContent = 'a squall gathers — ' + (e.inTurns === 1 ? 'next turn' : 'in ' + e.inTurns + ' turns'); $('stormbanner').classList.remove('hidden'); hint('storm'); break;
-        case 'cascade': if (e.n >= 2) { AU.cascade(e.n); if (e.n >= 4) toast(e.n + ' blossoms in one breath', 'good'); } break;
+        case 'cascade': if (e.n >= 2) { AU.cascade(e.n); if (e.n >= 4) { toast(e.n + ' blossoms in one breath', 'good'); music('cascade'); } } break;
         case 'pulse': AU.pulse(); break;
         case 'find': toast('the foragers return with something strange — « ' + e.name + ' »', 'good', 6000); AU.take(); buildRail(); meta.codex.push({ n: e.name, r: 'found' }); break;
         case 'dissolveWarn': toast('the garden thins — coherence below 22% (' + e.streak + '/3)', 'warn', 5200); break;
@@ -567,51 +586,67 @@
   }
 
   /* ───────── board input ───────── */
+  /* apply the held tool to one cell; returns true if something happened.
+     light updates only — the caller saves (so a drag saves once at release). */
+  let dragging = false, dragActed = false;
+  const dragSet = new Set();
+  function applyToolAt(k, silent) {
+    if (!game || game.over || processing || overlayOpen || !k || !tool) return false;
+    let res = null;
+    if (tool.type === 'plant') { res = game.plant(tool.pt, k); if (res && res.ok) AU.plant(tool.pt); }
+    else if (tool.type === 'tend') { res = game.tend(k); if (res && res.ok) AU.tend(); }
+    else if (tool.type === 'prune') { const c = game.cells.get(k); if (!c || !c.pat) return false; res = game.prune(k); if (res && res.ok) AU.prune(); }
+    else if (tool.type === 'art') { res = game.useArtifact(tool.i, k); if (res && res.ok) { AU.take(); buildRail(); selectTool(null); } }
+    if (res && !res.ok) { if (res.why && !silent) toast(res.why, 'warn'); return false; }
+    if (res && res.ok) { handleEvents(res.events); updateHUD(); R.dirty(); return true; }
+    return false;
+  }
+  const canDragTool = () => tool && (tool.type === 'plant' || tool.type === 'tend' || tool.type === 'prune');
+
   function bindBoard() {
     const wrap = $('boardwrap');
-    wrap.addEventListener('mousemove', ev => {
+    const cellAtEv = ev => { const rect = wrap.getBoundingClientRect(); return R.cellAt(ev.clientX - rect.left, ev.clientY - rect.top); };
+    wrap.addEventListener('pointermove', ev => {
       if (!game) return;
-      const rect = wrap.getBoundingClientRect();
-      const k = R.cellAt(ev.clientX - rect.left, ev.clientY - rect.top);
+      const k = cellAtEv(ev);
       R.hovered = k;
       cellTip(k, ev);
       R.auraFor = null;
       if (k) {
         const c = game.cells.get(k);
-        if ((c.pat && c.pat.t === 'crys') || (tool && tool.type === 'plant' && tool.pt === 'crys')) R.auraFor = k;
+        if (c && ((c.pat && c.pat.t === 'crys') || (tool && tool.type === 'plant' && tool.pt === 'crys'))) R.auraFor = k;
+      }
+      /* drag-paint across cells */
+      if (dragging && k && canDragTool() && !dragSet.has(k)) {
+        dragSet.add(k);
+        if (applyToolAt(k, true)) dragActed = true;
       }
     });
-    wrap.addEventListener('mouseleave', () => { R.hovered = null; cellTip(null); });
-    wrap.addEventListener('click', ev => {
+    wrap.addEventListener('pointerleave', () => { R.hovered = null; cellTip(null); });
+    wrap.addEventListener('pointerdown', ev => {
       if (R.cinematic) { R.skipCinematic(); return; }
+      if (ev.button === 2) return; /* right-click handled by contextmenu */
       if (!game || game.over || processing || overlayOpen) return;
-      const rect = wrap.getBoundingClientRect();
-      const k = R.cellAt(ev.clientX - rect.left, ev.clientY - rect.top);
+      const k = cellAtEv(ev);
       if (!k || !tool) return;
-      let res = null;
-      if (tool.type === 'plant') {
-        res = game.plant(tool.pt, k);
-        if (res.ok) AU.plant(tool.pt);
-      } else if (tool.type === 'tend') {
-        res = game.tend(k);
-        if (res.ok) AU.tend();
-      } else if (tool.type === 'prune') {
-        const c = game.cells.get(k);
-        if (!c.pat) { toast('nothing to prune there', 'warn'); return; }
-        res = game.prune(k);
-        if (res.ok) { AU.prune(); toast('pruned (+' + res.events[0].refund + ' order)'); }
-      } else if (tool.type === 'art') {
-        res = game.useArtifact(tool.i, k);
-        if (res.ok) { AU.take(); buildRail(); selectTool(null); }
-      }
-      if (res && !res.ok && res.why) toast(res.why, 'warn');
-      if (res && res.ok) afterAction(res.events);
+      dragging = true; dragActed = false; dragSet.clear(); dragSet.add(k);
+      try { wrap.setPointerCapture(ev.pointerId); } catch (e) {}
+      if (applyToolAt(k, false)) dragActed = true;
     });
+    const endDrag = () => {
+      if (!dragging) return;
+      dragging = false;
+      if (dragActed) save();
+      dragActed = false;
+    };
+    wrap.addEventListener('pointerup', endDrag);
+    wrap.addEventListener('pointercancel', endDrag);
     wrap.addEventListener('contextmenu', ev => { ev.preventDefault(); selectTool(null); });
     window.addEventListener('resize', () => { R.layout(); R.dirty(); });
     window.addEventListener('keydown', ev => {
       if (ev.key === 'Escape') {
         if (overlayOpen) { if (overlayDismissible) closeOverlay(); return; }
+        if (!game || game.over) return; /* the menu belongs to an active garden */
         if (tool) selectTool(null);
         else menuOverlay();
         return;
@@ -632,6 +667,7 @@
       <div class="paneltitle">a moment of stillness</div>
       <div class="menulist">
         <button id="m-resume">return to the garden</button>
+        <button id="m-story">the story so far</button>
         <button id="m-help">how it works</button>
         <button id="m-murmurs">murmurs (${meta.echoes.length}/24)</button>
         <button id="m-sound">sound: ${meta.muted ? 'off' : 'on'}</button>
@@ -640,11 +676,12 @@
       </div>`, {
       wire(box, close) {
         box.querySelector('#m-resume').onclick = close;
+        box.querySelector('#m-story').onclick = () => { close(); pushOverlay(statsOverlay()); };
         box.querySelector('#m-help').onclick = () => { close(); helpOverlay(); };
         box.querySelector('#m-murmurs').onclick = () => { close(); murmursOverlay(); };
         box.querySelector('#m-sound').onclick = () => { AU.setMuted(!meta.muted); close(); };
         box.querySelector('#m-values').onclick = () => { meta.values = !meta.values; R.valuesMode = meta.values; save(); close(); };
-        box.querySelector('#m-abandon').onclick = () => { close(); store.run = null; save(); showTitle(); };
+        box.querySelector('#m-abandon').onclick = () => { close(); if (game) game.over = true; store.run = null; save(); showTitle(); };
       }
     }));
   }
@@ -654,14 +691,19 @@
       const d = C().PATTERNS[t];
       return `<div class="helppat"><b>${d.name}</b> <span class="muted">✦${d.cost} · stage ${C().roman(d.stage - 1)}</span><br>${d.rule}</div>`;
     }).join('');
+    const soils = C().SOIL_ORDER.map(s => `<b>${C().SOILS[s].name}</b> — ${C().SOILS[s].note}`).join('<br>');
     pushOverlay(panelOverlay(`
       <div class="paneltitle">how it works</div>
       <div class="helpbody">
-        <p>every turn, entropy seeps in — from the rim, from the air, sometimes in squalls. grey is disorder. color is order. <b>coherence</b> is how much of the board now holds together.</p>
-        <p>spend <b>✦ order</b> to plant living patterns. they replicate, link, eat, bloom, and pay for themselves — find the combinations that run away on their own. reach a stage’s coherence target and a golden choice appears: <b>let the world widen</b>. new ground arrives wild, pressure rises, new patterns unlock. you choose when — order keeps gathering while you prepare — but linger too long in one stage and the dark grows impatient.</p>
-        <p>if coherence stays under 22% for three turns, the stream takes the garden back.</p>
+        <p>every turn, entropy seeps in — from the rim, from the air, sometimes in squalls. grey is disorder; color is order. <b>coherence</b> is how much of the board now holds together.</p>
+        <p>spend <b>✦ order</b> to plant living patterns. they replicate, link, eat, bloom, and pay for themselves — find the combinations that run away on their own. click-drag to plant or tend a whole swath at once.</p>
+        <p><b>read the land.</b> each cell sits on a soil that bends the rules — plant fronds in the wet, crystals on stone, ants and moss on the ash. and patterns earn by their <b>neighbors</b>: a frond sheltered by moss, anchored by crystal, plumbed into mycelium pays several times a lonely one. hover any cell to see its soil and how it’s faring.</p>
+        <p><b>don’t hoard.</b> order above a soft cap radiates away as heat — but some of that heat condenses into <b>✸ insight</b>. spend insight in <b>« cultivate »</b> on cultivars and extra <b>hands</b> that plant 2–3 at once.</p>
+        <p><b>rot</b> spreads from the frontier and gnaws your patterns. tend it to wound it, foragers devour it, crystal auras corrode it — or wall it off and starve it. clearing it pays insight.</p>
+        <p>reach a stage’s coherence target and a golden choice appears: <b>let the world widen</b>. new ground arrives wild, pressure rises, a new pattern unlocks. you choose when — but a stalled garden invites the dark. if coherence stays under 22% for three turns, the stream takes the garden back.</p>
         ${pats}
-        <p class="muted">tend (T) scrubs a cell · prune (X) removes & refunds · space ends the turn · right-click clears your hand · artifacts live on the right — some want clicking.</p>
+        <div class="helppat"><b>soils</b><br><span class="muted">${soils}</span></div>
+        <p class="muted">tend (T) · prune (X, refunds) · space ends the turn · right-click clears your hand · 1–7 select patterns · artifacts live on the right — some want clicking.</p>
         <p class="muted">moss pays only beside disorder. ants starve in paradise. keep a frontier; you are not here to finish the world, only to keep it waking.</p>
       </div>`, { wide: true }));
   }
@@ -685,6 +727,55 @@
       <div class="muted center">${meta.echoes.length < 24 ? 'the rest are still in the soil. they surface as you play.' : 'all of it, gathered. thank you for listening.'}</div>
       ${codex}`,
       { wide: true }));
+  }
+
+  /* the story so far — line graphs of the run over time */
+  function statsOverlay() {
+    return (wrap, close) => {
+      const box = el('div', 'panelbox wide');
+      const x = el('button', 'closex', '×'); x.onclick = close; box.appendChild(x);
+      box.appendChild(el('div', 'paneltitle', 'the story so far'));
+      const series = (game && game.series) || [];
+      if (series.length < 2) {
+        box.appendChild(el('div', 'evointro', 'not enough has happened yet. play a few turns and look again.'));
+        wrap.appendChild(box); return;
+      }
+      const legend = el('div', 'statlegend');
+      legend.innerHTML = `<span class="lg lg-c">coherence</span><span class="lg lg-o">order</span><span class="lg lg-p">patterns</span><span class="lg lg-b">blight</span>`;
+      box.appendChild(legend);
+      const cv = el('canvas', 'statcanvas');
+      box.appendChild(cv);
+      wrap.appendChild(box);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const W = box.clientWidth - 60, H = 240;
+      cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
+      const cx = cv.getContext('2d'); cx.scale(dpr, dpr);
+      const padL = 34, padR = 10, padT = 12, padB = 22;
+      const t0 = series[0][0], t1 = series[series.length - 1][0];
+      const xAt = t => padL + (W - padL - padR) * (t1 > t0 ? (t - t0) / (t1 - t0) : 0);
+      const yAt = (v, max) => H - padB - (H - padT - padB) * (max > 0 ? Math.min(1, v / max) : 0);
+      /* gridlines */
+      cx.strokeStyle = 'rgba(120,110,95,0.15)'; cx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) { const y = padT + (H - padT - padB) * i / 4; cx.beginPath(); cx.moveTo(padL, y); cx.lineTo(W - padR, y); cx.stroke(); }
+      cx.fillStyle = 'rgba(154,143,124,0.7)'; cx.font = '10px ui-monospace, monospace'; cx.textAlign = 'right';
+      cx.fillText('turn ' + t0, xAt(t0) + 20, H - 8); cx.textAlign = 'right'; cx.fillText('turn ' + t1, W - padR, H - 8);
+      const maxOrder = Math.max(10, ...series.map(s => s[2]));
+      const maxPat = Math.max(4, ...series.map(s => s[3]));
+      const maxBlight = Math.max(4, ...series.map(s => s[4]));
+      const line = (sel, max, col, w) => {
+        cx.strokeStyle = col; cx.lineWidth = w || 2; cx.beginPath();
+        series.forEach((s, i) => { const x = xAt(s[0]), y = yAt(sel(s), max); i ? cx.lineTo(x, y) : cx.moveTo(x, y); });
+        cx.stroke();
+      };
+      line(s => s[4], maxBlight, 'rgba(184,154,210,0.85)', 1.6);  /* blight */
+      line(s => s[3], maxPat, 'rgba(124,158,87,0.9)', 1.6);       /* patterns */
+      line(s => s[2], maxOrder, 'rgba(230,200,106,0.9)', 1.6);    /* order */
+      line(s => s[1] / 1000, 1, 'rgba(207,230,164,1)', 2.4);      /* coherence (0..1) */
+      /* target line for coherence */
+      const tgt = game.target();
+      if (tgt != null) { cx.strokeStyle = 'rgba(230,200,106,0.4)'; cx.setLineDash([4, 4]); cx.lineWidth = 1; const y = yAt(tgt, 1); cx.beginPath(); cx.moveTo(padL, y); cx.lineTo(W - padR, y); cx.stroke(); cx.setLineDash([]); }
+      box.appendChild(el('div', 'evointro', `peak coherence ${Math.round(game.stats.peakC * 100)}% · ${game.stats.blightCleared || 0} rot cleared · ${game.stats.spilled || 0} order radiated · ${game.stats.eaten.toFixed(0)} entropy devoured`));
+    };
   }
 
   /* the evolution tree — spend insight on cultivars and extra hands */
@@ -731,23 +822,26 @@
   function statsHTML(g) {
     const p = g.stats.planted;
     const arts = g.artifacts.map(a => `<span class="endart r-${a.rarity}">${a.name}</span>`).join(' ') || '<span class="muted">none</span>';
+    const evos = g.evolutions.map(id => `<span class="endart">${C().EVOLUTIONS[id].name}</span>`).join(' ');
     return `
       <div class="statgrid">
         <div>turns</div><div>${g.turn}</div>
         <div>peak coherence</div><div>${Math.round(g.stats.peakC * 100)}%</div>
         <div>planted</div><div>${Object.keys(p).map(k => p[k] + ' ' + k).join(', ') || '—'}</div>
         <div>entropy devoured by ants</div><div>${g.stats.eaten.toFixed(1)}</div>
+        <div>rot cleared</div><div>${g.stats.blightCleared || 0}</div>
+        <div>order radiated as heat</div><div>${g.stats.spilled || 0}</div>
         <div>blossoms born</div><div>${g.stats.blooms}${g.stats.cascadeBest >= 3 ? ' (best cascade ' + g.stats.cascadeBest + ')' : ''}</div>
         <div>widest network</div><div>${g.stats.netBest} cells</div>
-        <div>squalls weathered</div><div>${g.stats.stormsSeen}</div>
         <div>murmurs surfaced</div><div>${g.echoesThisRun}</div>
       </div>
+      ${evos ? '<div class="endarts">' + evos + '</div>' : ''}
       <div class="endarts">${arts}</div>
       <div class="muted center">seed · ${g.seed}${meta.asc ? ' · deeper spring ' + meta.asc : ''}</div>`;
   }
 
   function onDissolved() {
-    AU.dissolved();
+    AU.dissolved(); music('dissolve');
     meta.runs++;
     store.run = null; save();
     setTimeout(() => pushOverlay((wrap, close) => {
@@ -775,7 +869,7 @@
     if (meta.best == null || game.turn < meta.best) meta.best = game.turn;
     store.run = null; save();
     document.body.classList.add('cinema');
-    AU.coalesce();
+    AU.coalesce(); music('coalesce');
     R.awakening(game, () => {
       document.body.classList.remove('cinema');
       /* the confession must precede the landing, even on a first-garden win */
@@ -930,6 +1024,7 @@
     if (kind === 'cells') { R.valuesMode = true; }
     if (kind === 'widen') { game.widenReady = true; }
     if (kind === 'evolve') { game.insight = 14; game.evolutions = ['clover', 'leafcutter']; pushOverlay(evolveOverlay()); }
+    if (kind === 'stats') pushOverlay(statsOverlay());
     if (kind === 'blight' || kind === 'storm') {
       /* infect a cluster touching the garden */
       let seeded = 0;

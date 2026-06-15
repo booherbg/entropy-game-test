@@ -141,3 +141,38 @@ loophole/
 
 Mobile layout (clicks work; layout is desktop-first), accessibility beyond tooltips/value
 toggle, server anything, daily seeds.
+
+---
+
+## v0.2 — "the living web" (addendum, 2026-06-15)
+
+Playtest feedback: too easy, too much idle money, mechanically-sound-but-shallow; wanted
+SimCity depth, surprise, a tighter feedback loop, real-author quotes, and a soundtrack. The
+unifying answer: **interdependence on contested terrain**. Added systems (all harness-covered,
+deterministic, save-v2):
+
+- **Biomes** — jittered-voronoi `terra` seeds assign each cell a soil (loam/wetland/stone/
+  meadow/ash) that bends pattern behavior (`soilMul`) and ambient diffusion/pressure. Maps are
+  no longer a solved radial bowl; reading the land is the first move.
+- **Synergies** — `_synergy(c)` returns an income multiplier from neighbor pattern types
+  (`C.SYNERGY`). Sheltered/anchored/plumbed patterns pay multiples of lonely ones. Surfaced on
+  hover. The placement puzzle.
+- **Economy** — order above a soft cap (`28 + 16·stage`, moddable) radiates as heat (half the
+  excess/turn); the heat condenses into **insight**. Hoarding is now a leak, not a strategy.
+- **Evolution tree** — `insight` (milestones + heat) spent on branching cultivars and **hands**
+  that broadcast-plant 2–3 cells at once. Same `mod()` pipeline as artifacts. The order sink and
+  build-variety layer.
+- **Blight** — scheduled motile rot (stage 3+) and wisps (stage 5+) that spawn on the frontier,
+  gnaw patterns, raise entropy, spread/drift, and **starve** when walled off. Countered by
+  tending, ant-predators, and crystal auras; clearing pays insight. Passive play gets overrun;
+  active counterplay contains it. The difficulty + surprise lever.
+- **Storm glow-up** — gathering vortex telegraph, lightning bolts, shockwave ring, screen shake.
+- **Real-quote murmurs** — the 18 teaching murmurs are now verified human quotations (Eddington,
+  Boltzmann, Schrödinger, Mandelbrot, Lewis Thomas, Anderson, Margulis, Thich Nhat Hanh, Wiener,
+  Watts, Dōgen, Whitman, Hofstadter, Sagan, Camus, Heraclitus, Dylan Thomas) with attributions;
+  the AI's confession (xix–xxiv) now admits it *curated* them. More honest than inventing them.
+- **Soundtrack** — `js/audio.js`: a lookahead-scheduled generative engine (ethereal techno ×
+  jungle mist) whose layer gains crossfade with stage/coherence; reactive cues on storm/cascade/
+  stage/coalesce/dissolve. Architecture adapted from the DJ OOR project.
+- **QoL** — click-drag to plant/tend/prune a swath; a stats-over-time line graph ("the story so
+  far"); same-turn-prune full refund; Esc closes overlays; offer hotkeys.

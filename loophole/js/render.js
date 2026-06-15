@@ -1287,7 +1287,6 @@
         cx.font = '13px Georgia, serif';
         cx.textAlign = 'center';
         cx.fillText('( linger, or touch the garden to continue )', cxm, H - 28);
-        if (!c.done && el > 13.2 && c.clickThrough) { /* handled by skip */ }
       }
     }
   }
