@@ -4,7 +4,8 @@
 (function () {
   'use strict';
   const LP = globalThis.LP || (globalThis.LP = {});
-  LP.VERSION = '1.0.0';
+  LP.VERSION = '0.2.0';
+  LP.SAVE_V = 2;
 
   /* ───────────────────────── utils ───────────────────────── */
   const U = LP.U = {
@@ -102,6 +103,9 @@
       this.echoesThisRun = 0;
       this.widenReady = false;
       this.turnsInStage = 0;
+      this.insight = 0;        /* evolution currency */
+      this.insightFrac = 0;    /* heat condenses into insight slowly */
+      this.evolutions = [];
       this.over = false;
       this.won = false;
       this.awakened = false;
@@ -126,12 +130,11 @@
     get C() { return LP.CONTENT; }
 
     _init() {
+      this._genTerra();
       const R = this.C.STAGES[0].radius;
       this.radius = R;
       for (const [q, r] of HEX.coordsWithin(R)) {
-        const d = HEX.dist(q, r) / R;
-        let e = U.clamp(0.42 + 0.42 * d + this.rng.range(-0.06, 0.06), 0.2, 0.95);
-        this.cells.set(HEX.key(q, r), this._mkCell(q, r, e));
+        this.cells.set(HEX.key(q, r), this._mkCellAt(q, r));
       }
       /* squall schedule for the whole run */
       let t = 9;
@@ -146,17 +149,70 @@
       this._recompute();
     }
 
-    _mkCell(q, r, e) { return { q, r, e, eMin: e, pat: null, trail: 0 }; }
+    /* clustered biomes via jittered voronoi seeds — deterministic, and
+       continuous so rings added on widening inherit the same landscape */
+    _genTerra() {
+      this.terra = [];
+      const R = 9;
+      const palette = ['loam', 'loam', 'loam', 'wetland', 'stone', 'meadow', 'ash'];
+      const n = 7 + this.rng.i(4);
+      const present = new Set();
+      for (let i = 0; i < n; i++) {
+        const q = this.rng.i(2 * R + 1) - R, r = this.rng.i(2 * R + 1) - R;
+        let b = this.rng.pick(palette);
+        if (HEX.dist(q, r) < 3 && b === 'ash') b = 'meadow'; /* the burnt edge stays an edge */
+        this.terra.push({ q, r, b });
+        present.add(b);
+      }
+      /* guarantee the land has texture: at least one lush and one hard biome */
+      if (!present.has('wetland')) this.terra.push({ q: this.rng.i(13) - 6, r: this.rng.i(13) - 6, b: 'wetland' });
+      if (!present.has('stone')) this.terra.push({ q: this.rng.i(13) - 6, r: this.rng.i(13) - 6, b: 'stone' });
+    }
 
-    /* ── artifact modifier pipeline ── */
+    soilAt(q, r) {
+      let best = 'loam', bd = 1e9;
+      for (const s of this.terra) {
+        const jitter = (U.hash32(s.q + '_' + s.r + ':' + q + '_' + r) % 1000) / 1000 * 1.4;
+        const d = HEX.dist2(q, r, s.q, s.r) + jitter;
+        if (d < bd) { bd = d; best = s.b; }
+      }
+      return best;
+    }
+
+    _mkCellAt(q, r) {
+      const soil = this.soilAt(q, r);
+      const d = HEX.dist(q, r) / Math.max(1, this.radius);
+      const noise = (U.hash32('e:' + q + '_' + r + this.seed) % 1000) / 1000 - 0.5;
+      const e = U.clamp(0.44 + 0.24 * d + this.C.soilMul(soil, 'e0') + noise * 0.16 + this.rng.range(-0.03, 0.03), 0.16, 0.96);
+      return this._mkCell(q, r, e, soil);
+    }
+
+    _mkCell(q, r, e, soil) { return { q, r, e, eMin: e, pat: null, trail: 0, soil: soil || 'loam' }; }
+    soilMul(c, key) { return this.C.soilMul(c.soil, key); }
+
+    /* the placement puzzle: a pattern's income scales with its neighbors */
+    _synergy(c) {
+      if (!c.pat) return 1;
+      const tbl = this.C.SYNERGY[c.pat.t];
+      if (!tbl) return 1;
+      let s = 0;
+      for (const k of HEX.neighborsK(HEX.key(c.q, c.r))) {
+        const cc = this.cells.get(k);
+        if (cc && cc.pat && tbl[cc.pat.t] != null) s += tbl[cc.pat.t];
+      }
+      return U.clamp(1 + s, 0.4, 2.6);
+    }
+
+    /* ── modifier pipeline: artifacts and evolutions both feed it ── */
     mod(key, base) {
       let add = 0, mul = 1;
-      for (const a of this.artifacts) {
-        if (a.mods) {
-          if (a.mods.add && a.mods.add[key] != null) add += a.mods.add[key];
-          if (a.mods.mul && a.mods.mul[key] != null) mul *= a.mods.mul[key];
-        }
-      }
+      const apply = m => {
+        if (!m) return;
+        if (m.add && m.add[key] != null) add += m.add[key];
+        if (m.mul && m.mul[key] != null) mul *= m.mul[key];
+      };
+      for (const a of this.artifacts) apply(a.mods);
+      for (const id of this.evolutions) { const e = this.C.EVOLUTIONS[id]; if (e) apply(e.mods); }
       return (base + add) * mul;
     }
     flag(key) { return this.mod(key, 0) > 0; }
@@ -201,6 +257,14 @@
     }
 
     /* ── player actions ── */
+    plantCost(t, k) {
+      const def = this.C.PATTERNS[t];
+      let cost = def.cost;
+      const c = this.cells.get(k);
+      if (c && t === 'crys') cost *= this.soilMul(c, 'crysCost'); /* cheap on stone, dear in wetland */
+      cost *= this.mod('costAll', 1);
+      return Math.max(1, Math.round(cost));
+    }
     canPlant(t, k) {
       const def = this.C.PATTERNS[t];
       if (!def) return { ok: false, why: 'unknown pattern' };
@@ -209,7 +273,7 @@
       const c = this.cells.get(k);
       if (!c) return { ok: false, why: 'no ground there' };
       if (c.pat) return { ok: false, why: 'already occupied' };
-      if (this.order < def.cost) return { ok: false, why: 'not enough order' };
+      if (this.order < this.plantCost(t, k)) return { ok: false, why: 'not enough order' };
       if (c.e > def.maxE) return { ok: false, why: 'too entropic — tend it first' };
       return { ok: true };
     }
@@ -217,17 +281,61 @@
     plant(t, k) {
       const chk = this.canPlant(t, k);
       if (!chk.ok) return chk;
-      const def = this.C.PATTERNS[t];
       const c = this.cells.get(k);
-      this.order -= def.cost;
-      this.stats.spent += def.cost;
+      const cost = this.plantCost(t, k);
+      this.order -= cost;
+      this.stats.spent += cost;
       c.pat = this._mkPat(t);
       c.pat.fresh = 1; /* same-turn prune refunds in full — a misclick is not a debt */
       this.stats.planted[t] = (this.stats.planted[t] || 0) + 1;
       const ev = [{ t: 'plant', k, pt: t }];
+      this._broadcast(t, k, ev);
       this._occasion('plant1', ev);
       this._recompute();
       return { ok: true, events: ev };
+    }
+
+    /* the many hands: planting a garden pattern also seeds calm neighbors, free */
+    _broadcast(t, k, ev) {
+      if (t !== 'moss' && t !== 'frond' && t !== 'bloom') return;
+      const n = Math.round(this.mod('hands', 0));
+      if (n <= 0) return;
+      const def = this.C.PATTERNS[t];
+      const cands = HEX.neighborsK(k)
+        .map(nk => this.cells.get(nk))
+        .filter(cc => cc && !cc.pat && cc.e <= def.maxE)
+        .sort((a, b) => a.e - b.e);
+      for (let i = 0; i < Math.min(n, cands.length); i++) {
+        const cc = cands[i];
+        cc.pat = this._mkPat(t);
+        cc.pat.fresh = 1;
+        this.stats.planted[t] = (this.stats.planted[t] || 0) + 1;
+        ev.push({ t: 'plant', k: HEX.key(cc.q, cc.r), pt: t, via: 'hands' });
+      }
+    }
+
+    /* ── evolution tree ── */
+    canEvolve(id) {
+      const e = this.C.EVOLUTIONS[id];
+      if (!e) return { ok: false, why: 'unknown' };
+      if (this.evolutions.includes(id)) return { ok: false, why: 'already grown' };
+      if (e.req && !this.evolutions.includes(e.req)) return { ok: false, why: 'needs ' + this.C.EVOLUTIONS[e.req].name };
+      if (this.insight < e.cost) return { ok: false, why: 'not enough insight' };
+      return { ok: true };
+    }
+    evolve(id) {
+      const chk = this.canEvolve(id);
+      if (!chk.ok) return chk;
+      this.insight -= this.C.EVOLUTIONS[id].cost;
+      this.evolutions.push(id);
+      this._recompute();
+      return { ok: true };
+    }
+    grantInsight(reason, amt) {
+      const key = 'ins:' + reason;
+      if (this.firedOcc[key]) return;
+      this.firedOcc[key] = true;
+      this.insight += amt;
     }
 
     _mkPat(t) {
@@ -266,8 +374,8 @@
       if (this.over) return { ok: false, why: 'the run has ended' };
       const c = this.cells.get(k);
       if (!c || !c.pat) return { ok: false, why: 'nothing to prune' };
-      const def = this.C.PATTERNS[c.pat.t];
-      const refund = c.pat.fresh ? def.cost : Math.floor(def.cost * this.mod('pruneRefund', 0.3));
+      const base = this.plantCost(c.pat.t, k);
+      const refund = c.pat.fresh ? base : Math.floor(base * this.mod('pruneRefund', 0.3));
       const pt = c.pat.t;
       c.pat = null;
       this.order += refund;
@@ -364,6 +472,23 @@
       this.stats.income += gained;
       ev.push({ t: 'income', n: gained });
 
+      /* hoarded order radiates as heat — undissipated structure is just warmth.
+         spend it, or lose half of every point above the cap. */
+      const cap = Math.round((28 + 16 * this.stage) * this.mod('orderCapMul', 1) + this.mod('orderCap', 0));
+      this.orderCap = cap;
+      if (this.order > cap) {
+        const spilled = Math.floor((this.order - cap) * 0.5);
+        if (spilled > 0) {
+          this.order -= spilled;
+          this.stats.spilled = (this.stats.spilled || 0) + spilled;
+          /* heat does not all escape — some condenses into insight, the slow understanding */
+          this.insightFrac += spilled / 16;
+          let gained = 0;
+          while (this.insightFrac >= 1) { this.insightFrac -= 1; this.insight++; gained++; }
+          ev.push({ t: 'heat', n: spilled, cap, insight: gained });
+        }
+      }
+
       const C = this.coherence();
       this.stats.peakC = Math.max(this.stats.peakC, C);
       this._stageCheck(C, ev);
@@ -436,8 +561,8 @@
       for (const n of this.networks) {
         for (const k of n.cells) this.netOf.set(k, n);
         this.stats.netBest = Math.max(this.stats.netBest, n.cells.size);
-        if (n.cells.size >= 6) this._occasion('net6', null);
-        if (n.cells.size >= 20) this._occasion('net20', null);
+        if (n.cells.size >= 6) { this._occasion('net6', null); this.grantInsight('net6', 1); }
+        if (n.cells.size >= 20) { this._occasion('net20', null); this.grantInsight('net20', 2); }
       }
     }
 
@@ -462,7 +587,7 @@
         const targets = cands.slice(0, 3);
         let eaten = 0;
         if (targets.length) {
-          const eatTotal = p.pop * 0.05 * this.mod('antEat', 1);
+          const eatTotal = p.pop * 0.05 * this.mod('antEat', 1) * this.soilMul(c, 'ant');
           const per = eatTotal / targets.length;
           for (const tc of targets) {
             const bite = Math.min(per, tc.e - 0.05);
@@ -474,7 +599,7 @@
         p.lastEaten = eaten;
         this.stats.eaten += eaten;
         p.food += eaten;
-        income += eaten * 0.9;
+        income += eaten * 0.9 * this._synergy(c); /* crowded colonies pay less */
         const popMax = Math.round(this.mod('antPopMax', 24));
         if (p.food >= 1 && p.pop < popMax) { p.pop = Math.min(p.pop + 2, popMax); p.food -= 1; }
         if (eaten < p.pop * 0.012) p.pop -= 1;
@@ -500,7 +625,7 @@
         c.e = U.clamp(c.e - 0.05, 0, 1);
         const maxL = Math.round(this.mod('mycLinkMax', 5));
         if (p.links.length < maxL) {
-          const R = Math.round(this.mod('mycRange', 2));
+          const R = Math.max(1, Math.round(this.mod('mycRange', 2) + this.soilMul(c, 'mycRange')));
           let best = null, bestD = 1e9;
           for (const k of HEX.disk(c.q, c.r, R)) {
             if (k === HEX.key(c.q, c.r) || p.links.includes(k)) continue;
@@ -552,7 +677,7 @@
         if (n > surviveHi) deaths.push(c);
         else if (n <= 1) { if (c.pat.lone + 1 >= loneMax && c.pat.age >= 1) deaths.push(c); else loneTick.push(c); }
       }
-      const birthE = this.mod('bloomBirthE', 0.40);
+      const birthE0 = this.mod('bloomBirthE', 0.40);
       const births = [];
       const seen = new Set();
       for (const c of flowers) {
@@ -560,7 +685,9 @@
           if (seen.has(k)) continue;
           seen.add(k);
           const cc = this.cells.get(k);
-          if (!cc || cc.pat || cc.e >= birthE) continue;
+          if (!cc || cc.pat) continue;
+          const birthE = birthE0 + this.soilMul(cc, 'bloom'); /* meadow sprouts readily, ash resists */
+          if (cc.e >= birthE) continue;
           let n = 0;
           for (const k2 of HEX.neighborsK(k)) {
             const c2 = this.cells.get(k2);
@@ -591,6 +718,7 @@
       orderGain = Math.min(orderGain, 12);
       if (burst >= 2) ev.push({ t: 'cascade', n: burst, viaPulse: !!viaPulse });
       if (burst > this.stats.cascadeBest) this.stats.cascadeBest = burst;
+      if (burst >= 3) this.grantInsight('cascade', 1);
       if (burst >= 5) this._occasion('cascade5', ev);
       return orderGain;
     }
@@ -621,7 +749,7 @@
       for (const c of this._patternCells('moss')) {
         const p = c.pat;
         p.age++;
-        c.e = U.clamp(c.e - 0.12 * this.mod('mossPower', 1), 0, 1);
+        c.e = U.clamp(c.e - 0.12 * this.mod('mossPower', 1) * this.soilMul(c, 'moss'), 0, 1);
         if (p.age >= 3) {
           /* moss feeds on the slope: it pays only beside disorder (or the rim).
              a fully ordered interior starves its own economy — second law as economy. */
@@ -631,7 +759,7 @@
             if (!cc || cc.e >= 0.3) { gradient = true; }
             if (cc) cc.e = U.clamp(cc.e - 0.02, 0, 1);
           }
-          if (gradient) income += 0.4 * this.mod('mossIncome', 1);
+          if (gradient) income += 0.4 * this.mod('mossIncome', 1) * this.soilMul(c, 'moss') * this._synergy(c);
         }
         p.spr++;
         if (p.age >= 2 && p.spr >= every) {
@@ -642,14 +770,18 @@
       return income;
     }
 
-    _frondGrow(c) {
+    _frondGrow(c, syn) {
       const p = c.pat;
       const maxD = Math.round(this.mod('frondMaxDepth', 6));
-      if (c.e < this.mod('frondGrowGate', 0.45) && p.depth < maxD) {
+      /* soil and shelter widen the window a frond can unfold in */
+      const shelter = ((syn == null ? this._synergy(c) : syn) - 1) * 0.12;
+      const gate = this.mod('frondGrowGate', 0.45) + this.soilMul(c, 'frondGate') + shelter;
+      if (c.e < gate && p.depth < maxD) {
         p.depth++;
         if (p.depth >= maxD && !p.maxed) {
           p.maxed = true;
           this.stats.frondMaxed++;
+          this.grantInsight('frondmax', 1);
           this._occasion('frondMax', null);
         }
       }
@@ -659,14 +791,24 @@
       let income = 0;
       for (const c of this._patternCells('frond')) {
         const p = c.pat;
+        const syn = this._synergy(c);
         p.age++;
         c.e = U.clamp(c.e - 0.05, 0, 1);
-        this._frondGrow(c);
+        this._frondGrow(c, syn);
         if (c.e > 0.55) {
           p.depth--;
           ev.push({ t: 'wither', k: HEX.key(c.q, c.r) });
         }
-        if (p.depth > 0) income += 0.25 * (p.depth * (p.depth + 1) / 2) * this.mod('frondIncome', 1);
+        if (p.depth > 0) income += 0.25 * (p.depth * (p.depth + 1) / 2) * this.mod('frondIncome', 1) * this.soilMul(c, 'frond') * syn;
+        /* sporeleaf: a thriving, deep frond casts a spore into the calmest open neighbor */
+        if (this.flag('sporeleaf') && p.depth >= 4 && syn >= 1.2 && this.rng.chance(0.12)) {
+          let best = null;
+          for (const k of HEX.neighborsK(HEX.key(c.q, c.r))) {
+            const cc = this.cells.get(k);
+            if (cc && !cc.pat && cc.e < 0.4 && (!best || cc.e < best.e)) best = cc;
+          }
+          if (best) { best.pat = this._mkPat('frond'); ev.push({ t: 'spore', k: HEX.key(best.q, best.r) }); }
+        }
       }
       return income;
     }
@@ -736,7 +878,7 @@
     }
 
     _physics(ev) {
-      const k = 0.16;
+      const k0 = 0.16;
       const P = this.pressure();
       const next = new Map();
       for (const [key, c] of this.cells) {
@@ -747,9 +889,9 @@
           nCnt++;
         }
         const aura = this.aura.get(key) || 1;
-        let flow = k * (nSum / nCnt - c.e);
+        let flow = k0 * this.soilMul(c, 'diffuse') * (nSum / nCnt - c.e);
         if (flow > 0) flow *= aura; /* anchors damp inflow, not outflow */
-        let press = P * aura;
+        let press = P * aura * this.soilMul(c, 'press');
         if (c.trail) press *= 0.7;
         if (this.flag('eddy')) {
           const n = this.netOf.get(key);
@@ -803,6 +945,7 @@
           }
         }
         this.stats.stormsSeen++;
+        this.grantInsight('storm', 1);
         ev.push({ t: 'storm', cells: hit, center, power });
         this.emit('storm', { center, cells: hit }, ev);
         this._occasion('storm1', ev);
@@ -836,7 +979,8 @@
       for (const c of this._patternCells()) {
         const p = c.pat;
         if (!p) continue;
-        if (p.t === 'moss' && p.stress >= 2) this._kill(c, ev, 'drowned in noise');
+        const mossStressMax = this.flag('ironMoss') ? 4 : 2;
+        if (p.t === 'moss' && p.stress >= mossStressMax) this._kill(c, ev, 'drowned in noise');
         else if (p.t === 'frond' && p.depth <= 0) this._kill(c, ev, 'withered');
         else if (p.t === 'ant' && (p.pop <= 0 || c.e > 0.92)) this._kill(c, ev, 'scattered');
         else if (p.t === 'bloom' && (c.e > 0.5 || p.lone >= 99)) this._kill(c, ev, 'faded');
@@ -863,13 +1007,16 @@
       const ev = [];
       if (st.radius > this.radius) {
         this.radius = st.radius;
-        const eNew = U.clamp(0.88 + this.mod('expansionE', 0) + 0.02 * this.asc, 0.4, 0.97);
+        const eBoost = 0.40 + this.mod('expansionE', 0) + 0.02 * this.asc; /* the new rim arrives wild */
         for (const [q, r] of HEX.ring(st.radius)) {
-          const e = U.clamp(eNew + this.rng.range(-0.05, 0.05), 0, 1);
-          this.cells.set(HEX.key(q, r), this._mkCell(q, r, e));
+          const soil = this.soilAt(q, r);
+          const e = U.clamp(0.5 + eBoost + this.C.soilMul(soil, 'e0') + this.rng.range(-0.05, 0.05), 0.4, 0.97);
+          const cell = this._mkCell(q, r, e, soil);
+          this.cells.set(HEX.key(q, r), cell);
         }
       }
-      this.order += 8 + 4 * this.stage;
+      this.order += 6 + 3 * this.stage;
+      this.grantInsight('stage' + this.stage, 2);
       ev.push({ t: 'stageUp', stage: this.stage, name: st.name, unlocks: st.unlocks });
       this._occasion('stage' + this.stage, ev);
       this.pendingOffer = this.C.rollOffer(this);
@@ -933,7 +1080,8 @@
       const g = Game.fromJSON(snap);
       /* adopt the older self */
       for (const f of ['turn', 'stage', 'order', 'carry', 'lowStreak', 'finds', 'echoOwned',
-        'echoesThisRun', 'widenReady', 'turnsInStage', 'radius', 'stormI', 'firedOcc', 'stats']) this[f] = g[f];
+        'echoesThisRun', 'widenReady', 'turnsInStage', 'insight', 'insightFrac', 'evolutions',
+        'radius', 'stormI', 'firedOcc', 'stats']) this[f] = g[f];
       this.cells = g.cells;
       this.artifacts = g.artifacts;
       this.rng.s = g.rng.s;
@@ -946,20 +1094,24 @@
 
     /* ── serialization (stable ordering for roundtrip equality) ── */
     serialize() {
+      const si = s => Math.max(0, this.C.SOIL_ORDER.indexOf(s));
       const cells = [...this.cells.values()]
         .sort((a, b) => a.r - b.r || a.q - b.q)
         .map(c => {
-          const o = [c.q, c.r, Math.round(c.e * 1e4), Math.round(c.eMin * 1e4)];
+          const o = [c.q, c.r, Math.round(c.e * 1e4), Math.round(c.eMin * 1e4), si(c.soil)];
           if (c.pat || c.trail) o.push(c.pat ? this._patJSON(c.pat) : 0, c.trail ? 1 : 0);
           return o;
         });
       return {
-        v: 1, seed: this.seed, asc: this.asc, s: this.rng.s,
+        v: 2, seed: this.seed, asc: this.asc, s: this.rng.s,
         turn: this.turn, stage: this.stage, order: this.order,
         carry: Math.round(this.carry * 1e6) / 1e6,
+        terra: this.terra.map(t => [t.q, t.r, si(t.b)]),
         radius: this.radius, lowStreak: this.lowStreak, finds: this.finds,
         echoOwned: [...this.echoOwned].sort((a, b) => a - b), echoRun: this.echoesThisRun,
         widenReady: this.widenReady, turnsInStage: this.turnsInStage,
+        insight: this.insight, insightFrac: Math.round(this.insightFrac * 1e4) / 1e4,
+        evolutions: [...this.evolutions],
         over: this.over, won: this.won, awakened: this.awakened,
         stormI: this.stormI,
         stormQueue: this.stormQueue.map(s => [s.turn, Math.round(s.u * 1e6) / 1e6, s.radius, Math.round(s.power * 1e4) / 1e4]),
@@ -986,13 +1138,18 @@
     }
     static fromJSON(o) {
       const g = new Game(o.seed, { blank: true, ascension: o.asc });
+      const SO = LP.CONTENT.SOIL_ORDER;
       g.rng.s = o.s >>> 0;
+      g.terra = (o.terra || []).map(t => ({ q: t[0], r: t[1], b: SO[t[2]] || 'loam' }));
       g.turn = o.turn; g.stage = o.stage; g.order = o.order; g.carry = o.carry;
       g.radius = o.radius; g.lowStreak = o.lowStreak; g.finds = o.finds;
       g.echoOwned = new Set(o.echoOwned || []);
       g.echoesThisRun = o.echoRun;
       g.widenReady = !!o.widenReady;
       g.turnsInStage = o.turnsInStage || 0;
+      g.insight = o.insight || 0;
+      g.insightFrac = o.insightFrac || 0;
+      g.evolutions = o.evolutions || [];
       g.over = o.over; g.won = o.won; g.awakened = o.awakened;
       g.stormI = o.stormI;
       g.stormQueue = o.stormQueue.map(s => ({ turn: s[0], u: s[1], radius: s[2], power: s[3] }));
@@ -1006,14 +1163,14 @@
       g.pendingOffer = o.pendingOffer || null;
       g.stats = o.stats;
       for (const cd of o.cells) {
-        const c = g._mkCell(cd[0], cd[1], cd[2] / 1e4);
+        const c = g._mkCell(cd[0], cd[1], cd[2] / 1e4, SO[cd[4]] || 'loam');
         c.eMin = cd[3] / 1e4;
-        if (cd.length > 4) {
-          if (cd[4]) {
-            c.pat = cd[4];
+        if (cd.length > 5) {
+          if (cd[5]) {
+            c.pat = cd[5];
             if (c.pat.t === 'ant') c.pat.lastTargets = [];
           }
-          c.trail = cd[5] || 0;
+          c.trail = cd[6] || 0;
         }
         g.cells.set(HEX.key(c.q, c.r), c);
       }

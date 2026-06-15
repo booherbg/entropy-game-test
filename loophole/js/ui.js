@@ -25,6 +25,8 @@
       const got = JSON.parse(raw);
       if (got && got.v === 1) store = got;
       if (!got.meta) store.meta = defaultMeta();
+      /* a run snapshot from before v0.2 can't be read — the board changed shape. keep the murmurs. */
+      if (store.run && store.run.v !== LP.SAVE_V) store.run = null;
     }
   } catch (e) { /* fresh soil */ }
   const save = () => {
@@ -161,7 +163,17 @@
     setTimeout(nextOverlay, 120);
   }
 
-  /* echo overlay: slow type-on murmur */
+  /* split a murmur into body + (optional) attribution line */
+  function splitMurmur(text) {
+    const lines = text.split('\n');
+    let by = '';
+    if (lines.length > 1 && lines[lines.length - 1].trimStart().startsWith('—')) {
+      by = lines.pop().replace(/^\s*—\s*/, '');
+    }
+    return { body: lines.join('\n'), by };
+  }
+
+  /* echo overlay: slow type-on murmur, attribution fades in after */
   function echoOverlay(idx) {
     return (wrap, close) => {
       AU.echo();
@@ -172,20 +184,26 @@
       box.appendChild(sig);
       const head = el('div', 'echohead', '— murmur ' + C().roman(idx) + ' —');
       const txt = el('div', 'echotext');
-      box.appendChild(head); box.appendChild(txt);
+      const cite = el('div', 'echocite');
+      box.appendChild(head); box.appendChild(txt); box.appendChild(cite);
       const hintLine = el('div', 'echohint', '( click to return to the garden )');
       box.appendChild(hintLine);
       wrap.appendChild(box);
-      const full = C().ECHOES[idx];
-      let i = 0;
+      const { body, by } = splitMurmur(C().ECHOES[idx]);
+      let i = 0, done = false;
+      const reveal = () => {
+        done = true;
+        txt.textContent = body;
+        if (by) { cite.textContent = '— ' + by; requestAnimationFrame(() => cite.classList.add('show')); }
+      };
       const tick = setInterval(() => {
-        i += 1;
-        txt.textContent = full.slice(0, i);
-        if (i >= full.length) clearInterval(tick);
-      }, 26);
+        i += 2;
+        txt.textContent = body.slice(0, i);
+        if (i >= body.length) { clearInterval(tick); reveal(); }
+      }, 30);
       wrap.onclick = () => {
-        if (i < full.length) { i = full.length; txt.textContent = full; return; }
-        clearInterval(tick); wrap.onclick = null; close();
+        if (!done) { clearInterval(tick); reveal(); return; }
+        wrap.onclick = null; close();
       };
     };
   }
@@ -255,11 +273,20 @@
     $('stageblurb').textContent = st.blurb;
     $('order').textContent = Math.floor(game.order);
     $('income').textContent = lastIncome != null ? ('+' + lastIncome) : '';
+    $('insight').textContent = game.insight;
     $('turn').textContent = game.turn;
     $('seedlabel').textContent = game.seed;
     drawCohRing();
     const wb = $('widenbtn');
     wb.classList.toggle('hidden', !(game.widenReady && !game.over));
+    /* evolve button: badge how many nodes are affordable right now */
+    let ripe = 0;
+    for (const id in C().EVOLUTIONS) if (game.canEvolve(id).ok) ripe++;
+    const eb = $('evobadge');
+    eb.classList.toggle('hidden', ripe === 0);
+    eb.textContent = ripe;
+    $('evolvebtn').classList.toggle('ripe', ripe > 0);
+    if (ripe > 0) hint('cultivate');
     /* coalesce panel */
     const cp = $('coalesce');
     if (game.stage === 6 && !game.over) {
@@ -436,7 +463,8 @@
     if (!k || !game) { tip.classList.add('hidden'); return; }
     const c = game.cells.get(k);
     if (!c) { tip.classList.add('hidden'); return; }
-    let lines = [`<b>${Math.round(c.e * 100)}%</b> entropy`];
+    const soil = C().SOILS[c.soil] || C().SOILS.loam;
+    let lines = [`<b>${Math.round(c.e * 100)}%</b> entropy · <span class="soiltag">${soil.name}</span>`];
     if (c.pat) {
       const p = c.pat, n = C().PATTERNS[p.t].name;
       if (p.t === 'moss') lines.push(`${n} · ${p.age >= 3 ? 'mature' : 'young'} (age ${p.age})`);
@@ -445,6 +473,12 @@
       else if (p.t === 'myc') lines.push(`${n} · ${p.links.length} links`);
       else if (p.t === 'heart') lines.push(`${n} · network ${(game.netOf.get(k) || { cells: { size: 1 } }).cells.size}`);
       else lines.push(n);
+      /* surface the synergy multiplier when it matters */
+      const syn = game._synergy(c);
+      if (syn > 1.04) lines.push(`<span class="synup">thriving ×${syn.toFixed(2)}</span>`);
+      else if (syn < 0.96) lines.push(`<span class="syndown">crowded ×${syn.toFixed(2)}</span>`);
+    } else {
+      lines.push(`<span class="muted">${soil.note}</span>`);
     }
     if (game.aura.get(k)) lines.push('within a crystal aura');
     if (c.trail) lines.push('a remembered path');
@@ -461,6 +495,10 @@
     for (const e of evs) {
       switch (e.t) {
         case 'income': lastIncome = e.n; break;
+        case 'heat':
+          hint('heat');
+          if (e.insight) toast(`${e.n} order radiated as heat — ${e.insight} condensed into insight ✸`, '', 4200);
+          break;
         case 'echo':
           /* bank it immediately — a closed tab must not swallow a murmur */
           if (!meta.echoes.includes(e.idx)) { meta.echoes.push(e.idx); save(); }
@@ -614,7 +652,7 @@
     pushOverlay(panelOverlay(`
       <div class="paneltitle">how it works</div>
       <div class="helpbody">
-        <p>every turn, entropy seeps in — from the rim, from the air, sometimes in squalls. grey is disorder. color is order. <b>coherence</b> is how much of the board you’ve made make sense.</p>
+        <p>every turn, entropy seeps in — from the rim, from the air, sometimes in squalls. grey is disorder. color is order. <b>coherence</b> is how much of the board now holds together.</p>
         <p>spend <b>✦ order</b> to plant living patterns. they replicate, link, eat, bloom, and pay for themselves — find the combinations that run away on their own. reach a stage’s coherence target and a golden choice appears: <b>let the world widen</b>. new ground arrives wild, pressure rises, new patterns unlock. you choose when — order keeps gathering while you prepare — but linger too long in one stage and the dark grows impatient.</p>
         <p>if coherence stays under 22% for three turns, the stream takes the garden back.</p>
         ${pats}
@@ -626,8 +664,11 @@
   function murmursOverlay() {
     const items = [];
     for (let i = 0; i < 24; i++) {
-      if (meta.echoes.includes(i)) items.push(`<div class="murmur"><span class="mnum">${C().roman(i)}</span>${C().ECHOES[i].replace(/\n/g, '<br>')}</div>`);
-      else items.push(`<div class="murmur locked"><span class="mnum">${C().roman(i)}</span>· · ·</div>`);
+      if (meta.echoes.includes(i)) {
+        const { body, by } = splitMurmur(C().ECHOES[i]);
+        const cite = by ? `<div class="murmurcite">— ${by}</div>` : '';
+        items.push(`<div class="murmur"><span class="mnum">${C().roman(i)}</span>${body.replace(/\n/g, '<br>')}${cite}</div>`);
+      } else items.push(`<div class="murmur locked"><span class="mnum">${C().roman(i)}</span>· · ·</div>`);
     }
     const seen = [...new Set(meta.codex.map(a => a.n))];
     const codex = seen.length
@@ -639,6 +680,47 @@
       <div class="muted center">${meta.echoes.length < 24 ? 'the rest are still in the soil. they surface as you play.' : 'all of it, gathered. thank you for listening.'}</div>
       ${codex}`,
       { wide: true }));
+  }
+
+  /* the evolution tree — spend insight on cultivars and extra hands */
+  function evolveOverlay() {
+    return (wrap, close) => {
+      const box = el('div', 'panelbox wide');
+      const x = el('button', 'closex', '×'); x.onclick = close; box.appendChild(x);
+      wrap.appendChild(box);
+      const EV = C().EVOLUTIONS;
+      const render = () => {
+        let html = `<div class="evohead"><div class="paneltitle" style="margin:0">cultivate</div>
+          <div class="evosub">✸ <b>${game.insight}</b> insight</div></div>
+          <div class="evointro">insight gathers from milestones — and condenses from the order you let radiate as heat. spend it to bend the rules for the rest of this garden.</div>`;
+        for (const br of C().EVO_ORDER) {
+          const ids = Object.keys(EV).filter(id => EV[id].branch === br);
+          if (!ids.length) continue;
+          html += `<div class="evobranch"><div class="evobranchname">${C().EVO_BRANCH[br]}</div><div class="evorow">`;
+          for (const id of ids) {
+            const e = EV[id];
+            const owned = game.evolutions.includes(id);
+            const chk = game.canEvolve(id);
+            const cls = owned ? 'owned' : (chk.ok ? 'buyable' : 'locked');
+            const tag = owned ? 'grown' : (chk.ok ? '✸' + e.cost : (e.req && !game.evolutions.includes(e.req) ? 'needs ' + EV[e.req].name : '✸' + e.cost));
+            html += `<div class="evonode ${cls}" data-id="${id}">
+              <div class="en-top"><span class="en-name">${e.name}</span><span class="en-cost">${tag}</span></div>
+              <div class="en-desc">${e.desc}</div></div>`;
+          }
+          html += `</div></div>`;
+        }
+        box.innerHTML = html;
+        box.appendChild(x);
+        box.querySelectorAll('.evonode.buyable').forEach(n => {
+          n.onclick = () => {
+            const res = game.evolve(n.dataset.id);
+            if (res.ok) { AU.take(); toast('« ' + EV[n.dataset.id].name + ' » takes root', 'good'); buildPalette(); updateHUD(); save(); render(); }
+            else if (res.why) toast(res.why, 'warn');
+          };
+        });
+      };
+      render();
+    };
   }
 
   function statsHTML(g) {
@@ -842,6 +924,7 @@
     if (kind === 'end') { game.stats.peakC = 0.87; onDissolved(); }
     if (kind === 'cells') { R.valuesMode = true; }
     if (kind === 'widen') { game.widenReady = true; }
+    if (kind === 'evolve') { game.insight = 14; game.evolutions = ['clover', 'leafcutter']; pushOverlay(evolveOverlay()); }
     if (kind === 'awaken') {
       document.body.classList.add('cinema');
       R.awakening(game, () => { document.body.classList.remove('cinema'); pushOverlay(echoOverlay(23)); });
@@ -861,6 +944,7 @@
       const res = game.widen();
       if (res.ok) { AU.stageUp(); handleEvents(res.events); updateHUD(); R.dirty(); save(); }
     };
+    $('evolvebtn').onclick = () => { if (game && !game.over) pushOverlay(evolveOverlay()); };
     $('menubtn').onclick = () => menuOverlay();
     $('t-new').onclick = () => {
       pushOverlay(panelOverlay(`

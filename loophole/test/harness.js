@@ -17,6 +17,7 @@ const ok = (cond, label, detail) => {
 /* ───────── invariants ───────── */
 function checkInvariants(g, ctx) {
   for (const c of g.cells.values()) {
+    if (!C.SOILS[c.soil]) throw new Error(`${ctx}: cell ${c.q},${c.r} bad soil ${c.soil}`);
     if (!Number.isFinite(c.e) || c.e < 0 || c.e > 1) throw new Error(`${ctx}: cell ${c.q},${c.r} e=${c.e}`);
     if (!Number.isFinite(c.eMin) || c.eMin < 0 || c.eMin > 1.0001) throw new Error(`${ctx}: eMin ${c.eMin}`);
     if (c.pat) {
@@ -54,8 +55,13 @@ function localE(g, c, R) {
 const byKey = (a, b) => (a.r - b.r) || (a.q - b.q);
 
 /* a competent, fully deterministic player */
+const EVO_PRIORITY = ['vessel', 'clover', 'leafcutter', 'sunfrond', 'frugal', 'rhizomorph',
+  'secondhand', 'ferncath', 'quickmoss', 'lattice', 'greatheart', 'thirdhand', 'armyant',
+  'perennial', 'ironmoss', 'sporeleaf'];
 function greedyTurn(g) {
   if (g.widenReady) g.widen(); /* the bot never banks; humans may */
+  /* spend insight as it comes, in a sensible order */
+  for (const id of EVO_PRIORITY) if (g.canEvolve(id).ok) { g.evolve(id); break; }
   if (g.pendingOffer) {
     let best = 0, bestR = -1;
     g.pendingOffer.forEach((spec, i) => {
@@ -326,7 +332,7 @@ function main() {
     /* occasion preference: a fitting murmur steps forward within its movement */
     const g2 = new Game('echo-pref', { echoes: [] });
     g2._occasion('storm1', null);
-    ok(g2.echoOwned.has(2), 'storm occasion pulls the storm murmur (ii→iii swap)', [...g2.echoOwned].join(','));
+    ok(g2.echoOwned.has(5), 'storm occasion pulls the camus murmur (vi swap within movement)', [...g2.echoOwned].join(','));
   }
 
   /* determinism */
@@ -335,6 +341,24 @@ function main() {
     const a = greedyBot('det-seed', 60).g.serialize();
     const b = greedyBot('det-seed', 60).g.serialize();
     ok(JSON.stringify(a) === JSON.stringify(b), 'same seed + same play = same world');
+  }
+
+  /* terrain */
+  console.log('\n[terrain]');
+  {
+    let varied = 0, allLoam = 0;
+    for (let i = 0; i < 20; i++) {
+      const g = new Game('terra-' + i);
+      const soils = new Set([...g.cells.values()].map(c => c.soil));
+      if (soils.size >= 3) varied++;
+      if (soils.size === 1) allLoam++;
+    }
+    ok(varied >= 16, 'maps have varied biomes (≥3 kinds on ≥16/20 seeds)', varied + '/20');
+    ok(allLoam === 0, 'no map is a single biome', allLoam + ' flat');
+    /* terrain is part of the deterministic world */
+    const g1 = new Game('terra-det'), g2 = new Game('terra-det');
+    const soilStr = g => [...g.cells.values()].sort(byKey).map(c => c.soil).join(',');
+    ok(soilStr(g1) === soilStr(g2), 'terrain is deterministic from seed');
   }
 
   /* stakes: idleness dissolves */

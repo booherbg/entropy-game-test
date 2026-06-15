@@ -259,12 +259,18 @@
       cx.save();
       cx.translate(p.x, p.y);
       cx.scale(this.s, this.s);
-      const loam = [PAL.loam0, PAL.loam1, PAL.loam2][r.i(3)];
+      let loam = [PAL.loam0, PAL.loam1, PAL.loam2][r.i(3)];
+      /* soil tints the ground so the land can be read at a glance */
+      const soilDef = (LP.CONTENT.SOILS && LP.CONTENT.SOILS[c.soil]) || null;
+      const tint = soilDef ? soilDef.tint : null;
+      if (tint && c.soil !== 'loam') loam = mix(loam, tint, 0.72);
       /* order = warm loam (greening as it deepens); entropy = cold light static */
       let base = loam;
       if (e < 0.45) base = mix(loam, '#4d5c38', (0.45 - e) * 1.5);
-      const noiseGrey = mix(PAL.greyDark, PAL.grey, e);
-      const fill = mix(base, noiseGrey, Math.pow(e, 0.95) * 0.95);
+      /* even noise keeps a whisper of the soil beneath it, so the land stays legible */
+      let noiseGrey = mix(PAL.greyDark, PAL.grey, e);
+      if (tint && c.soil !== 'loam') noiseGrey = mix(noiseGrey, tint, 0.22);
+      const fill = mix(base, noiseGrey, Math.pow(e, 0.95) * 0.92);
       cx.fillStyle = fill;
       cx.fill(this.shapes.get(k));
       /* deep order glows like dawn pooling in the hollows */
@@ -799,6 +805,7 @@
           }
           case 'stormWarn': this.warned = e.cells; break;
           case 'birth': this.burst(e.k, PAL.blooms[U.hash32(e.k) % PAL.blooms.length], 10, 1.5); this.ring(e.k, PAL.gold, 0.5); break;
+          case 'spore': this.burst(e.k, PAL.fern2, 7, 1.1); this.ring(e.k, PAL.fern2, 0.4); break;
           case 'spread': this.burst(e.to, PAL.moss2, 5, 0.8); break;
           case 'pulse': {
             const p = this.pos.get(e.center);

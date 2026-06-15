@@ -51,6 +51,8 @@
   #cohtarget { font-size: 11px; color: var(--muted); }
   #orderbox { font-size: 17px; display: flex; align-items: baseline; gap: 6px; }
   #orderbox .glyph { color: var(--gold); }
+  #insightbox { font-size: 15px; display: flex; align-items: baseline; gap: 5px; color: var(--dewblue); }
+  #insightbox .glyph2 { color: var(--dewblue); }
   #income { font-size: 11.5px; color: var(--moss); }
   #widenbtn {
     font-family: var(--serif); letter-spacing: .04em; border-color: var(--gold); color: var(--gold);
@@ -85,6 +87,9 @@
     padding: 7px 11px; border-radius: 8px; font-size: 12px; line-height: 1.5;
     max-width: 240px;
   }
+  #celltip .soiltag { color: var(--dewblue); letter-spacing: .04em; }
+  #celltip .synup { color: var(--mossglow); }
+  #celltip .syndown { color: var(--warn); }
 
   /* ── rail ── */
   #rail {
@@ -92,6 +97,10 @@
     padding: 12px 10px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto;
   }
   #railhead { font-size: 11px; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; }
+  #evolvebtn { width: 100%; font-family: var(--serif); letter-spacing: .04em; border-color: var(--line2); color: var(--dewblue); position: relative; }
+  #evolvebtn.ripe { border-color: var(--dewblue); box-shadow: 0 0 12px rgba(158,210,200,0.3); }
+  #evobadge { display: inline-block; min-width: 16px; padding: 0 4px; margin-left: 4px; border-radius: 999px;
+    background: var(--dewblue); color: #10201c; font-size: 10px; font-weight: bold; }
   #artifacts { display: flex; flex-wrap: wrap; gap: 8px; }
   .railart {
     position: relative; width: 44px; height: 44px; border-radius: 10px;
@@ -210,9 +219,14 @@
   .echohead { font-size: 11px; letter-spacing: .25em; color: var(--muted); margin-bottom: 18px; text-transform: uppercase; }
   .echotext {
     font-family: var(--serif); font-style: italic; font-size: 19px; line-height: 1.75;
-    color: var(--dew); white-space: pre-wrap; min-height: 120px;
+    color: var(--dew); white-space: pre-wrap; min-height: 96px;
   }
-  .echohint { margin-top: 26px; font-size: 11px; color: var(--muted); opacity: .7; }
+  .echocite {
+    font-family: var(--serif); font-style: normal; font-size: 13px; letter-spacing: .03em;
+    color: var(--gold); opacity: 0; margin-top: 14px; transition: opacity 1.1s ease;
+  }
+  .echocite.show { opacity: .78; }
+  .echohint { margin-top: 22px; font-size: 11px; color: var(--muted); opacity: .7; }
 
   /* offer */
   .offerbox { text-align: center; }
@@ -236,6 +250,28 @@
   .artdesc { font-size: 12px; line-height: 1.5; min-height: 52px; }
   .artflavor { font-size: 11px; color: var(--muted); font-style: italic; margin-top: 8px; }
 
+  /* evolution tree */
+  .evohead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .evosub { font-size: 12px; color: var(--dewblue); }
+  .evointro { font-size: 12px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+  .evobranch { margin-bottom: 14px; }
+  .evobranchname { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .evorow { display: flex; gap: 8px; flex-wrap: wrap; }
+  .evonode {
+    flex: 1 1 calc(50% - 8px); min-width: 180px; text-align: left;
+    border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px;
+    background: rgba(28,24,18,0.5); transition: all .15s; cursor: default;
+  }
+  .evonode .en-top { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+  .evonode .en-name { font-family: var(--serif); font-size: 13.5px; color: var(--text); }
+  .evonode .en-cost { font-size: 12px; color: var(--dewblue); white-space: nowrap; }
+  .evonode .en-desc { font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.45; }
+  .evonode.buyable { cursor: pointer; border-color: var(--dewblue); }
+  .evonode.buyable:hover { background: rgba(40,52,48,0.6); box-shadow: 0 0 12px rgba(158,210,200,0.18); }
+  .evonode.owned { border-color: rgba(124,158,87,0.5); background: rgba(40,46,30,0.5); }
+  .evonode.owned .en-cost { color: var(--moss); }
+  .evonode.locked { opacity: .5; }
+
   /* murmurs */
   .murmurlist { max-height: 56vh; overflow-y: auto; margin-bottom: 12px; padding-right: 6px; }
   .murmur {
@@ -243,6 +279,7 @@
     color: var(--dew); padding: 12px 4px; border-bottom: 1px dashed var(--line);
   }
   .murmur.locked { color: var(--muted); opacity: .5; }
+  .murmurcite { font-style: normal; font-size: 12px; color: var(--gold); opacity: .72; margin-top: 6px; }
   .mnum { display: block; font-size: 10px; letter-spacing: .2em; color: var(--muted); font-style: normal; margin-bottom: 4px; text-transform: uppercase; }
 
   /* end screens */
@@ -300,6 +337,7 @@
     </div>
     <button id="widenbtn" class="hidden">let the world widen ◈</button>
     <div id="orderbox"><span class="glyph">✦</span><span id="order">0</span><span id="income"></span></div>
+    <div id="insightbox" title="insight — spend it on the evolution tree"><span class="glyph2">✸</span><span id="insight">0</span></div>
     <div id="turnbox">turn <span id="turn">1</span><br><span id="seedlabel"></span></div>
     <button id="menubtn" title="menu (esc)">≡</button>
   </header>
@@ -311,6 +349,7 @@
       <div id="stormbanner" class="hidden"></div>
     </main>
     <aside id="rail" class="hidden">
+      <button id="evolvebtn">✸ cultivate <span id="evobadge" class="hidden"></span></button>
       <div id="railhead">artifacts</div>
       <div id="artifacts"></div>
       <div id="coalesce" class="hidden">
