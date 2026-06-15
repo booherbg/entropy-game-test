@@ -96,7 +96,8 @@
     echo() { this.bell(880, 1.8, 0.05); },
     offer() { this.blip(523, 0.18, 'sine', 0.05); setTimeout(() => this.blip(784, 0.4, 'sine', 0.05), 140); },
     take() { this.bell(659, 0.9, 0.05); },
-    storm() { this.noise(1.1, 320, 0.12, true); },
+    storm() { this.noise(1.1, 320, 0.12, true); this.blip(70, 0.5, 'sawtooth', 0.05, 40); },
+    blight() { this.blip(150, 0.5, 'sawtooth', 0.05, 92); this.blip(151.5, 0.5, 'square', 0.03, 90); },
     cascade(n) {
       const ps = [523, 587, 659, 784, 880, 1047];
       for (let i = 0; i < Math.min(n, 6); i++)
@@ -480,6 +481,8 @@
     } else {
       lines.push(`<span class="muted">${soil.note}</span>`);
     }
+    const b = game.blightAt && game.blightAt(k);
+    if (b) lines.push(`<span class="blighttag">${b.kind === 'wisp' ? 'wisp' : 'rot'} · hp ${b.hp}</span>`);
     if (game.aura.get(k)) lines.push('within a crystal aura');
     if (c.trail) lines.push('a remembered path');
     tip.innerHTML = lines.join('<br>');
@@ -520,6 +523,8 @@
           break;
         }
         case 'storm': AU.storm(); break;
+        case 'blightSpawn': AU.blight(); hint('blight'); toast('rot takes hold — ' + (e.kind === 'wisp' ? 'a wisp drifts in' : 'it will spread'), 'warn', 5000); break;
+        case 'blightClear': AU.tend(); break;
         case 'stormWarn': $('stormbanner').textContent = 'a squall gathers — ' + (e.inTurns === 1 ? 'next turn' : 'in ' + e.inTurns + ' turns'); $('stormbanner').classList.remove('hidden'); hint('storm'); break;
         case 'cascade': if (e.n >= 2) { AU.cascade(e.n); if (e.n >= 4) toast(e.n + ' blossoms in one breath', 'good'); } break;
         case 'pulse': AU.pulse(); break;
@@ -925,6 +930,24 @@
     if (kind === 'cells') { R.valuesMode = true; }
     if (kind === 'widen') { game.widenReady = true; }
     if (kind === 'evolve') { game.insight = 14; game.evolutions = ['clover', 'leafcutter']; pushOverlay(evolveOverlay()); }
+    if (kind === 'blight' || kind === 'storm') {
+      /* infect a cluster touching the garden */
+      let seeded = 0;
+      for (const c of game.cells.values()) {
+        if (seeded >= 6) break;
+        if (!c.pat && c.e > 0.4 && HEX.neighborsK(HEX.key(c.q, c.r)).some(nk => { const cc = game.cells.get(nk); return cc && cc.pat; })) {
+          game.blight.set(HEX.key(c.q, c.r), { kind: seeded === 5 ? 'wisp' : 'rot', hp: 3, age: 2 });
+          c.e = 0.85; seeded++;
+        }
+      }
+      R.dirty();
+      if (kind === 'storm') {
+        const keys = [...game.cells.keys()];
+        const center = keys[Math.floor(keys.length / 2)];
+        const [cq, cr] = HEX.parse(center);
+        R.onTurnEvents([{ t: 'storm', center, cells: HEX.disk(cq, cr, 2).filter(k => game.cells.has(k)), power: 0.3 }]);
+      }
+    }
     if (kind === 'awaken') {
       document.body.classList.add('cinema');
       R.awakening(game, () => { document.body.classList.remove('cinema'); pushOverlay(echoOverlay(23)); });

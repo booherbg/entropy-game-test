@@ -219,6 +219,7 @@
     widen: 'you may widen when ready — order keeps gathering while you prepare. but the dark grows impatient with a garden that stalls.',
     heat: 'hoarded order radiates away as heat — but some condenses into insight ✸. spend order; don’t pile it up.',
     cultivate: 'you have insight ✸. open « cultivate » to grow new abilities for the rest of this garden — including extra hands that plant more at once.',
+    blight: 'rot has taken hold — it spreads, and gnaws your patterns. tend it to wound it; foragers devour it; crystal auras corrode it; cut off its food and it starves. clearing it pays insight.',
   };
 
   /* ───────────────────────── artifacts ───────────────────────── */

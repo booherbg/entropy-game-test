@@ -217,9 +217,19 @@ function greedyTurn(g) {
     }
   });
 
-  /* tend the worst frontier cells */
+  /* fight blight first — tend rotted cells touching the garden */
   let tends = 0;
-  while (g.order > reserve && tends < 8) {
+  while (g.order > reserve && tends < 6 && g.blight && g.blight.size) {
+    const rotted = [...g.blight.keys()]
+      .map(k => g.cells.get(k))
+      .filter(c => c && nbrs(g, c).some(n => n.pat))
+      .sort((a, b) => (b.e - a.e) || byKey(a, b));
+    if (!rotted.length) break;
+    if (!g.tend(HEX.key(rotted[0].q, rotted[0].r)).ok) break;
+    tends++;
+  }
+  /* then tend the worst frontier cells */
+  while (g.order > reserve && tends < 9) {
     const cands = cellsOf(g)
       .filter(c => c.e >= 0.5 && (c.pat || nbrs(g, c).some(n => n.pat)))
       .sort((a, b) => (b.e - a.e) || byKey(a, b));

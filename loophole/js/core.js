@@ -115,6 +115,9 @@
       this.firedOcc = {};
       this.stormI = 0;
       this.stormQueue = [];
+      this.blight = new Map();   /* cell key -> { kind, hp, age } */
+      this.blightQueue = [];
+      this.blightI = 0;
       this.history = [];
       this.aura = new Map();
       this.networks = [];
@@ -145,6 +148,12 @@
           power: 0.20 + this.rng.f() * 0.10,
         });
         t += 6 + this.rng.i(6);
+      }
+      /* blight schedule — the decay that growth attracts. only bites from symbiosis (stage 3) on. */
+      let bt = 15;
+      while (bt < 240) {
+        this.blightQueue.push({ turn: bt, u: this.rng.f(), wisp: this.rng.f() });
+        bt += 7 + this.rng.i(5);
       }
       this._recompute();
     }
@@ -367,7 +376,11 @@
       c.e = U.clamp(c.e - 0.30 * this.mod('tendPower', 1), 0, 1);
       c.eMin = Math.min(c.eMin, c.e);
       this.stats.tends++;
-      return { ok: true, events: [{ t: 'tend', k }] };
+      const ev = [{ t: 'tend', k }];
+      /* tending a rotted cell wounds the blight; clear it and the cell heals */
+      const b = this.blight.get(k);
+      if (b) { b.hp -= Math.max(1, Math.round(this.mod('tendPower', 1))); if (b.hp <= 0) this._clearBlight(k, ev, 'tended'); }
+      return { ok: true, events: ev };
     }
 
     prune(k) {
@@ -462,6 +475,7 @@
       income += this._artifactIncome(ev);
       income *= this.mod('incomeAll', 1);
 
+      this._stepBlight(ev);
       this._physics(ev);
       this._storms(ev);
       this._deaths(ev);
@@ -589,10 +603,15 @@
         if (targets.length) {
           const eatTotal = p.pop * 0.05 * this.mod('antEat', 1) * this.soilMul(c, 'ant');
           const per = eatTotal / targets.length;
+          const warDmg = this.flag('antWar') ? 3 : 1;
           for (const tc of targets) {
             const bite = Math.min(per, tc.e - 0.05);
             if (bite > 0) { tc.e -= bite; eaten += bite; }
             if (this.flag('stigmergy')) tc.trail = 1;
+            /* foragers are the garden's immune system: they savage blight they reach */
+            const tk = HEX.key(tc.q, tc.r);
+            const b = this.blight.get(tk);
+            if (b) { b.hp -= warDmg; if (b.hp <= 0) this._clearBlight(tk, ev, 'devoured'); }
           }
         }
         p.lastTargets = targets.map(tc => HEX.key(tc.q, tc.r));
@@ -962,6 +981,109 @@
       }
     }
 
+    /* ── blight: motile disorder that hunts the garden ── */
+    blightAt(k) { return this.blight.get(k) || null; }
+
+    _blightFrontier(includeOpen) {
+      const out = [];
+      for (const c of this.cells.values()) {
+        const k = HEX.key(c.q, c.r);
+        if (this.blight.has(k)) continue;
+        if ((this.aura.get(k) || 1) < 0.6) continue; /* crystals hold the line */
+        if (c.e < 0.48) continue;
+        let near = false;
+        for (const nk of HEX.neighborsK(k)) { const cc = this.cells.get(nk); if (cc && cc.pat) { near = true; break; } }
+        if (near || includeOpen) out.push(c);
+      }
+      return out;
+    }
+    _blightSpawnCell(u) {
+      const cands = this._blightFrontier(false);
+      if (!cands.length) return null;
+      cands.sort((a, b) => b.e - a.e || (a.r - b.r) || (a.q - b.q));
+      const top = Math.min(cands.length, 5);
+      const pick = cands[Math.floor(u * top) % top];
+      return HEX.key(pick.q, pick.r);
+    }
+    _blightBite(c) {
+      const p = c.pat;
+      if (!p) return;
+      if (p.t === 'frond') p.depth -= 2;
+      else if (p.t === 'bloom') p.lone = 99;
+      else if (p.t === 'ant') p.pop = Math.max(0, p.pop - 2);
+      else if (p.t === 'moss') p.stress++;
+    }
+    _clearBlight(k, ev, how) {
+      if (!this.blight.has(k)) return;
+      this.blight.delete(k);
+      this.grantInsight('blightcleared', 2);
+      this.order += 2;
+      this.stats.blightCleared = (this.stats.blightCleared || 0) + 1;
+      if (ev) ev.push({ t: 'blightClear', k, how });
+    }
+    _stepBlight(ev) {
+      const cap = 8 + this.stage * 2;
+      const C = this.coherence();
+      /* spawn from the schedule (only once symbiosis has begun, and never to pile onto a dying garden) */
+      while (this.blightI < this.blightQueue.length && this.blightQueue[this.blightI].turn <= this.turn) {
+        const s = this.blightQueue[this.blightI++];
+        if (this.stage >= 3 && this.blight.size < cap && C > 0.30) {
+          const k = this._blightSpawnCell(s.u);
+          if (k) {
+            const wisp = this.stage >= 5 && s.wisp < 0.4;
+            this.blight.set(k, { kind: wisp ? 'wisp' : 'rot', hp: 2 + Math.floor(this.stage / 2), age: 0 });
+            this.stats.blightSeen = (this.stats.blightSeen || 0) + 1;
+            ev.push({ t: 'blightSpawn', k, kind: wisp ? 'wisp' : 'rot' });
+          }
+        }
+      }
+      /* act: raise entropy, gnaw patterns, wither inside crystal auras */
+      const spreaders = [], movers = [];
+      for (const [k, b] of this.blight) {
+        const c = this.cells.get(k);
+        if (!c) { this.blight.delete(k); continue; }
+        b.age++;
+        if ((this.aura.get(k) || 1) < 0.6) b.hp -= 2; /* a crystal aura corrodes it */
+        c.e = U.clamp(c.e + (b.kind === 'wisp' ? 0.10 : 0.17), 0, 0.95);
+        /* rot lives on order: surround it with cleared, empty ground and it starves */
+        let touchesGarden = false;
+        for (const nk of HEX.neighborsK(k)) { const cc = this.cells.get(nk); if (cc && cc.pat) { touchesGarden = true; break; } }
+        if (c.pat) this._blightBite(c);
+        else if (!touchesGarden) { b.starve = (b.starve || 0) + 1; if (b.starve >= 2) { b.hp -= 1; b.starve = 0; } }
+        if (b.hp <= 0) { this._clearBlight(k, ev, 'starved'); continue; }
+        if (b.kind === 'wisp') movers.push([k, b]); else spreaders.push([k, b]);
+      }
+      /* rot spreads slowly into the garden; wisps drift toward the calm and ruin it */
+      for (const [k, b] of spreaders) {
+        if (this.blight.size >= cap) break;
+        if (b.age % 2 !== 0) continue;
+        const tgt = this._blightStep(k, true);
+        if (tgt) { this.blight.set(tgt, { kind: 'rot', hp: 2, age: 0 }); ev.push({ t: 'blightSpread', from: k, to: tgt }); }
+      }
+      for (const [k, b] of movers) {
+        const tgt = this._blightStep(k, false);
+        if (tgt && !this.blight.has(tgt)) { this.blight.delete(k); this.blight.set(tgt, b); ev.push({ t: 'blightMove', from: k, to: tgt }); }
+      }
+      /* telegraph the next spawn */
+      const nxt = this.blightQueue[this.blightI];
+      if (nxt && this.stage >= 3 && nxt.turn <= this.turn + 1) {
+        const k = this._blightSpawnCell(nxt.u);
+        if (k) ev.push({ t: 'blightWarn', k });
+      }
+    }
+    _blightStep(k, preferPat) {
+      let bestPat = null, bestOpen = null;
+      for (const nk of HEX.neighborsK(k)) {
+        const cc = this.cells.get(nk);
+        if (!cc || this.blight.has(nk)) continue;
+        if ((this.aura.get(nk) || 1) < 0.6) continue;
+        if (cc.pat) { if (!bestPat || cc.e < bestPat.e) bestPat = cc; }
+        else if (!bestOpen || (preferPat ? cc.e > (bestOpen.e) : cc.e < (bestOpen.e))) bestOpen = cc;
+      }
+      const t = (preferPat && bestPat) ? bestPat : (bestOpen || bestPat);
+      return t ? HEX.key(t.q, t.r) : null;
+    }
+
     _kill(c, ev, how) {
       const pt = c.pat.t;
       c.pat = null;
@@ -1081,7 +1203,7 @@
       /* adopt the older self */
       for (const f of ['turn', 'stage', 'order', 'carry', 'lowStreak', 'finds', 'echoOwned',
         'echoesThisRun', 'widenReady', 'turnsInStage', 'insight', 'insightFrac', 'evolutions',
-        'radius', 'stormI', 'firedOcc', 'stats']) this[f] = g[f];
+        'radius', 'stormI', 'blightI', 'blightQueue', 'blight', 'firedOcc', 'stats']) this[f] = g[f];
       this.cells = g.cells;
       this.artifacts = g.artifacts;
       this.rng.s = g.rng.s;
@@ -1115,6 +1237,9 @@
         over: this.over, won: this.won, awakened: this.awakened,
         stormI: this.stormI,
         stormQueue: this.stormQueue.map(s => [s.turn, Math.round(s.u * 1e6) / 1e6, s.radius, Math.round(s.power * 1e4) / 1e4]),
+        blightI: this.blightI,
+        blightQueue: this.blightQueue.map(b => [b.turn, Math.round(b.u * 1e6) / 1e6, Math.round(b.wisp * 1e6) / 1e6]),
+        blight: [...this.blight.entries()].sort((a, b) => a[0] < b[0] ? -1 : 1).map(([k, b]) => [k, b.kind === 'wisp' ? 1 : 0, b.hp, b.age]),
         firedOcc: Object.keys(this.firedOcc).sort(),
         artifacts: this.artifacts.map(a => ({ spec: a.spec, charges: a.charges == null ? null : a.charges })),
         pendingOffer: this.pendingOffer,
@@ -1153,6 +1278,9 @@
       g.over = o.over; g.won = o.won; g.awakened = o.awakened;
       g.stormI = o.stormI;
       g.stormQueue = o.stormQueue.map(s => ({ turn: s[0], u: s[1], radius: s[2], power: s[3] }));
+      g.blightI = o.blightI || 0;
+      g.blightQueue = (o.blightQueue || []).map(b => ({ turn: b[0], u: b[1], wisp: b[2] }));
+      g.blight = new Map((o.blight || []).map(e => [e[0], { kind: e[1] ? 'wisp' : 'rot', hp: e[2], age: e[3] }]));
       g.firedOcc = {};
       for (const k of o.firedOcc) g.firedOcc[k] = true;
       g.artifacts = o.artifacts.map(a => {

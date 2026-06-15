@@ -19,7 +19,8 @@
     antBody: '#241d15', nest0: '#5c4830', nest1: '#73593b',
     blooms: ['#e8a8c0', '#ecd985', '#f2efe2', '#aed4e6', '#e8b88a', '#d9a8e0'],
     heart0: '#6f5236', heart1: '#a8845a', heartGlow: '#d8b88a',
-    storm: '#2e3338', stormShine: '#6a7480',
+    storm: '#2e3338', stormShine: '#6a7480', stormBolt: '#d6e6f2',
+    rot0: '#382b40', rot1: '#5a4562', rotVein: '#8a6a92', rotSpore: '#b89ad2', wisp: '#c2b884',
     gold: '#d8c068', text: '#e8e2d4',
     rare: { common: '#a9c47e', uncommon: '#9ed2c8', legendary: '#e6c86a' },
   };
@@ -113,7 +114,10 @@
       this.particles = [];
       this.pulses = [];
       this.agents = new Map();    /* nest key -> agent list */
-      this.warned = [];           /* telegraphed cells */
+      this.warned = [];           /* telegraphed storm cells */
+      this.warnCenter = null;
+      this.blightWarned = [];
+      this.bolts = [];
       this.flashT = 0; this.shake = 0;
       this.hovered = null; this.mode = null;
       this.auraFor = null;
@@ -247,8 +251,48 @@
       this._drawTrails(cx);
       /* patterns */
       for (const c of g.cells.values()) if (c.pat) this._drawPattern(cx, c);
+      /* blight gnaws over everything */
+      if (g.blight) for (const [k, b] of g.blight) { const c = g.cells.get(k); if (c) this._drawBlight(cx, c, b); }
       cx.restore();
       this.dirtyFlag = false;
+    }
+
+    _drawBlight(cx, c, b) {
+      const k = HEX.key(c.q, c.r), p = this.pos.get(k);
+      if (!p) return;
+      const r = rngOf('rot' + k);
+      cx.save();
+      cx.translate(p.x, p.y);
+      cx.scale(this.s, this.s);
+      cx.clip(this.shapes.get(k));
+      if (b.kind === 'wisp') {
+        const gl = cx.createRadialGradient(0, 0, 0.05, 0, 0, 0.7);
+        gl.addColorStop(0, rgba(PAL.wisp, 0.7));
+        gl.addColorStop(1, rgba(PAL.wisp, 0));
+        cx.fillStyle = gl;
+        cx.beginPath(); cx.arc(0, 0, 0.7, 0, TAU); cx.fill();
+      } else {
+        cx.fillStyle = rgba(PAL.rot0, 0.82);
+        cx.beginPath(); cx.arc(0, 0, 0.96, 0, TAU); cx.fill();
+        cx.strokeStyle = rgba(PAL.rotVein, 0.72); cx.lineWidth = 0.055; cx.lineCap = 'round';
+        const arms = 4 + r.i(3);
+        for (let i = 0; i < arms; i++) {
+          let aa = r.f() * TAU, x = 0, y = 0;
+          cx.beginPath(); cx.moveTo(0, 0);
+          for (let s = 0; s < 3; s++) {
+            aa += (r.f() - 0.5) * 1.3;
+            const len = 0.28 + r.f() * 0.26;
+            x += Math.cos(aa) * len; y += Math.sin(aa) * len;
+            cx.lineTo(x, y);
+          }
+          cx.stroke();
+        }
+        cx.fillStyle = rgba(PAL.rot1, 0.92);
+        cx.beginPath(); cx.arc(0, 0, 0.2, 0, TAU); cx.fill();
+        cx.fillStyle = rgba(PAL.rotSpore, 0.8);
+        cx.beginPath(); cx.arc(-0.05, -0.05, 0.07, 0, TAU); cx.fill();
+      }
+      cx.restore();
     }
 
     _drawCellBase(cx, c) {
@@ -584,9 +628,11 @@
       this._grainTwinkle(cx, t);
       this._antFrame(cx, t);
       this._mycPips(cx, t);
+      this._blightFrame(cx, t);
       this._warnFrame(cx, t);
       this._pulseFrame(cx, t);
       this._particleFrame(cx, t);
+      this._boltFrame(cx);
       this._hoverFrame(cx, t);
       if (this.valuesMode || this.game.flag('forecast')) this._valuesFrame(cx);
       if (this.flashT > 0) {
@@ -595,6 +641,15 @@
         this.flashT = Math.max(0, this.flashT - 0.05);
       }
       cx.restore();
+      /* squall shake — jolt both layers together, then settle */
+      if (this.shake > 0) {
+        const m = this.shake * 7;
+        const ox = (Math.random() - 0.5) * m, oy = (Math.random() - 0.5) * m;
+        this.bc.style.transform = `translate(${ox}px,${oy}px)`;
+        this.fc.style.transform = `translate(${ox}px,${oy}px)`;
+        this.shake = Math.max(0, this.shake - 0.05);
+        if (this.shake <= 0) { this.bc.style.transform = ''; this.fc.style.transform = ''; }
+      }
     }
 
     _sporeFrame(cx, t, W, H) {
@@ -682,20 +737,89 @@
     }
 
     _warnFrame(cx, t) {
+      /* a squall gathers: a darkening over the doomed cells, and a slow vortex at the eye */
       for (const k of this.warned) {
         const p = this.pos.get(k);
         if (!p) continue;
-        const a = 0.12 + 0.07 * Math.sin(t * 2.2 + U.hash32(k) % 7);
+        const a = 0.14 + 0.08 * Math.sin(t * 2.2 + U.hash32(k) % 7);
         cx.fillStyle = rgba(PAL.storm, a);
-        cx.beginPath(); cx.arc(p.x, p.y, this.s * 0.78, 0, TAU); cx.fill();
-        cx.strokeStyle = rgba(PAL.stormShine, a * 1.6);
-        cx.lineWidth = 1;
-        const ang = t * 0.7 + (U.hash32(k) % 10);
+        cx.beginPath(); cx.arc(p.x, p.y, this.s * 0.82, 0, TAU); cx.fill();
+      }
+      const cp = this.warnCenter && this.pos.get(this.warnCenter);
+      if (cp) {
+        const R = this.s * 1.5;
+        for (let i = 0; i < 3; i++) {
+          const a0 = t * (1.1 + i * 0.4) + i * 2.1;
+          cx.strokeStyle = rgba(PAL.stormShine, 0.20 + 0.06 * i);
+          cx.lineWidth = 1.4 - i * 0.3;
+          cx.beginPath();
+          for (let s = 0; s <= 24; s++) {
+            const u = s / 24;
+            const ang = a0 + u * 5.0;
+            const rr = R * (1 - u * 0.72);
+            const x = cp.x + Math.cos(ang) * rr, y = cp.y + Math.sin(ang) * rr;
+            s ? cx.lineTo(x, y) : cx.moveTo(x, y);
+          }
+          cx.stroke();
+        }
+        /* debris drawn inward */
+        if (Math.random() < 0.5) {
+          const ang = Math.random() * TAU;
+          this.particles.push({
+            x: cp.x + Math.cos(ang) * R, y: cp.y + Math.sin(ang) * R,
+            vx: -Math.cos(ang) * 22, vy: -Math.sin(ang) * 22,
+            life: 0, max: 0.7, r: 0.9, a: 0.5, col: PAL.stormShine, grav: 0,
+          });
+        }
+      }
+    }
+
+    _blightFrame(cx, t) {
+      const g = this.game;
+      if (g.blight) for (const [k, b] of g.blight) {
+        const p = this.pos.get(k);
+        if (!p) continue;
+        const a = 0.10 + 0.07 * Math.sin(t * 3 + U.hash32(k) % 6);
+        cx.fillStyle = rgba(b.kind === 'wisp' ? PAL.wisp : PAL.rotSpore, a);
+        cx.beginPath(); cx.arc(p.x, p.y, this.s * 0.45, 0, TAU); cx.fill();
+      }
+      for (const k of this.blightWarned) {
+        const p = this.pos.get(k);
+        if (!p) continue;
+        const a = 0.2 + 0.14 * Math.sin(t * 4 + U.hash32(k) % 5);
+        cx.strokeStyle = rgba(PAL.rotVein, a); cx.lineWidth = 1.5;
+        cx.setLineDash([3, 3]);
+        cx.beginPath(); cx.arc(p.x, p.y, this.s * 0.62, 0, TAU); cx.stroke();
+        cx.setLineDash([]);
+      }
+    }
+
+    _boltFrame(cx) {
+      const dt = 1 / 60;
+      for (const b of this.bolts) {
+        b.life += dt;
+        const u = b.life / b.max;
+        const flick = 0.5 + 0.5 * Math.sin(b.life * 80);
+        cx.strokeStyle = rgba(PAL.stormBolt, (1 - u) * flick);
+        cx.lineWidth = 2.2 * (1 - u);
         cx.beginPath();
-        cx.moveTo(p.x + Math.cos(ang) * this.s * 0.5, p.y + Math.sin(ang) * this.s * 0.5);
-        cx.lineTo(p.x + Math.cos(ang + 2.5) * this.s * 0.5, p.y + Math.sin(ang + 2.5) * this.s * 0.5);
+        b.pts.forEach((pt, i) => i ? cx.lineTo(pt[0], pt[1]) : cx.moveTo(pt[0], pt[1]));
+        cx.stroke();
+        cx.strokeStyle = rgba('#ffffff', (1 - u) * flick * 0.6);
+        cx.lineWidth = 0.9 * (1 - u);
         cx.stroke();
       }
+      this.bolts = this.bolts.filter(b => b.life < b.max);
+    }
+    _mkBolt(tx, ty) {
+      const sx = tx + (Math.random() - 0.5) * 60;
+      const pts = [[sx, -20]];
+      const n = 9;
+      for (let i = 1; i <= n; i++) {
+        const u = i / n;
+        pts.push([U.lerp(sx, tx, u) + (Math.random() - 0.5) * 30 * (1 - u), U.lerp(-20, ty, u)]);
+      }
+      return { pts, life: 0, max: 0.34 };
     }
 
     _pulseFrame(cx, t) {
@@ -796,14 +920,26 @@
     /* ───── event fx ───── */
     onTurnEvents(evs) {
       this.warned = [];
+      this.warnCenter = null;
+      this.blightWarned = [];
       for (const e of evs) {
         switch (e.t) {
           case 'storm': {
-            this.flashT = 1;
-            for (const k of e.cells) this.burst(k, PAL.stormShine, 6, 1.2);
+            this.flashT = 1; this.shake = 1;
+            const cp = this.pos.get(e.center);
+            if (cp) {
+              this.pulses.push({ x: cp.x, y: cp.y, r: this.s * 0.5, v: this.s * 0.55, a: 0.95, w: 4.5, col: PAL.stormBolt });
+              this.pulses.push({ x: cp.x, y: cp.y, r: this.s * 0.3, v: this.s * 0.38, a: 0.7, w: 2, col: PAL.stormShine });
+              for (let i = 0; i < 3; i++) this.bolts.push(this._mkBolt(cp.x, cp.y));
+            }
+            for (const k of e.cells) this.burst(k, PAL.stormShine, 8, 1.7);
             break;
           }
-          case 'stormWarn': this.warned = e.cells; break;
+          case 'stormWarn': this.warned = e.cells; this.warnCenter = e.center; break;
+          case 'blightSpawn': this.burst(e.k, PAL.rotSpore, 8, 1.1); this.ring(e.k, PAL.rotVein, 0.7); break;
+          case 'blightSpread': case 'blightMove': this.burst(e.to, PAL.rotVein, 4, 0.7); break;
+          case 'blightClear': this.burst(e.k, PAL.dew, 9, 1.2); this.ring(e.k, PAL.mossGlow, 0.6); break;
+          case 'blightWarn': this.blightWarned.push(e.k); break;
           case 'birth': this.burst(e.k, PAL.blooms[U.hash32(e.k) % PAL.blooms.length], 10, 1.5); this.ring(e.k, PAL.gold, 0.5); break;
           case 'spore': this.burst(e.k, PAL.fern2, 7, 1.1); this.ring(e.k, PAL.fern2, 0.4); break;
           case 'spread': this.burst(e.to, PAL.moss2, 5, 0.8); break;
