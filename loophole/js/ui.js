@@ -372,14 +372,18 @@
     eb.textContent = ripe;
     $('evolvebtn').classList.toggle('ripe', ripe > 0);
     if (ripe > 0) hint('cultivate');
-    let riteReady = false;
-    for (const id of C().RITE_ORDER) if (game.canRite(id).ok) { riteReady = true; break; }
-    $('ritesbtn').classList.toggle('ripe', riteReady);
-    /* mobile rail button badges ripe cultivars + a waking garden */
+    /* rites button: same badge treatment as cultivate — how many are affordable now */
+    let riteReady = 0;
+    for (const id of C().RITE_ORDER) if (game.canRite(id).ok) riteReady++;
+    const rbg = $('ritebadge');
+    rbg.classList.toggle('hidden', riteReady === 0);
+    rbg.textContent = riteReady;
+    $('ritesbtn').classList.toggle('ripe', riteReady > 0);
+    /* mobile rail button badges everything waiting behind it: cultivars, rites, a waking garden */
     const coReady = game.stage === 6 && game.coalesceReady();
     const rb = $('railbadge');
     if (rb) {
-      const n = ripe + (coReady ? 1 : 0);
+      const n = ripe + riteReady + (coReady ? 1 : 0);
       rb.classList.toggle('hidden', n === 0 && !coReady);
       rb.textContent = coReady ? '❀' : (n || '');
       $('railbtn').classList.toggle('ripe', n > 0);
@@ -1350,7 +1354,7 @@
     $('t-new').onclick = () => {
       pushOverlay(panelOverlay(`
         <div class="paneltitle">new garden</div>
-        <p class="muted">a seed makes the same world twice. share one, or trust the wind.</p>
+        <p class="muted">a seed makes the same world twice. share one, or trust the wind.${meta.asc ? `<br>it begins at <b>depth ${meta.asc}</b> of 5 — the deepest spring you've reached. (a heavier sky; your murmurs &amp; voices carry over.)` : ''}</p>
         <input id="seedin" type="text" spellcheck="false" placeholder="${C().prettySeed(Math.random)}">
         <div class="endbtns">
           <button id="s-go">plant it</button>

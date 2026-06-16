@@ -115,10 +115,12 @@
   #railhead { font-size: 11px; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; }
   #evolvebtn { width: 100%; font-family: var(--serif); letter-spacing: .04em; border-color: var(--line2); color: var(--dewblue); position: relative; }
   #evolvebtn.ripe { border-color: var(--dewblue); box-shadow: 0 0 12px rgba(158,210,200,0.3); }
-  #ritesbtn { width: 100%; font-family: var(--serif); letter-spacing: .04em; border-color: var(--line2); color: var(--gold); }
+  #ritesbtn { width: 100%; font-family: var(--serif); letter-spacing: .04em; border-color: var(--line2); color: var(--gold); position: relative; }
   #ritesbtn.ripe { border-color: var(--gold); box-shadow: 0 0 12px rgba(230,200,106,0.25); }
-  #evobadge { display: inline-block; min-width: 16px; padding: 0 4px; margin-left: 4px; border-radius: 999px;
-    background: var(--dewblue); color: #10201c; font-size: 10px; font-weight: bold; }
+  #evobadge, #ritebadge { display: inline-block; min-width: 16px; padding: 0 4px; margin-left: 4px; border-radius: 999px;
+    color: #10201c; font-size: 10px; font-weight: bold; }
+  #evobadge { background: var(--dewblue); }
+  #ritebadge { background: var(--gold); }
   #artifacts { display: flex; flex-wrap: wrap; gap: 8px; }
   .railart {
     position: relative; width: 44px; height: 44px; border-radius: 10px;
@@ -469,7 +471,7 @@
     </main>
     <aside id="rail" class="hidden">
       <button id="evolvebtn">✸ cultivate <span id="evobadge" class="hidden"></span></button>
-      <button id="ritesbtn">✺ rites</button>
+      <button id="ritesbtn">✺ rites <span id="ritebadge" class="hidden"></span></button>
       <div id="railhead">artifacts</div>
       <div id="artifacts"></div>
       <div id="coalesce" class="hidden">
