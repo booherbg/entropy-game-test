@@ -299,7 +299,9 @@
         /* the crystal is order without hunger — a steady sap battery, anywhere, forever */
         case 'crys': return { prod: 1.8 * this.mod('crysSap', 1), up: 0, out: 0, role: 'producer' };
         case 'frond': return { prod: 0, up: 0.4 + p.depth * 0.3, out: 0.34 * (p.depth * (p.depth + 1) / 2) * this.mod('frondIncome', 1) * this.soilMul(c, 'frond') * this._synergy(c), role: 'consumer' };
-        case 'bloom': return { prod: 0, up: 0.45, out: 0, role: 'consumer' };
+        /* a living, fed blossom pays a small steady order — a bed of wildflowers is worth
+           keeping, not just a one-turn cascade trick (it used to yield nothing once born). */
+        case 'bloom': return { prod: 0, up: 0.45, out: (0.18 + 0.02 * Math.min(p.age || 0, 8)) * this.mod('bloomOut', 1) * this._synergy(c), role: 'consumer' };
         case 'heart': { const net = this.netOf.get(k); return { prod: 0, up: 4, out: (net ? net.cells.size : 1) / 5 * this.mod('heartIncome', 1), role: 'consumer' }; }
         case 'myc': return { prod: 0, up: 0.2, out: 0, role: 'grid' };
       }
