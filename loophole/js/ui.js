@@ -307,6 +307,15 @@
     eb.textContent = ripe;
     $('evolvebtn').classList.toggle('ripe', ripe > 0);
     if (ripe > 0) hint('cultivate');
+    /* mobile rail button badges ripe cultivars + a waking garden */
+    const coReady = game.stage === 6 && game.coalesceReady();
+    const rb = $('railbadge');
+    if (rb) {
+      const n = ripe + (coReady ? 1 : 0);
+      rb.classList.toggle('hidden', n === 0 && !coReady);
+      rb.textContent = coReady ? '❀' : (n || '');
+      $('railbtn').classList.toggle('ripe', n > 0);
+    }
     /* coalesce panel */
     const cp = $('coalesce');
     if (game.stage === 6 && !game.over) {
@@ -605,9 +614,32 @@
 
   function bindBoard() {
     const wrap = $('boardwrap');
-    const cellAtEv = ev => { const rect = wrap.getBoundingClientRect(); return R.cellAt(ev.clientX - rect.left, ev.clientY - rect.top); };
+    const local = ev => { const r = wrap.getBoundingClientRect(); return { x: ev.clientX - r.left, y: ev.clientY - r.top }; };
+    const cellAtEv = ev => { const p = local(ev); return R.cellAt(p.x, p.y); };
+
+    /* multi-touch: 2 fingers pinch-zoom & pan; 1 finger taps/paints */
+    const pointers = new Map();
+    let pinch = null, multiTouch = false;
+    const endDrag = () => {
+      if (!dragging) return;
+      dragging = false;
+      if (dragActed) save();
+      dragActed = false;
+    };
+
     wrap.addEventListener('pointermove', ev => {
       if (!game) return;
+      if (pointers.has(ev.pointerId)) pointers.set(ev.pointerId, local(ev));
+      if (pinch && pointers.size >= 2) {
+        const [a, b] = [...pointers.values()];
+        const dist = Math.hypot(a.x - b.x, a.y - b.y);
+        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        if (pinch.dist > 0) R.zoomAt(mx, my, dist / pinch.dist);
+        R.panBy(mx - pinch.mx, my - pinch.my);
+        pinch.dist = dist; pinch.mx = mx; pinch.my = my;
+        R.dirty();
+        return;
+      }
       const k = cellAtEv(ev);
       R.hovered = k;
       cellTip(k, ev);
@@ -616,8 +648,7 @@
         const c = game.cells.get(k);
         if (c && ((c.pat && c.pat.t === 'crys') || (tool && tool.type === 'plant' && tool.pt === 'crys'))) R.auraFor = k;
       }
-      /* drag-paint across cells */
-      if (dragging && k && canDragTool() && !dragSet.has(k)) {
+      if (dragging && !multiTouch && k && canDragTool() && !dragSet.has(k)) {
         dragSet.add(k);
         if (applyToolAt(k, true)) dragActed = true;
       }
@@ -626,6 +657,15 @@
     wrap.addEventListener('pointerdown', ev => {
       if (R.cinematic) { R.skipCinematic(); return; }
       if (ev.button === 2) return; /* right-click handled by contextmenu */
+      pointers.set(ev.pointerId, local(ev));
+      if (pointers.size >= 2) {
+        /* second finger: stop painting, begin a pinch/pan gesture */
+        multiTouch = true; dragging = false; dragActed = false;
+        const [a, b] = [...pointers.values()];
+        pinch = { dist: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+        return;
+      }
+      if (multiTouch) return;
       if (!game || game.over || processing || overlayOpen) return;
       const k = cellAtEv(ev);
       if (!k || !tool) return;
@@ -633,14 +673,21 @@
       try { wrap.setPointerCapture(ev.pointerId); } catch (e) {}
       if (applyToolAt(k, false)) dragActed = true;
     });
-    const endDrag = () => {
-      if (!dragging) return;
-      dragging = false;
-      if (dragActed) save();
-      dragActed = false;
+    const liftPointer = ev => {
+      pointers.delete(ev.pointerId);
+      if (pointers.size < 2) pinch = null;
+      if (pointers.size === 0) { multiTouch = false; endDrag(); }
     };
-    wrap.addEventListener('pointerup', endDrag);
-    wrap.addEventListener('pointercancel', endDrag);
+    wrap.addEventListener('pointerup', liftPointer);
+    wrap.addEventListener('pointercancel', liftPointer);
+    /* desktop trackpad / mouse-wheel zoom */
+    wrap.addEventListener('wheel', ev => {
+      if (!game) return;
+      ev.preventDefault();
+      const p = local(ev);
+      R.zoomAt(p.x, p.y, ev.deltaY < 0 ? 1.12 : 0.89);
+      R.dirty();
+    }, { passive: false });
     wrap.addEventListener('contextmenu', ev => { ev.preventDefault(); selectTool(null); });
     window.addEventListener('resize', () => { R.layout(); R.dirty(); });
     window.addEventListener('keydown', ev => {
@@ -696,7 +743,8 @@
       <div class="paneltitle">how it works</div>
       <div class="helpbody">
         <p>every turn, entropy seeps in — from the rim, from the air, sometimes in squalls. grey is disorder; color is order. <b>coherence</b> is how much of the board now holds together.</p>
-        <p>spend <b>✦ order</b> to plant living patterns. they replicate, link, eat, bloom, and pay for themselves — find the combinations that run away on their own. click-drag to plant or tend a whole swath at once.</p>
+        <p>spend <b>✦ order</b> to plant living patterns. they replicate, link, eat, bloom, and pay for themselves — find the combinations that run away on their own. drag to plant or tend a whole swath; planting onto moss simply builds over it. <span class="muted">(on a phone: pinch to zoom, two fingers to pan.)</span></p>
+        <p>watch your moss: <b>spring-green</b> moss sits on a frontier and is paying you; <b>dark-green</b> moss has cleaned out its surroundings and gone quiet. keep moss where the gradient is.</p>
         <p><b>read the land.</b> each cell sits on a soil that bends the rules — plant fronds in the wet, crystals on stone, ants and moss on the ash. and patterns earn by their <b>neighbors</b>: a frond sheltered by moss, anchored by crystal, plumbed into mycelium pays several times a lonely one. hover any cell to see its soil and how it’s faring.</p>
         <p><b>don’t hoard.</b> order above a soft cap radiates away as heat — but some of that heat condenses into <b>✸ insight</b>. spend insight in <b>« cultivate »</b> on cultivars and extra <b>hands</b> that plant 2–3 at once.</p>
         <p><b>rot</b> spreads from the frontier and gnaws your patterns. tend it to wound it, foragers devour it, crystal auras corrode it — or wall it off and starve it. clearing it pays insight.</p>
@@ -1063,6 +1111,9 @@
       if (res.ok) { AU.stageUp(); handleEvents(res.events); updateHUD(); R.dirty(); save(); }
     };
     $('evolvebtn').onclick = () => { if (game && !game.over) pushOverlay(evolveOverlay()); };
+    $('railbtn').onclick = () => document.body.classList.toggle('railopen');
+    $('railclose').onclick = () => document.body.classList.remove('railopen');
+    $('railscrim').onclick = () => document.body.classList.remove('railopen');
     $('menubtn').onclick = () => menuOverlay();
     $('t-new').onclick = () => {
       pushOverlay(panelOverlay(`

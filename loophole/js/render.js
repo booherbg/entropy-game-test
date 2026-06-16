@@ -11,7 +11,7 @@
     loam0: '#3b2e1f', loam1: '#463623', loam2: '#524230',
     gap: '#171210',
     grey: '#807d75', greyDark: '#54524d',
-    moss0: '#56743f', moss1: '#7c9e57', moss2: '#a7c47b', mossGlow: '#cfe6a4',
+    mossDark: '#36492a', moss0: '#56743f', moss1: '#7c9e57', moss2: '#a7c47b', mossGlow: '#cfe6a4',
     fern0: '#4d8246', fern1: '#7cb35e', fern2: '#cfe89a',
     dew: '#d7ecde', dewBlue: '#9ed2c8', dewDeep: '#6fa89e',
     crys0: '#b8d8da', crys1: '#eef8f4', crysShadow: '#5c7d84',
@@ -119,6 +119,7 @@
       this.blightWarned = [];
       this.bolts = [];
       this.flashT = 0; this.shake = 0;
+      this.view = { scale: 1, ox: 0, oy: 0 }; /* board pan/zoom (mobile) */
       this.hovered = null; this.mode = null;
       this.auraFor = null;
       this.valuesMode = false;
@@ -136,6 +137,7 @@
       this.agents = new Map();
       this.particles = []; this.pulses = []; this.warned = [];
       this.cinematic = null;
+      this.resetView();
       this.layout();
     }
 
@@ -199,6 +201,9 @@
     }
 
     cellAt(px, py) {
+      /* invert the pan/zoom view, then the hex layout */
+      px = (px - this.view.ox) / this.view.scale;
+      py = (py - this.view.oy) / this.view.scale;
       const x = px - this.ox, y = py - this.oy;
       const qf = (SQ3 / 3 * x - y / 3) / this.s, rf = (2 / 3 * y) / this.s;
       /* cube round */
@@ -209,6 +214,28 @@
       const k = HEX.key(q, r);
       return this.game && this.game.cells.has(k) ? k : null;
     }
+
+    /* ── pan/zoom view (mobile gestures) ── */
+    clampView() {
+      const W = this.fc.width / this.dpr, H = this.fc.height / this.dpr;
+      this.view.scale = U.clamp(this.view.scale, 1, 4);
+      /* keep the board mostly on-screen: limit how far the (scaled) center can drift */
+      const marginX = W * 0.42 * this.view.scale, marginY = H * 0.42 * this.view.scale;
+      this.view.ox = U.clamp(this.view.ox, -marginX, marginX);
+      this.view.oy = U.clamp(this.view.oy, -marginY, marginY);
+    }
+    zoomAt(cx0, cy0, factor) {
+      const s0 = this.view.scale;
+      const s1 = U.clamp(s0 * factor, 1, 4);
+      const k = s1 / s0;
+      /* zoom about the focal screen point */
+      this.view.ox = cx0 - (cx0 - this.view.ox) * k;
+      this.view.oy = cy0 - (cy0 - this.view.oy) * k;
+      this.view.scale = s1;
+      this.clampView();
+    }
+    panBy(dx, dy) { this.view.ox += dx; this.view.oy += dy; this.clampView(); }
+    resetView() { this.view = { scale: 1, ox: 0, oy: 0 }; }
 
     dirty() { this.dirtyFlag = true; }
 
@@ -225,6 +252,7 @@
       cx.fillStyle = bg;
       cx.fillRect(0, 0, W, H);
       if (!g) { cx.restore(); return; }
+      cx.translate(this.view.ox, this.view.oy); cx.scale(this.view.scale, this.view.scale); /* pan/zoom */
       /* the clearing: a warm ground disc beneath the whole board */
       const span0 = this.s * (2 * g.radius + 2.4) * 0.62;
       const gd = cx.createRadialGradient(this.ox, this.oy, span0 * 0.2, this.ox, this.oy, span0 * 1.18);
@@ -397,13 +425,23 @@
       }
     }
 
+    /* mature moss earns only beside a gradient (a neighbor ≥30% entropy, or the rim) —
+       mirrors the income rule, so spring-green moss = the moss actually paying you */
+    _mossEarning(c) {
+      if (c.pat.age < 3) return false;
+      for (const nk of HEX.neighborsK(HEX.key(c.q, c.r))) {
+        const nc = this.game.cells.get(nk);
+        if (!nc || nc.e >= 0.3) return true;
+      }
+      return false;
+    }
     _drawPattern(cx, c) {
       const k = HEX.key(c.q, c.r), p = this.pos.get(k);
       cx.save();
       cx.translate(p.x, p.y);
       const s = this.s;
       switch (c.pat.t) {
-        case 'moss': this.drawMoss(cx, s, c.pat.age, k); break;
+        case 'moss': this.drawMoss(cx, s, c.pat.age, k, this._mossEarning(c)); break;
         case 'frond': this.drawFrond(cx, s, c.pat.depth, k); break;
         case 'ant': this.drawNest(cx, s, c.pat.pop, k); break;
         case 'myc': this.drawMycKnot(cx, s, k); break;
@@ -415,8 +453,13 @@
     }
 
     /* ── pattern art (centered at 0,0; s = cell size) ── */
-    drawMoss(cx, s, age, seed) {
-      /* ground-hugging patches with soil showing through — carpet, not broccoli */
+    drawMoss(cx, s, age, seed, earning) {
+      /* ground-hugging patches with soil showing through — carpet, not broccoli.
+         earning moss (on a gradient/frontier, paying order) glows spring-green;
+         idle interior moss (cleaned out, no longer paying) sits dark-green. */
+      if (earning == null) earning = true;
+      const base = earning ? [PAL.moss1, PAL.moss2] : [PAL.mossDark, PAL.moss0];
+      const specks = earning ? [PAL.moss2, PAL.mossGlow, PAL.moss2] : [PAL.mossDark, PAL.moss0, PAL.moss1];
       const r = rngOf('moss' + seed);
       const grown = Math.min(age, 6) / 6;
       const patches = 2 + Math.round(grown * 2);
@@ -426,7 +469,7 @@
         const px = Math.cos(a) * d, py = Math.sin(a) * d * 0.9;
         centers.push([px, py]);
         const rad = s * (0.22 + r.f() * 0.16 + grown * 0.12);
-        cx.fillStyle = rgba(i % 2 ? PAL.moss0 : PAL.moss1, 0.5 + grown * 0.25);
+        cx.fillStyle = rgba(i % 2 ? base[0] : base[1], 0.5 + grown * 0.25);
         cx.beginPath();
         cx.ellipse(px, py, rad, rad * (0.7 + r.f() * 0.25), r.f() * TAU, 0, TAU);
         cx.fill();
@@ -435,13 +478,12 @@
       for (let i = 0; i < n; i++) {
         const c0 = centers[r.i(centers.length)];
         const a = r.f() * TAU, d = Math.pow(r.f(), 1.4) * s * 0.3;
-        const cols = [PAL.moss1, PAL.moss2, PAL.moss2];
-        cx.fillStyle = rgba(cols[r.i(cols.length)], 0.85);
+        cx.fillStyle = rgba(specks[r.i(specks.length)], 0.85);
         cx.beginPath();
         cx.arc(c0[0] + Math.cos(a) * d, c0[1] + Math.sin(a) * d * 0.9, s * (0.035 + r.f() * 0.05), 0, TAU);
         cx.fill();
       }
-      if (age >= 3) {
+      if (age >= 3 && earning) {
         for (let i = 0; i < 4; i++) {
           const c0 = centers[r.i(centers.length)];
           cx.fillStyle = rgba(PAL.mossGlow, 0.95);
@@ -624,8 +666,11 @@
       if (this.cinematic) { this._cinematicFrame(cx, t, W, H); cx.restore(); return; }
       if (!this.game) { cx.restore(); return; }
 
+      cx.save();
+      cx.translate(this.view.ox, this.view.oy); cx.scale(this.view.scale, this.view.scale); /* pan/zoom */
+      const ff = this._ff = (this._ff || 0) + 1;
       this._sporeFrame(cx, t, W, H);
-      this._grainTwinkle(cx, t);
+      if (ff % 2) this._grainTwinkle(cx, t); /* decorative; half-rate to spare the main thread */
       this._antFrame(cx, t);
       this._mycPips(cx, t);
       this._blightFrame(cx, t);
@@ -635,6 +680,7 @@
       this._boltFrame(cx);
       this._hoverFrame(cx, t);
       if (this.valuesMode || this.game.flag('forecast')) this._valuesFrame(cx);
+      cx.restore();
       if (this.flashT > 0) {
         cx.fillStyle = rgba('#e8e8e0', this.flashT * 0.22);
         cx.fillRect(0, 0, W, H);
@@ -812,12 +858,13 @@
       this.bolts = this.bolts.filter(b => b.life < b.max);
     }
     _mkBolt(tx, ty) {
+      const sy = ty - this.s * 14; /* strike from above, in board space */
       const sx = tx + (Math.random() - 0.5) * 60;
-      const pts = [[sx, -20]];
+      const pts = [[sx, sy]];
       const n = 9;
       for (let i = 1; i <= n; i++) {
         const u = i / n;
-        pts.push([U.lerp(sx, tx, u) + (Math.random() - 0.5) * 30 * (1 - u), U.lerp(-20, ty, u)]);
+        pts.push([U.lerp(sx, tx, u) + (Math.random() - 0.5) * 30 * (1 - u), U.lerp(sy, ty, u)]);
       }
       return { pts, life: 0, max: 0.34 };
     }
@@ -953,8 +1000,7 @@
           case 'demon': this.ring(e.k, PAL.gold, 0.9); this.burst(e.k, PAL.gold, 6, 1); break;
           case 'hand': for (const k of e.cells) this.ring(k, PAL.dew, 0.5); break;
           case 'gaia': case 'recur': {
-            const W = this.fc.width / this.dpr, H = this.fc.height / this.dpr;
-            this.pulses.push({ x: W / 2, y: H / 2, r: 10, v: 7, a: 0.5, w: 3, col: PAL.dewBlue });
+            this.pulses.push({ x: this.ox, y: this.oy, r: 10, v: 7, a: 0.5, w: 3, col: PAL.dewBlue });
             break;
           }
           case 'morphogen': for (const k of e.cells) if (U.hash32(k) % 3 === 0) this.burst(k, PAL.dewBlue, 2, 0.6); break;
@@ -983,8 +1029,7 @@
       this.pulses.push({ x: p.x, y: p.y, r: this.s * 0.2, v: this.s * 0.09, a, w: 1.6, col });
     }
     expandFx() {
-      const W = this.fc.width / this.dpr, H = this.fc.height / this.dpr;
-      this.pulses.push({ x: W / 2, y: H / 2, r: this.s * this.game.radius, v: 5, a: 0.6, w: 4, col: PAL.gold });
+      this.pulses.push({ x: this.ox, y: this.oy, r: this.s * this.game.radius, v: 5, a: 0.6, w: 4, col: PAL.gold });
       this.layout();
     }
 

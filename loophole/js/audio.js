@@ -159,7 +159,11 @@
       if (!this.running || !this.ctx) return;
       /* glide the mood */
       this.zoneL += (this.targetL - this.zoneL) * 0.04;
-      while (this.nextBeat < this.ctx.currentTime + 0.12) {
+      /* wide lookahead so a busy main thread (board redraws, GC) can't starve the
+         schedule into audible gaps; if we fell badly behind, resync rather than spew */
+      const now = this.ctx.currentTime;
+      if (this.nextBeat < now) this.nextBeat = now + 0.02;
+      while (this.nextBeat < now + 0.25) {
         this._onBeat(this.nextBeat, this.beat);
         this.nextBeat += this.beatDur; this.beat++;
       }
@@ -292,17 +296,17 @@
       src.start(time); src.stop(time + 0.05); o.start(time); o.stop(time + 0.04);
     }
     _pluck(time, midi) {
+      /* a single oscillator (half the node churn of a two-osc voice) — still warm
+         via the filter sweep; reverb/delay sends carry the shimmer */
       const ctx = this.ctx, o = ctx.createOscillator(); o.type = 'triangle'; o.frequency.value = mtf(midi);
-      const o2 = ctx.createOscillator(); o2.type = 'sine'; o2.frequency.value = mtf(midi) * 2; o2.detune.value = 5;
-      const o2g = ctx.createGain(); o2g.gain.value = 0.3;
       const f = ctx.createBiquadFilter(); f.type = 'lowpass';
       f.frequency.setValueAtTime(2600, time); f.frequency.exponentialRampToValueAtTime(700, time + 0.25);
       const g = ctx.createGain();
       g.gain.setValueAtTime(0.0001, time);
-      g.gain.exponentialRampToValueAtTime(0.16, time + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.17, time + 0.01);
       g.gain.exponentialRampToValueAtTime(0.001, time + 0.4);
-      o.connect(f); o2.connect(o2g); o2g.connect(f); f.connect(g); g.connect(this.g.pluck);
-      o.start(time); o2.start(time); o.stop(time + 0.45); o2.stop(time + 0.45);
+      o.connect(f); f.connect(g); g.connect(this.g.pluck);
+      o.start(time); o.stop(time + 0.45);
     }
 
     /* ── cues ── */

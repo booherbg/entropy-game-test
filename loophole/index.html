@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0d0a08">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>loophole — a thermodynamic garden</title>
 <style>
   :root {
@@ -12,13 +16,14 @@
     --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { height: 100%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; height: 100dvh; }
   body {
     background: var(--loam); color: var(--text); font-family: var(--sans);
-    font-size: 14px; overflow: hidden; user-select: none;
-    -webkit-font-smoothing: antialiased;
+    font-size: 14px; overflow: hidden; user-select: none; -webkit-user-select: none;
+    -webkit-font-smoothing: antialiased; overscroll-behavior: none; touch-action: manipulation;
   }
+  #boardwrap { touch-action: none; } /* the board owns its gestures (tap/paint/pan/zoom) */
   .hidden { display: none !important; }
   .muted { color: var(--muted); }
   .center { text-align: center; }
@@ -321,10 +326,84 @@
 
   body.cinema #hud, body.cinema #palette, body.cinema #rail, body.cinema #stormbanner, body.cinema #celltip, body.cinema #toasts, body.cinema #tip { display: none; }
 
-  @media (max-width: 900px) {
-    #rail { width: 150px; }
-    .card { width: 72px; }
+  /* the rail toggle + scrim are mobile-only; hidden on desktop */
+  #railbtn { display: none; padding: 6px 12px; font-size: 15px; position: relative; }
+  #railbadge { position: absolute; top: -3px; right: -3px; min-width: 15px; padding: 0 3px; border-radius: 999px;
+    background: var(--dewblue); color: #10201c; font-size: 9px; font-weight: bold; line-height: 15px; }
+  #railscrim { display: none; }
+  #railclose { display: none; }
+
+  @media (max-width: 920px) and (min-width: 761px) {
+    #rail { width: 158px; }
+    .card { width: 74px; }
     #stagebox { min-width: 130px; }
+  }
+
+  /* ───────── phones ───────── */
+  @media (max-width: 760px) {
+    body { font-size: 13px; }
+    #hud { gap: 8px; padding: 6px 8px; min-height: 0; }
+    #stagebox { display: none; } /* stage shown via the ring + widen prompts + menu */
+    #cohwrap { gap: 5px; flex: 0 0 auto; }
+    #cohring { width: 38px; height: 38px; }
+    #cohtxt { font-size: 12.5px; }
+    #cohtarget { display: none; }
+    #orderbox { font-size: 14px; gap: 4px; flex: 0 0 auto; }
+    #income { display: none; }
+    #insightbox { font-size: 13px; flex: 0 0 auto; }
+    #turnbox { display: none; }
+    #seedlabel { display: none; }
+    #widenbtn { font-size: 10px; padding: 5px 8px; flex: 0 0 auto; max-width: 28vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #menubtn { padding: 5px 10px; flex: 0 0 auto; }
+    #railbtn { display: inline-flex; align-items: center; flex: 0 0 auto; margin-left: auto; }
+
+    #stormbanner { top: 54px; font-size: 11.5px; padding: 5px 12px; }
+
+    /* rail → bottom sheet */
+    #rail {
+      position: fixed; left: 0; right: 0; bottom: 0; width: auto; max-height: 64vh;
+      border-left: none; border-top: 1px solid var(--line2); border-radius: 16px 16px 0 0;
+      transform: translateY(112%); transition: transform .28s ease; z-index: 40;
+      padding: 14px 14px calc(14px + env(safe-area-inset-bottom)); gap: 12px;
+      box-shadow: 0 -12px 34px rgba(0,0,0,0.55);
+    }
+    body.railopen #rail { transform: translateY(0); }
+    #railscrim { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 39; }
+    body.railopen #railscrim { display: block; }
+    #railclose { display: block; align-self: center; font-size: 12px; color: var(--muted); padding: 4px 16px; margin-top: 2px; }
+    #artifacts { gap: 10px; }
+    .railart { width: 50px; height: 50px; }
+    .railart canvas { width: 34px; height: 34px; }
+
+    /* palette → scrollable strip + end-turn */
+    #palette { padding: 7px 8px calc(7px + env(safe-area-inset-bottom)); gap: 8px; }
+    #cards { gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 2px 0; }
+    #cards::-webkit-scrollbar { display: none; }
+    .card { width: 62px; flex: 0 0 auto; padding: 5px 4px; }
+    .card:hover { transform: none; } /* no hover lift on touch */
+    .cardicon { width: 34px; height: 34px; }
+    .cardname { font-size: 10px; }
+    .cardcost { font-size: 9.5px; }
+    .cardkey { display: none; }
+    #endturn { width: 64px; height: 64px; font-size: 11px; flex: 0 0 auto; }
+
+    /* overlays → near-fullscreen, content stacks */
+    .panelbox, .panelbox.wide { width: 95vw; max-width: 95vw; max-height: 88vh; padding: 20px 15px; }
+    .offerrow { flex-direction: column; align-items: stretch; }
+    .artcard { width: 100%; }
+    .artdesc { min-height: 0; }
+    .evonode { flex: 1 1 100%; min-width: 0; }
+    .echobox { padding: 22px 16px; }
+    .echotext { font-size: 17px; }
+    .statcanvas { height: 200px; }
+    #wordmark { font-size: 12vw; }
+    #subtitle { font-size: 14px; }
+    #epigraph { font-size: 12.5px; }
+    #titlebtns { width: 84vw; max-width: 300px; }
+
+    #toasts { left: 8px; right: 8px; bottom: 92px; max-width: none; }
+    #tip { display: none; } /* no hover tooltips on touch */
+    #celltip { font-size: 12.5px; max-width: 62vw; }
   }
 </style>
 </head>
@@ -346,6 +425,7 @@
     <div id="orderbox"><span class="glyph">✦</span><span id="order">0</span><span id="income"></span></div>
     <div id="insightbox" title="insight — spend it on the evolution tree"><span class="glyph2">✸</span><span id="insight">0</span></div>
     <div id="turnbox">turn <span id="turn">1</span><br><span id="seedlabel"></span></div>
+    <button id="railbtn" title="relics &amp; cultivate">◈<span id="railbadge" class="hidden"></span></button>
     <button id="menubtn" title="menu (esc)">≡</button>
   </header>
 
@@ -364,8 +444,10 @@
         <div id="cochecks"></div>
         <button id="cobtn" disabled>coalesce</button>
       </div>
+      <button id="railclose">close</button>
     </aside>
   </div>
+  <div id="railscrim"></div>
 
   <footer id="palette" class="hidden">
     <div id="cards"></div>

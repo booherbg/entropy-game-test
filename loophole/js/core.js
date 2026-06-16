@@ -289,6 +289,18 @@
     }
 
     plant(t, k) {
+      /* build over carpet: planting onto moss clears it first (refunded), so the
+         carpet you spread is never in the way of what you want to place there */
+      const tc = this.cells.get(k);
+      if (tc && tc.pat && tc.pat.t === 'moss' && t !== 'moss' && this.C.PATTERNS[t] && !this.over) {
+        const def = this.C.PATTERNS[t];
+        if (def.stage <= this.stage && tc.e <= def.maxE) {
+          const refund = tc.pat.fresh ? this.plantCost('moss', k) : Math.floor(this.plantCost('moss', k) * this.mod('pruneRefund', 0.3));
+          if (this.order + refund >= this.plantCost(t, k)) {
+            tc.pat = null; this.order += refund; this.stats.prunes++;
+          }
+        }
+      }
       const chk = this.canPlant(t, k);
       if (!chk.ok) return chk;
       const c = this.cells.get(k);
