@@ -56,7 +56,7 @@
   #cohtarget { font-size: 11px; color: var(--muted); }
   #orderbox { font-size: 17px; display: flex; align-items: baseline; gap: 6px; }
   #orderbox .glyph { color: var(--gold); }
-  #insightbox { font-size: 15px; display: flex; align-items: baseline; gap: 5px; color: var(--dewblue); }
+  #insightbox { font-size: 15px; display: flex; align-items: baseline; gap: 5px; color: var(--dewblue); cursor: pointer; }
   #insightbox .glyph2 { color: var(--dewblue); }
   #sapbox { font-size: 15px; display: flex; align-items: baseline; gap: 5px; cursor: pointer; }
   #sapbox .glyph3 { color: #8fd66a; }
@@ -353,6 +353,24 @@
     font-size: 12.5px; margin: 0 auto 14px; width: fit-content;
   }
   .statgrid div:nth-child(odd) { color: var(--muted); }
+  /* garden-state panel tabs + the kit */
+  .tabbar { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .tab { font-family: var(--serif); font-size: 14px; color: var(--muted); background: none; border: none;
+    border-bottom: 2px solid transparent; border-radius: 0; padding: 6px 14px 9px; margin-bottom: -1px; cursor: pointer; }
+  .tab:hover { color: var(--dew); box-shadow: none; }
+  .tab.on { color: var(--mossglow); border-bottom-color: var(--mossglow); }
+  .tabcontent { max-height: 62vh; overflow-y: auto; padding-right: 4px; }
+  .kitlist { margin-bottom: 6px; text-align: left; }
+  .kititem { padding: 7px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
+  .kititem b { color: var(--dew); }
+  .kitrar { font-size: 8.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-left: 4px; }
+  .kititem.r-legendary b { color: var(--gold); } .kititem.r-uncommon b { color: var(--dewblue); }
+  .kitdesc { font-size: 11.5px; color: var(--muted); margin-top: 2px; line-height: 1.45; }
+  .kitmods { text-align: left; font-size: 12.5px; }
+  .kitmod { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: baseline; padding: 4px 0; border-bottom: 1px dotted var(--line); }
+  .kmlabel { color: var(--dew); }
+  .kmval { color: var(--gold); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .kmsrc { grid-column: 1 / -1; font-size: 10.5px; color: var(--muted); font-style: italic; }
   .endarts { margin-bottom: 12px; line-height: 1.9; }
   .endart { font-size: 11.5px; border: 1px solid var(--line2); padding: 2px 9px; border-radius: 999px; margin: 0 2px; white-space: nowrap; }
   .endart.r-legendary { border-color: rgba(230,200,106,0.5); color: var(--gold); }

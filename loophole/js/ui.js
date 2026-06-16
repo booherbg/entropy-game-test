@@ -955,39 +955,114 @@
   }
 
   /* the metabolism at a glance — what's making and burning sap right now */
-  function metabOverlay() {
+  /* the metabolism, as an HTML fragment (a tab of the garden-state panel) */
+  function metabHTML() {
+    const roles = {};
+    for (const c of game.cells.values()) {
+      if (!c.pat) continue;
+      const s = c.pat._s || game._sap(c);
+      const r = roles[c.pat.t] || (roles[c.pat.t] = { n: 0, prod: 0, up: 0, name: C().PATTERNS[c.pat.t].name });
+      r.n++; r.prod += s.prod; r.up += s.up;
+    }
+    let starve = 0;
+    for (const n of game.networks) if (n.fedRatio < 0.5) starve++;
+    const prod = game.sapProduced || 0, up = game.sapUpkeep || 0, net = prod - up;
+    const rows = C().PATTERN_ORDER.filter(t => roles[t]).map(t => {
+      const r = roles[t];
+      const v = (r.prod > 0 ? `<span class="sapprod">+${r.prod.toFixed(1)}</span>` : '') + (r.up > 0 ? ` <span class="sapstarve">−${r.up.toFixed(1)}</span>` : '') || '<span class="muted">—</span>';
+      return `<div>${r.name} ×${r.n}</div><div>${v} ❧</div>`;
+    }).join('') || '<div class="muted">nothing planted yet</div><div></div>';
+    return `<p class="evointro">living patterns run on <b>❧ sap</b>. <b>producers</b> — moss on a gradient, ant colonies, crystals — make it. <b>consumers</b> — fronds, blooms, heartwood — burn it. <b>mycelium</b> carries sap from one to the other. surplus sap becomes ✦ order; a shortfall starves your consumers, and they wilt.</p>
+      <div class="statgrid">
+        <div>sap produced</div><div class="sapprod">+${prod.toFixed(1)} ❧</div>
+        <div>sap consumed</div><div class="sapstarve">−${up.toFixed(1)} ❧</div>
+        <div>net flow</div><div>${(net >= 0 ? '+' : '') + net.toFixed(1)} ❧ ${net >= 0 ? '(surplus → order)' : '(deficit — feeding cuts in)'}</div>
+        <div>networks</div><div>${game.networks.length}${starve ? ' · ' + starve + ' starving' : ''}</div>
+      </div>
+      <div class="codexhead">by pattern</div>
+      <div class="statgrid metabgrid">${rows}</div>`;
+  }
+
+  /* friendly names for the hidden mod keys — so compounding reads in plain words */
+  const MODLABELS = {
+    mossIncome: 'moss sap', frondIncome: 'frond yield', heartIncome: 'heartwood yield', crysSap: 'crystal sap',
+    ambientSap: 'ambient sap', mossPower: 'moss cleansing', frondMaxDepth: 'frond max depth', frondGrowGate: 'frond comfort',
+    antRange: 'forager range', antPopMax: 'colony size', antEat: 'forager appetite', antFindChance: 'forager luck',
+    mycLinkMax: 'mycelium links', mycRange: 'mycelium reach', netSmooth: 'network sharing', mossSpreadEvery: 'moss spread delay',
+    pressure: 'entropy pressure', orderSeep: 'order seep', baseIncome: 'base income', incomeAll: 'all income', costAll: 'build cost',
+    pruneRefund: 'prune refund', hands: 'extra hands', tendCost: 'tend cost', tendPower: 'tend power', tendRefund: 'tend refund',
+    orderCapMul: 'order cap', orderCap: 'order cap', legendCostMul: 'legendary cost', crysRadius: 'crystal aura', crysAura: 'crystal calm',
+    bloomBirthE: 'bloom hardiness', bloomOrder: 'bloom order', echoCap: 'murmur cap', echoOrder: 'murmur order',
+  };
+  /* walk relics + cultivars, accumulate every mod they touch, remember who gave it */
+  function kitData(g) {
+    const mods = {};
+    const note = (src, m) => {
+      if (!m) return;
+      for (const k in (m.add || {})) { const e = mods[k] || (mods[k] = { add: 0, mul: 1, src: [] }); e.add += m.add[k]; e.src.push(src); }
+      for (const k in (m.mul || {})) { const e = mods[k] || (mods[k] = { add: 0, mul: 1, src: [] }); e.mul *= m.mul[k]; e.src.push(src); }
+    };
+    g.artifacts.forEach(a => note(a.name, a.mods));
+    g.evolutions.forEach(id => { const e = C().EVOLUTIONS[id]; if (e) note(e.name, e.mods); });
+    return mods;
+  }
+  /* the kit: relics, cultivars, what's grown, and how it all compounds (with sources) */
+  function kitHTML() {
+    const g = game;
+    const fmt = n => { const r = Math.round(n * 100) / 100; return String(r); };
+    const arts = g.artifacts.length
+      ? g.artifacts.map(a => `<div class="kititem r-${a.rarity}"><b>${a.name}</b> <span class="kitrar">${a.rarity}</span><div class="kitdesc">${a.desc}</div></div>`).join('')
+      : '<div class="muted">none yet — the garden offers as you grow</div>';
+    const evos = g.evolutions.length
+      ? g.evolutions.map(id => { const e = C().EVOLUTIONS[id]; return `<div class="kititem"><b>${e.name}</b><div class="kitdesc">${e.desc}</div></div>`; }).join('')
+      : '<div class="muted">none yet — spend ✸ insight in cultivate</div>';
+    const counts = {};
+    for (const c of g.cells.values()) if (c.pat) counts[c.pat.t] = (counts[c.pat.t] || 0) + 1;
+    const grown = C().PATTERN_ORDER.filter(t => counts[t]).map(t => `<div>${C().PATTERNS[t].name}</div><div>×${counts[t]}</div>`).join('') || '<div class="muted">nothing yet</div><div></div>';
+    const mods = kitData(g);
+    const keys = Object.keys(mods).sort((a, b) => (MODLABELS[a] || a).localeCompare(MODLABELS[b] || b));
+    const modRows = keys.length ? keys.map(k => {
+      const m = mods[k];
+      const label = MODLABELS[k] || k.replace(/([A-Z])/g, ' $1').toLowerCase();
+      let eff = '';
+      if (m.mul !== 1) eff += '×' + fmt(m.mul);
+      if (m.add !== 0) eff += (eff ? ' ' : '') + (m.add > 0 ? '+' : '') + fmt(m.add);
+      const src = [...new Set(m.src)].join(' · ');
+      return `<div class="kitmod"><span class="kmlabel">${label}</span><span class="kmval">${eff}</span><span class="kmsrc">← ${src}</span></div>`;
+    }).join('') : '<div class="muted">no bonuses yet — claim relics and cultivars and they stack here</div>';
+    return `<p class="evointro">everything you've claimed, and how it compounds. <b>relics</b> bend rules; <b>cultivars</b> tune the numbers; together they are your build. ✸ ${g.insight} insight in hand${g.legendDiscount ? ` · −${g.legendDiscount} foraged toward a legendary` : ''}.</p>
+      <div class="codexhead">relics · ${g.artifacts.length}</div><div class="kitlist">${arts}</div>
+      <div class="codexhead">cultivars · ${g.evolutions.length}</div><div class="kitlist">${evos}</div>
+      <div class="codexhead">grown</div><div class="statgrid metabgrid">${grown}</div>
+      <div class="codexhead">compounding</div><div class="kitmods">${modRows}</div>`;
+  }
+
+  /* the garden-state panel: metabolism + kit, tabbed */
+  function gardenStateOverlay(tab) {
+    tab = tab || 'metab';
     return (wrap, close) => {
-      const box = el('div', 'panelbox');
-      const x = el('button', 'closex', '×'); x.onclick = close; box.appendChild(x);
-      const roles = {};
-      for (const c of game.cells.values()) {
-        if (!c.pat) continue;
-        const s = c.pat._s || game._sap(c);
-        const r = roles[c.pat.t] || (roles[c.pat.t] = { n: 0, prod: 0, up: 0, name: C().PATTERNS[c.pat.t].name });
-        r.n++; r.prod += s.prod; r.up += s.up;
-      }
-      let starve = 0;
-      for (const n of game.networks) if (n.fedRatio < 0.5) starve++;
-      const prod = game.sapProduced || 0, up = game.sapUpkeep || 0, net = prod - up;
-      const rows = C().PATTERN_ORDER.filter(t => roles[t]).map(t => {
-        const r = roles[t];
-        const v = (r.prod > 0 ? `<span class="sapprod">+${r.prod.toFixed(1)}</span>` : '') + (r.up > 0 ? ` <span class="sapstarve">−${r.up.toFixed(1)}</span>` : '') || '<span class="muted">—</span>';
-        return `<div>${r.name} ×${r.n}</div><div>${v} ❧</div>`;
-      }).join('') || '<div class="muted">nothing planted yet</div><div></div>';
-      box.innerHTML = `<div class="paneltitle">the metabolism</div>
-        <p class="evointro">living patterns run on <b>❧ sap</b>. <b>producers</b> — moss on a gradient, ant colonies, crystals — make it. <b>consumers</b> — fronds, blooms, heartwood — burn it. <b>mycelium</b> is the grid that carries sap from one to the other. surplus sap becomes ✦ order; a shortfall starves your consumers, and they wilt. feed a hungry consumer by putting producers (spring-green moss) beside it, or wiring it into a mycelial network that has them.</p>
-        <div class="statgrid">
-          <div>sap produced</div><div class="sapprod">+${prod.toFixed(1)} ❧</div>
-          <div>sap consumed</div><div class="sapstarve">−${up.toFixed(1)} ❧</div>
-          <div>net flow</div><div>${(net >= 0 ? '+' : '') + net.toFixed(1)} ❧ ${net >= 0 ? '(surplus → order)' : '(deficit — feeding cuts in)'}</div>
-          <div>networks</div><div>${game.networks.length}${starve ? ' · ' + starve + ' starving' : ''}</div>
-        </div>
-        <div class="codexhead">by pattern</div>
-        <div class="statgrid metabgrid">${rows}</div>`;
+      const box = el('div', 'panelbox wide');
+      const x = el('button', 'closex', '×'); x.onclick = close;
       box.appendChild(x);
+      box.appendChild(el('div', 'paneltitle', 'state of the garden'));
+      const bar = el('div', 'tabbar');
+      const content = el('div', 'tabcontent');
+      const render = () => {
+        bar.innerHTML = '';
+        [['metab', 'the metabolism'], ['kit', 'the kit']].forEach(([id, label]) => {
+          const t = el('button', 'tab' + (tab === id ? ' on' : ''), label);
+          t.onclick = () => { tab = id; render(); };
+          bar.appendChild(t);
+        });
+        content.innerHTML = tab === 'metab' ? metabHTML() : kitHTML();
+      };
+      box.appendChild(bar); box.appendChild(content);
+      render();
       wrap.appendChild(box);
     };
   }
+  /* back-compat alias */
+  function metabOverlay() { return gardenStateOverlay('metab'); }
 
   /* the story so far — line graphs of the run over time */
   function statsOverlay() {
@@ -1341,6 +1416,14 @@
     if (kind === 'murmurs') { meta.echoes = [0, 1, 2, 3, 4, 5, 6, 7]; meta.quotes = [0, 1, 4, 10, 20]; murmursOverlay(); }
     if (kind === 'voice') { meta.quotes = []; surfaceQuote(); }
     if (kind === 'won') { meta.asc = 2; game.asc = 1; game.stats.peakC = 0.91; pushOverlay(winOverlay(), { dismissible: false }); }
+    if (kind === 'kit') {
+      /* a developed build: a few cultivars + relics so the kit + compounding fill out */
+      game.insight = 8; game.legendDiscount = 5;
+      ['clover', 'sunfrond', 'rhizomorph', 'leafcutter'].forEach(id => { if (C().EVOLUTIONS[id]) game.evolutions.push(id); });
+      [['frondpay', 2], ['anteat', 2], ['mycreach', 1]].forEach(([eff, tier], i) => game.addArtifact({ proc: { eff, tier, n1: i * 3 + 1, n2: i * 5 + 2 } }));
+      game._recompute && game._recompute();
+      pushOverlay(gardenStateOverlay('kit'));
+    }
     if (kind === 'newgarden') { meta.asc = 3; game = null; showTitle(); $('t-new').click(); }
     if (kind === 'end') { game.stats.peakC = 0.87; onDissolved(); }
     if (kind === 'cells') { R.valuesMode = true; }
@@ -1401,7 +1484,8 @@
     };
     $('evolvebtn').onclick = () => { if (game && !game.over) pushOverlay(evolveOverlay()); };
     $('ritesbtn').onclick = () => { if (game && !game.over) pushOverlay(ritesOverlay()); };
-    $('sapbox').onclick = () => { if (game) pushOverlay(metabOverlay()); };
+    $('sapbox').onclick = () => { if (game) pushOverlay(gardenStateOverlay('metab')); };
+    $('insightbox').onclick = () => { if (game) pushOverlay(gardenStateOverlay('kit')); };
     $('railbtn').onclick = () => document.body.classList.toggle('railopen');
     $('railclose').onclick = () => document.body.classList.remove('railopen');
     $('railscrim').onclick = () => document.body.classList.remove('railopen');
