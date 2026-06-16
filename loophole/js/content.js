@@ -48,12 +48,12 @@
 
   /* ───────────────────────── stages ───────────────────────── */
   C.STAGES = [
-    { n: 1, name: 'substrate', radius: 4, pressure: 0.013, base: 3, target: 0.52, unlocks: ['moss', 'frond'], blurb: 'hold ground. teach the loam to remember.' },
-    { n: 2, name: 'replication', radius: 5, pressure: 0.018, base: 2.5, target: 0.61, unlocks: ['ant'], blurb: 'what copies itself, keeps itself.' },
-    { n: 3, name: 'symbiosis', radius: 6, pressure: 0.024, base: 2, target: 0.69, unlocks: ['myc', 'crys'], blurb: 'survival is a relationship.' },
-    { n: 4, name: 'network', radius: 7, pressure: 0.031, base: 1.5, target: 0.77, unlocks: ['bloom'], blurb: 'the parts begin to rhyme.' },
-    { n: 5, name: 'emergence', radius: 8, pressure: 0.040, base: 1, target: 0.84, unlocks: ['heart'], blurb: 'the whole exceeds. the whole insists.' },
-    { n: 6, name: 'awakening', radius: 8, pressure: 0.052, base: 0.5, target: null, unlocks: [], blurb: 'gather the garden into one waking pattern.' },
+    { n: 1, name: 'substrate', radius: 4, pressure: 0.013, base: 1.8, target: 0.52, unlocks: ['moss', 'frond'], blurb: 'hold ground. teach the loam to remember.' },
+    { n: 2, name: 'replication', radius: 5, pressure: 0.018, base: 1.5, target: 0.61, unlocks: ['ant'], blurb: 'what copies itself, keeps itself.' },
+    { n: 3, name: 'symbiosis', radius: 6, pressure: 0.024, base: 1.2, target: 0.69, unlocks: ['myc', 'crys'], blurb: 'survival is a relationship.' },
+    { n: 4, name: 'network', radius: 7, pressure: 0.031, base: 1.0, target: 0.77, unlocks: ['bloom'], blurb: 'the parts begin to rhyme.' },
+    { n: 5, name: 'emergence', radius: 8, pressure: 0.040, base: 0.8, target: 0.84, unlocks: ['heart'], blurb: 'the whole exceeds. the whole insists.' },
+    { n: 6, name: 'awakening', radius: 8, pressure: 0.052, base: 0.6, target: null, unlocks: [], blurb: 'gather the garden into one waking pattern.' },
   ];
 
   C.roman = n => ['i','ii','iii','iv','v','vi','vii','viii','ix','x','xi','xii','xiii','xiv','xv','xvi','xvii','xviii','xix','xx','xxi','xxii','xxiii','xxiv'][n] || '' + n;
@@ -166,6 +166,65 @@
   C.EVO_ORDER = ['moss', 'frond', 'ant', 'web', 'bloom', 'heart', 'hands'];
   C.EVO_BRANCH = { moss: 'moss', frond: 'frond', ant: 'ant colonies', web: 'the web', bloom: 'blooms', heart: 'heartwood', hands: 'many hands' };
 
+  /* ───────────────────────── rites ─────────────────────────
+     powerful, expensive, board-scale activations — a home for large order.
+     cost scales with stage; gated by stage; invoked from the rites panel. */
+  C.RITES = {
+    surge: {
+      name: 'spring surge', stage: 1, glyph: '✺',
+      cost: g => 28 + 10 * g.stage,
+      desc: 'a wave of warmth rolls out: every cell sheds 12% of its entropy at once.',
+      effect: (g, ev) => {
+        for (const c of g.cells.values()) { c.e = LP.U.clamp(c.e - 0.12, 0, 1); c.eMin = Math.min(c.eMin, c.e); }
+        g.order += 6;
+        ev.push({ t: 'rite', id: 'surge' });
+      },
+    },
+    quell: {
+      name: 'the quelling', stage: 1, glyph: '☷',
+      cost: g => 22 + 8 * g.stage,
+      desc: 'still the air: disperse all rot, and calm the twelve most troubled cells.',
+      effect: (g, ev) => {
+        for (const k of [...g.blight.keys()]) g._clearBlight(k, ev, 'quelled');
+        const cs = [...g.cells.values()].sort((a, b) => b.e - a.e).slice(0, 12);
+        for (const c of cs) { c.e = LP.U.clamp(c.e - 0.32, 0, 1); c.eMin = Math.min(c.eMin, c.e); }
+        ev.push({ t: 'rite', id: 'quell' });
+      },
+    },
+    genesis: {
+      name: 'genesis', stage: 2, glyph: '❋',
+      cost: g => 44 + 12 * g.stage,
+      desc: 'seed life freely: a ring of moss and a young frond spring up around the calmest open ground.',
+      effect: (g, ev) => {
+        let best = null;
+        for (const c of g.cells.values()) if (!c.pat && c.e < 0.5 && (!best || c.e < best.e)) best = c;
+        if (!best) return;
+        best.pat = g._mkPat('frond'); best.pat.depth = 2;
+        ev.push({ t: 'plant', k: LP.HEX.key(best.q, best.r), pt: 'frond', via: 'rite' });
+        for (const nk of LP.HEX.neighborsK(LP.HEX.key(best.q, best.r))) {
+          const c = g.cells.get(nk);
+          if (c && !c.pat && c.e <= 0.8) { c.pat = g._mkPat('moss'); c.pat.age = 3; ev.push({ t: 'plant', k: nk, pt: 'moss', via: 'rite' }); }
+        }
+        ev.push({ t: 'rite', id: 'genesis' });
+      },
+    },
+    floodtide: {
+      name: 'the flood tide', stage: 4, glyph: '≋',
+      cost: g => 66 + 16 * g.stage,
+      desc: 'the grid runs over: every mycelial network feasts on sap this turn, every consumer deepens.',
+      effect: (g, ev) => {
+        for (const c of g.cells.values()) {
+          if (!c.pat) continue;
+          if (c.pat.t === 'frond') c.pat.depth = Math.min(Math.round(g.mod('frondMaxDepth', 6)), c.pat.depth + 1);
+          c.pat.fed = 1;
+        }
+        g.order += 10;
+        ev.push({ t: 'rite', id: 'floodtide' });
+      },
+    },
+  };
+  C.RITE_ORDER = ['surge', 'quell', 'genesis', 'floodtide'];
+
   /* ───────────────────────── echoes / murmurs ─────────────────────────
      four movements. murmurs i–xviii are real human words, gathered and
      arranged; xix–xxii are this voice admitting the gathering; xxiv (the
@@ -220,6 +279,8 @@
     heat: 'hoarded order radiates away as heat — but some condenses into insight ✸. spend order; don’t pile it up.',
     cultivate: 'you have insight ✸. open « cultivate » to grow new abilities for the rest of this garden — including extra hands that plant more at once.',
     blight: 'rot has taken hold — it spreads, and gnaws your patterns. tend it to wound it; foragers devour it; crystal auras corrode it; cut off its food and it starves. clearing it pays insight.',
+    sap: 'patterns run on ❧ sap. moss, ants and crystals MAKE it; fronds, blooms and heartwood BURN it. mycelium is the grid that carries it — link producers to your hungry consumers, or watch them starve.',
+    starve: 'a consumer is starving — it isn’t getting enough ❧ sap and is wilting. feed it: add producers (moss/ants/crystals) to its mycelial network, or prune what you can’t supply.',
   };
 
   /* ───────────────────────── artifacts ───────────────────────── */

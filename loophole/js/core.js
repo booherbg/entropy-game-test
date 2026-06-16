@@ -260,10 +260,99 @@
     pressure() {
       /* lingering in a stage lets the dark grow impatient — a gentle stall clock */
       const creep = U.clamp((this.turnsInStage - 12) * 0.0004, 0, 0.010);
-      return (this.mod('pressure', this.C.STAGES[this.stage - 1].pressure) + creep) * (1 + 0.12 * this.asc);
+      const base = this.mod('pressure', this.C.STAGES[this.stage - 1].pressure) + creep;
+      /* the second law bills you for the order you hold: a richer garden has a steeper
+         gradient to the surrounding dark, so it seeps faster. this is what stops a built
+         garden from coasting on idle — its own order pulls the dark in harder. */
+      const C = this._cohCache != null ? this._cohCache : this.coherence();
+      const slope = 1 + 1.5 * C * this.mod('orderSeep', 1);
+      return base * slope * (1 + 0.12 * this.asc);
     }
     baseIncome() {
       return this.mod('baseIncome', this.C.STAGES[this.stage - 1].base);
+    }
+
+    /* ─────────────────── the metabolism ───────────────────
+       order is capital; SAP is the living flow. producers make sap, mycelium
+       routes it, consumers burn it — fed life pays order, starved life wilts.
+       a static garden cannot coast: producers need a gradient (idle cleaning
+       removes it) and consumers need continuous supply. */
+    _sap(c) {
+      const p = c.pat;
+      if (!p) return null;
+      const k = HEX.key(c.q, c.r);
+      switch (p.t) {
+        case 'moss': {
+          if (p.age < 3) return { prod: 0, up: 0, out: 0, role: 'grid' };
+          let grad = false;
+          for (const nk of HEX.neighborsK(k)) { const nc = this.cells.get(nk); if (!nc || nc.e >= 0.3) { grad = true; break; } }
+          const prod = grad ? 0.45 * this.mod('mossIncome', 1) * this.soilMul(c, 'moss') * this._synergy(c) : 0;
+          return { prod, up: 0, out: 0, role: prod > 0 ? 'producer' : 'grid' };
+        }
+        case 'ant': return { prod: (p.lastEaten || 0) * 7 * this._synergy(c), up: 0, out: 0, role: 'producer' };
+        case 'crys': return { prod: 0.8 * this.mod('crysSap', 1), up: 0, out: 0, role: 'producer' };
+        case 'frond': return { prod: 0, up: 0.8 + p.depth * 0.5, out: 0.34 * (p.depth * (p.depth + 1) / 2) * this.mod('frondIncome', 1) * this.soilMul(c, 'frond') * this._synergy(c), role: 'consumer' };
+        case 'bloom': return { prod: 0, up: 0.5, out: 0, role: 'consumer' };
+        case 'heart': { const net = this.netOf.get(k); return { prod: 0, up: 5, out: (net ? net.cells.size : 1) / 5 * this.mod('heartIncome', 1), role: 'consumer' }; }
+        case 'myc': return { prod: 0, up: 0.2, out: 0, role: 'grid' };
+      }
+      return { prod: 0, up: 0, out: 0, role: 'grid' };
+    }
+
+    /* pure: tag each pattern with its sap stats + fed ratio (for income & display) */
+    _computeFlows() {
+      const seen = new Set();
+      for (const n of this.networks) {
+        let prod = 0, up = 0;
+        for (const k of n.cells) { const c = this.cells.get(k); if (!c || !c.pat) continue; const s = this._sap(c); c.pat._s = s; prod += s.prod; up += s.up; seen.add(k); }
+        const fed = up > 0 ? U.clamp(prod / up, 0, 1) : 1;
+        n.prod = prod; n.upkeep = up; n.fedRatio = fed; n.surplus = Math.max(0, prod - up);
+        for (const k of n.cells) { const c = this.cells.get(k); if (c && c.pat) c.pat.fed = fed; }
+      }
+      for (const c of this._patternCells()) {
+        const k = HEX.key(c.q, c.r);
+        if (seen.has(k)) continue;
+        const s = this._sap(c); c.pat._s = s;
+        let prod = s.prod;
+        for (const nk of HEX.neighborsK(k)) { const nc = this.cells.get(nk); if (nc && nc.pat) prod += 0.6 * this._sap(nc).prod; }
+        c.pat.fed = s.up > 0 ? U.clamp(prod / s.up, 0, 1) : 1;
+      }
+      let tp = 0, tu = 0;
+      for (const c of this.cells.values()) if (c.pat && c.pat._s) { tp += c.pat._s.prod; tu += c.pat._s.up; }
+      this.sapProduced = tp; this.sapUpkeep = tu;
+    }
+
+    _metabolism(ev) {
+      this._computeFlows();
+      let income = this.baseIncome();
+      const conv = 0.55;
+      const seen = new Set();
+      for (const n of this.networks) {
+        income += n.surplus * conv;
+        for (const k of n.cells) {
+          const c = this.cells.get(k); if (!c || !c.pat) continue; seen.add(k);
+          income += (c.pat._s.out || 0) * n.fedRatio;
+          if (n.fedRatio < 0.5 && c.pat._s.up > 0) this._wilt(c, ev);
+        }
+      }
+      for (const c of this._patternCells()) {
+        const k = HEX.key(c.q, c.r);
+        if (seen.has(k)) continue;
+        const s = c.pat._s, fed = c.pat.fed;
+        income += Math.max(0, s.prod - s.up) * conv * 0.55; /* unnetworked surplus is lossy */
+        income += (s.out || 0) * fed;
+        if (fed < 0.5 && s.up > 0) this._wilt(c, ev);
+      }
+      return income + (this._turnBonus || 0);
+    }
+
+    _wilt(c, ev) {
+      const p = c.pat;
+      if (p.t === 'frond') p.depth = Math.max(0, p.depth - 1);
+      else if (p.t === 'bloom') p.lone = (p.lone || 0) + 1;
+      else if (p.t === 'heart') c.e = U.clamp(c.e + 0.05, 0, 1);
+      else if (p.t === 'myc') c.e = U.clamp(c.e + 0.03, 0, 1);
+      ev.push({ t: 'starve', k: HEX.key(c.q, c.r), pt: p.t });
     }
 
     /* ── player actions ── */
@@ -358,6 +447,27 @@
       if (this.firedOcc[key]) return;
       this.firedOcc[key] = true;
       this.insight += amt;
+    }
+
+    /* ── rites: expensive board-scale activations ── */
+    riteCost(id) { const r = this.C.RITES[id]; return r ? Math.round(r.cost(this)) : 0; }
+    canRite(id) {
+      const r = this.C.RITES[id];
+      if (!r) return { ok: false, why: 'unknown rite' };
+      if (this.over) return { ok: false, why: 'the run has ended' };
+      if (r.stage > this.stage) return { ok: false, why: 'not yet — stage ' + this.C.roman(r.stage - 1) };
+      if (this.order < this.riteCost(id)) return { ok: false, why: 'not enough order' };
+      return { ok: true };
+    }
+    invokeRite(id) {
+      const chk = this.canRite(id);
+      if (!chk.ok) return chk;
+      this.order -= this.riteCost(id);
+      this.stats.rites = (this.stats.rites || 0) + 1;
+      const ev = [];
+      this.C.RITES[id].effect(this, ev);
+      this._recompute();
+      return { ok: true, events: ev };
     }
 
     _mkPat(t) {
@@ -478,13 +588,18 @@
       for (const c of this.cells.values()) if (c.pat && c.pat.fresh) delete c.pat.fresh;
       this._recompute();
 
-      let income = this.baseIncome();
-      income += this._stepAnts(ev);
-      income += this._stepMyc(ev);
-      income += this._stepBlooms(ev);
-      income += this._stepMoss(ev);
-      income += this._stepFronds(ev);
-      income += this._stepHearts(ev);
+      /* ── behaviors: the garden does what it does (spread, grow, eat, bloom, pulse) ── */
+      this._turnBonus = 0;
+      this._cohCache = this.coherence(); /* freeze coherence for this turn's pressure */
+      this._stepAnts(ev);
+      this._stepMyc(ev);
+      this._stepBlooms(ev);
+      this._stepMoss(ev);
+      this._stepFronds(ev);
+      this._stepHearts(ev);
+
+      /* ── the metabolism: sap flows through the grid; fed life pays order, starved life wilts ── */
+      let income = this._metabolism(ev);
       income += this._artifactIncome(ev);
       income *= this.mod('incomeAll', 1);
 
@@ -594,6 +709,7 @@
         if (n.cells.size >= 6) { this._occasion('net6', null); this.grantInsight('net6', 1); }
         if (n.cells.size >= 20) { this._occasion('net20', null); this.grantInsight('net20', 2); }
       }
+      this._computeFlows(); /* keep sap/fed current for display after any change */
     }
 
     _patternCells(t) {
@@ -603,7 +719,6 @@
     }
 
     _stepAnts(ev) {
-      let income = 0;
       for (const c of this._patternCells('ant')) {
         const p = c.pat;
         p.age++;
@@ -634,7 +749,7 @@
         p.lastEaten = eaten;
         this.stats.eaten += eaten;
         p.food += eaten;
-        income += eaten * 0.9 * this._synergy(c); /* crowded colonies pay less */
+        /* eaten disorder becomes sap (resolved in _metabolism) */
         const popMax = Math.round(this.mod('antPopMax', 24));
         if (p.food >= 1 && p.pop < popMax) { p.pop = Math.min(p.pop + 2, popMax); p.food -= 1; }
         if (eaten < p.pop * 0.012) p.pop -= 1;
@@ -649,7 +764,6 @@
           this._occasion('find1', ev);
         }
       }
-      return income;
     }
 
     _stepMyc(ev) {
@@ -690,7 +804,6 @@
           if (c) c.e = U.clamp(c.e + (mean - c.e) * sm, 0, 1);
         }
       }
-      return links * 0.2;
     }
 
     _bloomGeneration(ev, viaPulse) {
@@ -760,7 +873,7 @@
 
     _stepBlooms(ev) {
       for (const c of this._patternCells('bloom')) { c.pat.age++; c.e = U.clamp(c.e - 0.04, 0, 1); }
-      return this._bloomGeneration(ev, false);
+      this._turnBonus += this._bloomGeneration(ev, false); /* bloom births pay order directly */
     }
 
     _mossSpread(c, ev) {
@@ -779,22 +892,18 @@
     }
 
     _stepMoss(ev) {
-      let income = 0;
       const every = Math.max(2, Math.round(this.mod('mossSpreadEvery', 3)));
       for (const c of this._patternCells('moss')) {
         const p = c.pat;
         p.age++;
         c.e = U.clamp(c.e - 0.12 * this.mod('mossPower', 1) * this.soilMul(c, 'moss'), 0, 1);
         if (p.age >= 3) {
-          /* moss feeds on the slope: it pays only beside disorder (or the rim).
-             a fully ordered interior starves its own economy — second law as economy. */
-          let gradient = false;
+          /* mature moss soothes its neighbors. its sap (resolved in _metabolism) is
+             made only on a gradient — a cleaned interior makes none. */
           for (const k of HEX.neighborsK(HEX.key(c.q, c.r))) {
             const cc = this.cells.get(k);
-            if (!cc || cc.e >= 0.3) { gradient = true; }
             if (cc) cc.e = U.clamp(cc.e - 0.02, 0, 1);
           }
-          if (gradient) income += 0.4 * this.mod('mossIncome', 1) * this.soilMul(c, 'moss') * this._synergy(c);
         }
         p.spr++;
         if (p.age >= 2 && p.spr >= every) {
@@ -802,7 +911,6 @@
         }
         if (c.e > 0.88) p.stress++; else p.stress = 0;
       }
-      return income;
     }
 
     _frondGrow(c, syn) {
@@ -823,7 +931,6 @@
     }
 
     _stepFronds(ev) {
-      let income = 0;
       for (const c of this._patternCells('frond')) {
         const p = c.pat;
         const syn = this._synergy(c);
@@ -834,7 +941,7 @@
           p.depth--;
           ev.push({ t: 'wither', k: HEX.key(c.q, c.r) });
         }
-        if (p.depth > 0) income += 0.25 * (p.depth * (p.depth + 1) / 2) * this.mod('frondIncome', 1) * this.soilMul(c, 'frond') * syn;
+        /* frond income (gated on being fed sap) is resolved in _metabolism */
         /* sporeleaf: a thriving, deep frond casts a spore into the calmest open neighbor */
         if (this.flag('sporeleaf') && p.depth >= 4 && syn >= 1.2 && this.rng.chance(0.12)) {
           let best = null;
@@ -845,11 +952,9 @@
           if (best) { best.pat = this._mkPat('frond'); ev.push({ t: 'spore', k: HEX.key(best.q, best.r) }); }
         }
       }
-      return income;
     }
 
     _stepHearts(ev) {
-      let income = 0;
       for (const c of this._patternCells('heart')) {
         const p = c.pat;
         p.age++;
@@ -869,8 +974,9 @@
         }
         const period = Math.max(2, Math.round(this.mod('heartPeriod', 3)));
         const net = this.netOf.get(HEX.key(c.q, c.r));
-        if (net) income += net.cells.size / 5;
-        if ((this.turn - p.born) % period === 0 && this.turn > p.born) {
+        /* heartwood income (network/5, gated on fed) is resolved in _metabolism.
+           a starved heart cannot pulse — the drum needs sap to beat. */
+        if ((this.turn - p.born) % period === 0 && this.turn > p.born && (p.fed == null || p.fed >= 0.5)) {
           const members = net ? [...net.cells] : [HEX.key(c.q, c.r)];
           let bloomTick = false;
           for (const k of members) {
@@ -883,12 +989,11 @@
             if (cc.pat.t === 'ant') cc.pat.food += 1.2;
             if (cc.pat.t === 'bloom') bloomTick = true;
           }
-          if (bloomTick) income += this._bloomGeneration(ev, true);
+          if (bloomTick) this._turnBonus += this._bloomGeneration(ev, true);
           ev.push({ t: 'pulse', center: HEX.key(c.q, c.r), cells: members });
           this._occasion('pulse1', ev);
         }
       }
-      return income;
     }
 
     _artifactIncome(ev) {

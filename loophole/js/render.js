@@ -16,6 +16,7 @@
     dew: '#d7ecde', dewBlue: '#9ed2c8', dewDeep: '#6fa89e',
     crys0: '#b8d8da', crys1: '#eef8f4', crysShadow: '#5c7d84',
     myc: '#cdbb8f', mycLight: '#ece0bb',
+    sap: '#8fd66a', sapGlow: '#c4f0a0', sapStarve: '#d98a6a',
     antBody: '#241d15', nest0: '#5c4830', nest1: '#73593b',
     blooms: ['#e8a8c0', '#ecd985', '#f2efe2', '#aed4e6', '#e8b88a', '#d9a8e0'],
     heart0: '#6f5236', heart1: '#a8845a', heartGlow: '#d8b88a',
@@ -673,6 +674,7 @@
       if (ff % 2) this._grainTwinkle(cx, t); /* decorative; half-rate to spare the main thread */
       this._antFrame(cx, t);
       this._mycPips(cx, t);
+      this._sapFrame(cx, t);
       this._blightFrame(cx, t);
       this._warnFrame(cx, t);
       this._pulseFrame(cx, t);
@@ -770,15 +772,59 @@
       }
     }
 
+    /* sap as luminous flow through the hyphae — bright & dense where it runs strong,
+       dim and sickly where a network is starving. additive glow = bioluminescent. */
     _mycPips(cx, t) {
+      const g = this.game;
       const pairs = this._linkPairs();
+      if (!pairs.length) return;
+      cx.save();
+      cx.globalCompositeOperation = 'lighter';
       for (let i = 0; i < pairs.length; i++) {
-        if ((i + Math.floor(t * 0.5)) % 5) continue; /* a few at a time */
-        const [a, b] = pairs[i];
-        const u = (t * 0.45 + i * 0.37) % 1;
-        const x = U.lerp(a.x, b.x, u), y = U.lerp(a.y, b.y, u) + Math.sin(u * Math.PI) * this.s * 0.2;
-        cx.fillStyle = rgba(PAL.mycLight, 0.8 * Math.sin(u * Math.PI));
-        cx.beginPath(); cx.arc(x, y, 1.4, 0, TAU); cx.fill();
+        const a = pairs[i][0], b = pairs[i][1], id = pairs[i][2];
+        const srcK = id.slice(0, id.indexOf('>'));
+        const n = g.netOf && g.netOf.get(srcK);
+        const fed = n && n.fedRatio != null ? n.fedRatio : 1;
+        const flow = n ? Math.min(1, (n.prod || 0) / 12) : 0.25;
+        const starving = fed < 0.5;
+        const col = starving ? PAL.sapStarve : PAL.sap;
+        const dens = 2 + Math.round(flow * 4);
+        for (let j = 0; j < dens; j++) {
+          const u = (t * (0.28 + flow * 0.5) + i * 0.37 + j / dens) % 1;
+          const x = U.lerp(a.x, b.x, u), y = U.lerp(a.y, b.y, u) + Math.sin(u * Math.PI) * this.s * 0.16;
+          const env = Math.sin(u * Math.PI);
+          const al = (0.45 + flow * 0.55) * env * (starving ? 0.6 : 1);
+          const rad = (1.4 + flow * 1.8) * (0.6 + 0.4 * env);
+          /* soft halo + bright core */
+          cx.fillStyle = rgba(col, al * 0.4);
+          cx.beginPath(); cx.arc(x, y, rad * 2.2, 0, TAU); cx.fill();
+          cx.fillStyle = rgba(starving ? PAL.sapStarve : PAL.sapGlow, al);
+          cx.beginPath(); cx.arc(x, y, rad, 0, TAU); cx.fill();
+        }
+      }
+      cx.restore();
+    }
+
+    /* starving consumers ask, visibly, to be fed */
+    _sapFrame(cx, t) {
+      const g = this.game;
+      for (const c of g.cells.values()) {
+        const p = c.pat;
+        if (!p || !p._s || p._s.role !== 'consumer') continue;
+        if (p.fed == null || p.fed >= 0.5) continue;
+        const pos = this.pos.get(HEX.key(c.q, c.r));
+        if (!pos) continue;
+        const pulse = 0.5 + 0.5 * Math.sin(t * 5 + U.hash32(HEX.key(c.q, c.r)) % 5);
+        /* a sickly halo + dashed ring — unmistakable "feed me" */
+        const gl = cx.createRadialGradient(pos.x, pos.y, this.s * 0.1, pos.x, pos.y, this.s * 0.62);
+        gl.addColorStop(0, rgba(PAL.sapStarve, 0.10 + 0.12 * pulse));
+        gl.addColorStop(1, rgba(PAL.sapStarve, 0));
+        cx.fillStyle = gl;
+        cx.beginPath(); cx.arc(pos.x, pos.y, this.s * 0.62, 0, TAU); cx.fill();
+        cx.strokeStyle = rgba(PAL.sapStarve, 0.45 + 0.3 * pulse);
+        cx.lineWidth = 1.6; cx.setLineDash([4, 3]);
+        cx.beginPath(); cx.arc(pos.x, pos.y, this.s * 0.5, 0, TAU); cx.stroke();
+        cx.setLineDash([]);
       }
     }
 
@@ -1007,6 +1053,12 @@
           case 'eat': for (const k of e.targets) this.burst(k, PAL.nest1, 2, 0.5); break;
           case 'link': this.ring(e.to, PAL.mycLight, 0.35); break;
           case 'stageUp': this.expandFx(); break;
+          case 'rite': {
+            this.flashT = 0.8;
+            this.pulses.push({ x: this.ox, y: this.oy, r: this.s, v: this.s * 0.6, a: 0.7, w: 4, col: PAL.sapGlow });
+            this.pulses.push({ x: this.ox, y: this.oy, r: this.s * 0.5, v: this.s * 0.45, a: 0.5, w: 2.5, col: PAL.gold });
+            break;
+          }
         }
       }
       this.dirty();

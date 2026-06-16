@@ -72,6 +72,22 @@ life. The murmurs are real human words — Eddington on entropy, Schrödinger on
 entropy, Dōgen on forgetting the self, Wiener on patterns that perpetuate themselves — chosen
 and arranged by the game's own hand, an AI that admits the curation in the final movement.
 
+## v0.3 — "the metabolism" (in progress)
+
+The garden became a **dissipative structure** rather than an accumulator. Living patterns now
+run on **❧ sap**: moss, ants and crystals *produce* it; fronds, blooms and the heartwood
+*consume* it; **mycelium is the grid** that carries it. A consumer with no supply line starves
+and wilts. The HUD shows your net flow (surplus feeds order, deficit starves). And the second
+law now bills you for the order you hold — a rich garden seeps faster, so you can no longer
+idle to victory; a built garden holds a plateau you must actively climb past. **Rites** —
+expensive board-scale activations (spring surge, the quelling, genesis, the flood tide) — give
+large order a home. Mobile got a full touch overhaul (pinch-zoom/pan, bottom-sheet rail).
+
+Sap is visualized as luminous green pulses flowing through the mycelial grid; starving
+consumers pulse a warning halo. Roadmap: action points, Civ eras + alternate win conditions,
+genetics/weather micro-systems, a full psychedelic visual pass. See
+`docs/superpowers/specs/2026-06-16-loophole-v03-metabolism.md`.
+
 ## v0.2 — "the living web"
 
 Added on the v0.1 base: **biomes** (clustered soils that bend the rules; maps no longer a

@@ -294,6 +294,12 @@
     $('order').textContent = Math.floor(game.order);
     $('income').textContent = lastIncome != null ? ('+' + lastIncome) : '';
     $('insight').textContent = game.insight;
+    /* net sap flow: surplus feeds order, deficit starves consumers */
+    const net = Math.round((game.sapProduced || 0) - (game.sapUpkeep || 0));
+    const sb = $('sapbox');
+    $('sap').textContent = (net >= 0 ? '+' : '') + net;
+    sb.classList.toggle('surplus', net >= 0);
+    sb.classList.toggle('deficit', net < 0);
     $('turn').textContent = game.turn;
     $('seedlabel').textContent = game.seed;
     drawCohRing();
@@ -307,6 +313,9 @@
     eb.textContent = ripe;
     $('evolvebtn').classList.toggle('ripe', ripe > 0);
     if (ripe > 0) hint('cultivate');
+    let riteReady = false;
+    for (const id of C().RITE_ORDER) if (game.canRite(id).ok) { riteReady = true; break; }
+    $('ritesbtn').classList.toggle('ripe', riteReady);
     /* mobile rail button badges ripe cultivars + a waking garden */
     const coReady = game.stage === 6 && game.coalesceReady();
     const rb = $('railbadge');
@@ -506,6 +515,15 @@
       const syn = game._synergy(c);
       if (syn > 1.04) lines.push(`<span class="synup">thriving ×${syn.toFixed(2)}</span>`);
       else if (syn < 0.96) lines.push(`<span class="syndown">crowded ×${syn.toFixed(2)}</span>`);
+      /* sap role: producer / consumer (fed or starving) */
+      const s = p._s || game._sap(c);
+      if (s && s.role === 'producer' && s.prod > 0) lines.push(`<span class="sapprod">❧ producing ${s.prod.toFixed(1)} sap</span>`);
+      else if (s && s.role === 'consumer') {
+        const fed = p.fed == null ? 1 : p.fed;
+        lines.push(fed >= 0.5
+          ? `<span class="sapfed">❧ fed ${Math.round(fed * 100)}% · needs ${s.up.toFixed(1)} sap</span>`
+          : `<span class="sapstarve">❧ starving (${Math.round(fed * 100)}%) — feed it sap</span>`);
+      }
     } else {
       lines.push(`<span class="muted">${soil.note}</span>`);
     }
@@ -552,6 +570,7 @@
         }
         case 'storm': AU.storm(); music('storm'); break;
         case 'blightSpawn': AU.blight(); hint('blight'); toast('rot takes hold — ' + (e.kind === 'wisp' ? 'a wisp drifts in' : 'it will spread'), 'warn', 5000); break;
+        case 'starve': hint('starve'); break;
         case 'blightClear': AU.tend(); break;
         case 'stormWarn': $('stormbanner').textContent = 'a squall gathers — ' + (e.inTurns === 1 ? 'next turn' : 'in ' + e.inTurns + ' turns'); $('stormbanner').classList.remove('hidden'); hint('storm'); break;
         case 'cascade': if (e.n >= 2) { AU.cascade(e.n); if (e.n >= 4) { toast(e.n + ' blossoms in one breath', 'good'); music('cascade'); } } break;
@@ -602,7 +621,7 @@
   function applyToolAt(k, silent) {
     if (!game || game.over || processing || overlayOpen || !k || !tool) return false;
     let res = null;
-    if (tool.type === 'plant') { res = game.plant(tool.pt, k); if (res && res.ok) AU.plant(tool.pt); }
+    if (tool.type === 'plant') { res = game.plant(tool.pt, k); if (res && res.ok) { AU.plant(tool.pt); if (tool.pt === 'frond' || tool.pt === 'bloom' || tool.pt === 'heart') hint('sap'); } }
     else if (tool.type === 'tend') { res = game.tend(k); if (res && res.ok) AU.tend(); }
     else if (tool.type === 'prune') { const c = game.cells.get(k); if (!c || !c.pat) return false; res = game.prune(k); if (res && res.ok) AU.prune(); }
     else if (tool.type === 'art') { res = game.useArtifact(tool.i, k); if (res && res.ok) { AU.take(); buildRail(); selectTool(null); } }
@@ -745,6 +764,8 @@
         <p>every turn, entropy seeps in — from the rim, from the air, sometimes in squalls. grey is disorder; color is order. <b>coherence</b> is how much of the board now holds together.</p>
         <p>spend <b>✦ order</b> to plant living patterns. they replicate, link, eat, bloom, and pay for themselves — find the combinations that run away on their own. drag to plant or tend a whole swath; planting onto moss simply builds over it. <span class="muted">(on a phone: pinch to zoom, two fingers to pan.)</span></p>
         <p>watch your moss: <b>spring-green</b> moss sits on a frontier and is paying you; <b>dark-green</b> moss has cleaned out its surroundings and gone quiet. keep moss where the gradient is.</p>
+        <p><b>the metabolism.</b> living patterns run on <b>❧ sap</b>. <b>producers</b> make it — moss (on a gradient), ant colonies (from the disorder they eat), crystals. <b>consumers</b> burn it — fronds, blooms, the heartwood. <b>mycelium is the grid</b> that carries sap from producers to consumers; a consumer with no supply <b>starves and wilts</b> (it pulses red). the HUD <b>❧</b> shows your net flow: a surplus feeds order, a deficit means someone's going hungry. balance the ratio — that's the game beneath the game.</p>
+        <p>and you cannot simply idle: the more order you hold, the steeper its pull on the surrounding dark, so a rich garden seeps faster. a built garden holds a plateau — to climb past it, and to weave the waking, you must keep tending.</p>
         <p><b>read the land.</b> each cell sits on a soil that bends the rules — plant fronds in the wet, crystals on stone, ants and moss on the ash. and patterns earn by their <b>neighbors</b>: a frond sheltered by moss, anchored by crystal, plumbed into mycelium pays several times a lonely one. hover any cell to see its soil and how it’s faring.</p>
         <p><b>don’t hoard.</b> order above a soft cap radiates away as heat — but some of that heat condenses into <b>✸ insight</b>. spend insight in <b>« cultivate »</b> on cultivars and extra <b>hands</b> that plant 2–3 at once.</p>
         <p><b>rot</b> spreads from the frontier and gnaws your patterns. tend it to wound it, foragers devour it, crystal auras corrode it — or wall it off and starve it. clearing it pays insight.</p>
@@ -823,6 +844,39 @@
       const tgt = game.target();
       if (tgt != null) { cx.strokeStyle = 'rgba(230,200,106,0.4)'; cx.setLineDash([4, 4]); cx.lineWidth = 1; const y = yAt(tgt, 1); cx.beginPath(); cx.moveTo(padL, y); cx.lineTo(W - padR, y); cx.stroke(); cx.setLineDash([]); }
       box.appendChild(el('div', 'evointro', `peak coherence ${Math.round(game.stats.peakC * 100)}% · ${game.stats.blightCleared || 0} rot cleared · ${game.stats.spilled || 0} order radiated · ${game.stats.eaten.toFixed(0)} entropy devoured`));
+    };
+  }
+
+  /* rites — expensive board-scale activations; a home for large order */
+  function ritesOverlay() {
+    return (wrap, close) => {
+      const box = el('div', 'panelbox');
+      const x = el('button', 'closex', '×'); x.onclick = close; box.appendChild(x);
+      wrap.appendChild(box);
+      const R = C().RITES;
+      const render = () => {
+        let html = `<div class="paneltitle">rites</div>
+          <div class="evointro">powerful workings, paid in ✦ order. when the garden is rich, spend it boldly.</div>`;
+        for (const id of C().RITE_ORDER) {
+          const r = R[id];
+          const chk = game.canRite(id);
+          const cls = chk.ok ? 'buyable' : 'locked';
+          const cost = game.riteCost(id);
+          const tag = r.stage > game.stage ? 'stage ' + C().roman(r.stage - 1) : '✦' + cost;
+          html += `<div class="evonode riteNode ${cls}" data-id="${id}">
+            <div class="en-top"><span class="en-name">${r.glyph} ${r.name}</span><span class="en-cost">${tag}</span></div>
+            <div class="en-desc">${r.desc}</div></div>`;
+        }
+        box.innerHTML = html; box.appendChild(x);
+        box.querySelectorAll('.evonode.buyable').forEach(n => {
+          n.onclick = () => {
+            const res = game.invokeRite(n.dataset.id);
+            if (res.ok) { AU.take(); music('cascade'); toast(R[n.dataset.id].name + ' — invoked', 'good'); afterAction(res.events); render(); }
+            else if (res.why) toast(res.why, 'warn');
+          };
+        });
+      };
+      render();
     };
   }
 
@@ -1037,7 +1091,7 @@
     if (kind === 'early') {
       P('moss', 0, 0); P('moss', 1, 0); P('moss', 0, 1); P('moss', -1, 0);
       T(3); P('frond', 0, -1); P('moss', -1, 1); T(4);
-    } else if (kind !== 'offer' && kind !== 'echo' && kind !== 'help' && kind !== 'murmurs') {
+    } else if (kind !== 'offer' && kind !== 'echo' && kind !== 'help' && kind !== 'murmurs' && kind !== 'metab') {
       P('moss', 0, 0); P('moss', 1, 0); P('moss', 0, 1); P('moss', -1, 1); P('moss', -1, 0); P('moss', 0, -1); P('moss', 1, -1);
       T(4); P('frond', 2, -1); P('frond', -2, 1); P('frond', 2, 0); T(3);
       P('ant', 3, 0); P('ant', -3, 2); T(4);
@@ -1073,6 +1127,21 @@
     if (kind === 'widen') { game.widenReady = true; }
     if (kind === 'evolve') { game.insight = 14; game.evolutions = ['clover', 'leafcutter']; pushOverlay(evolveOverlay()); }
     if (kind === 'stats') pushOverlay(statsOverlay());
+    if (kind === 'rites') { game.order = 240; pushOverlay(ritesOverlay()); }
+    if (kind === 'metab') {
+      /* a clear sap network: producers (moss) + mycelium grid + fed fronds, and a
+         starving frond with no supply, to show flow + the warning */
+      const put = (t, q, r, fix) => { const c = game.cells.get(HEX.key(q, r)); if (!c) return; c.pat = game._mkPat(t); Object.assign(c.pat, fix || {}); c.e = 0.12; };
+      for (const [q, r] of HEX.coordsWithin(3)) put('moss', q, r, { age: 5 });
+      put('myc', 0, 0, { links: ['1,0', '0,1', '-1,0', '0,-1', '1,-1'] });
+      put('myc', 2, 0, { links: ['1,0', '2,-1', '3,0', '2,1'] });
+      put('myc', -2, 1, { links: ['-1,0', '-1,1', '-2,0', '-3,1'] });
+      put('frond', 1, 0, { depth: 6 }); put('frond', -1, 0, { depth: 6 }); put('frond', 0, 1, { depth: 5 });
+      put('crys', 0, -1, {});
+      /* a starving consumer far from the grid, on raw ground */
+      const sc = game.cells.get(HEX.key(3, -3)); if (sc) { sc.pat = game._mkPat('frond'); sc.pat.depth = 5; sc.pat.fed = 0.1; sc.e = 0.3; }
+      game._recompute();
+    }
     if (kind === 'blight' || kind === 'storm') {
       /* infect a cluster touching the garden */
       let seeded = 0;
@@ -1111,6 +1180,7 @@
       if (res.ok) { AU.stageUp(); handleEvents(res.events); updateHUD(); R.dirty(); save(); }
     };
     $('evolvebtn').onclick = () => { if (game && !game.over) pushOverlay(evolveOverlay()); };
+    $('ritesbtn').onclick = () => { if (game && !game.over) pushOverlay(ritesOverlay()); };
     $('railbtn').onclick = () => document.body.classList.toggle('railopen');
     $('railclose').onclick = () => document.body.classList.remove('railopen');
     $('railscrim').onclick = () => document.body.classList.remove('railopen');

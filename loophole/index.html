@@ -58,6 +58,10 @@
   #orderbox .glyph { color: var(--gold); }
   #insightbox { font-size: 15px; display: flex; align-items: baseline; gap: 5px; color: var(--dewblue); }
   #insightbox .glyph2 { color: var(--dewblue); }
+  #sapbox { font-size: 15px; display: flex; align-items: baseline; gap: 5px; }
+  #sapbox .glyph3 { color: #8fd66a; }
+  #sapbox.surplus { color: #8fd66a; } #sapbox.surplus .glyph3 { color: #8fd66a; }
+  #sapbox.deficit { color: var(--warn); } #sapbox.deficit .glyph3 { color: var(--warn); }
   #income { font-size: 11.5px; color: var(--moss); }
   #widenbtn {
     font-family: var(--serif); letter-spacing: .04em; border-color: var(--gold); color: var(--gold);
@@ -96,6 +100,9 @@
   #celltip .synup { color: var(--mossglow); }
   #celltip .syndown { color: var(--warn); }
   #celltip .blighttag { color: #b89ad2; letter-spacing: .04em; }
+  #celltip .sapprod { color: #8fd66a; }
+  #celltip .sapfed { color: var(--dewblue); }
+  #celltip .sapstarve { color: var(--warn); }
 
   /* ── rail ── */
   #rail {
@@ -105,6 +112,8 @@
   #railhead { font-size: 11px; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; }
   #evolvebtn { width: 100%; font-family: var(--serif); letter-spacing: .04em; border-color: var(--line2); color: var(--dewblue); position: relative; }
   #evolvebtn.ripe { border-color: var(--dewblue); box-shadow: 0 0 12px rgba(158,210,200,0.3); }
+  #ritesbtn { width: 100%; font-family: var(--serif); letter-spacing: .04em; border-color: var(--line2); color: var(--gold); }
+  #ritesbtn.ripe { border-color: var(--gold); box-shadow: 0 0 12px rgba(230,200,106,0.25); }
   #evobadge { display: inline-block; min-width: 16px; padding: 0 4px; margin-left: 4px; border-radius: 999px;
     background: var(--dewblue); color: #10201c; font-size: 10px; font-weight: bold; }
   #artifacts { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -350,7 +359,8 @@
     #cohtarget { display: none; }
     #orderbox { font-size: 14px; gap: 4px; flex: 0 0 auto; }
     #income { display: none; }
-    #insightbox { font-size: 13px; flex: 0 0 auto; }
+    #insightbox { display: none; } /* insight count rides the ◈ cultivate badge on mobile */
+    #sapbox { font-size: 13px; flex: 0 0 auto; }
     #turnbox { display: none; }
     #seedlabel { display: none; }
     #widenbtn { font-size: 10px; padding: 5px 8px; flex: 0 0 auto; max-width: 28vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -424,6 +434,7 @@
     <button id="widenbtn" class="hidden">let the world widen ◈</button>
     <div id="orderbox"><span class="glyph">✦</span><span id="order">0</span><span id="income"></span></div>
     <div id="insightbox" title="insight — spend it on the evolution tree"><span class="glyph2">✸</span><span id="insight">0</span></div>
+    <div id="sapbox" title="sap — the living flow. surplus feeds order; a deficit starves your consumers."><span class="glyph3">❧</span><span id="sap">0</span></div>
     <div id="turnbox">turn <span id="turn">1</span><br><span id="seedlabel"></span></div>
     <button id="railbtn" title="relics &amp; cultivate">◈<span id="railbadge" class="hidden"></span></button>
     <button id="menubtn" title="menu (esc)">≡</button>
@@ -437,6 +448,7 @@
     </main>
     <aside id="rail" class="hidden">
       <button id="evolvebtn">✸ cultivate <span id="evobadge" class="hidden"></span></button>
+      <button id="ritesbtn">✺ rites</button>
       <div id="railhead">artifacts</div>
       <div id="artifacts"></div>
       <div id="coalesce" class="hidden">
