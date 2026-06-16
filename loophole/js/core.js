@@ -91,6 +91,7 @@
       opts = opts || {};
       this.seed = String(seed == null ? 'loophole' : seed);
       this.asc = opts.ascension || 0;
+      this.mode = opts.mode || 'garden'; /* 'garden' (awaken) | 'longgame' (flourish by turn 100) */
       this.rng = new RNG(this.seed + '|world');
       this.turn = 1;
       this.stage = 1;
@@ -607,9 +608,48 @@
       return this.stage === 6 && this.coalesceChecks().every(c => c.ok);
     }
     beginCoalescence() {
+      if (this.mode === 'longgame') return { ok: false }; /* the long game has no single awakening */
       if (!this.coalesceReady()) return { ok: false };
       this.over = true; this.won = true; this.awakened = true;
       return { ok: true };
+    }
+
+    /* the long game's measure: a world is scored on what it sustains, not on one
+       moment of waking — coherence held, scale, diversity, blossoms, network, disorder
+       eaten. the same things the macro/ecology layer will one day reward at scale. */
+    flourishScore() {
+      let live = 0; const kinds = new Set();
+      for (const c of this.cells.values()) if (c.pat) { live++; kinds.add(c.pat.t); }
+      const s = this.stats;
+      return Math.max(0, Math.round(
+        this.coherence() * 300 +
+        live * 4 +
+        kinds.size * 45 +
+        (s.blooms || 0) * 3 +
+        (s.netBest || 0) * 2 +
+        (s.eaten || 0) * 2 +
+        (this.stage - 1) * 50));
+    }
+    flourishGrade(score) {
+      if (score >= 2800) return 'a flourishing world';
+      if (score >= 2000) return 'a thriving garden';
+      if (score >= 1300) return 'a living garden';
+      if (score >= 700) return 'a tended plot';
+      return 'a fragile beginning';
+    }
+    flourishBreakdown() {
+      let live = 0; const kinds = new Set();
+      for (const c of this.cells.values()) if (c.pat) { live++; kinds.add(c.pat.t); }
+      const s = this.stats;
+      return [
+        ['coherence held', Math.round(this.coherence() * 300)],
+        ['living cells', live * 4],
+        ['diversity', kinds.size * 45],
+        ['blossoms', (s.blooms || 0) * 3],
+        ['widest network', (s.netBest || 0) * 2],
+        ['disorder devoured', Math.round((s.eaten || 0) * 2)],
+        ['epochs reached', (this.stage - 1) * 50],
+      ];
     }
 
     /* ── the turn pipeline ── */
@@ -673,7 +713,13 @@
       this._lossCheck(C, ev);
       this._timedOccasions(ev);
       if (C >= 0.70) this._occasion('c70', ev);
-      if (this.stage === 6 && this.coalesceReady()) ev.push({ t: 'coalesceReady' });
+      if (this.mode !== 'longgame' && this.stage === 6 && this.coalesceReady()) ev.push({ t: 'coalesceReady' });
+      /* the long game: no single awakening — cultivate a lasting world, scored at turn 100 */
+      if (this.mode === 'longgame' && this.turn >= 100 && !this.over) {
+        this.over = true; this.won = true;
+        const score = this.flourishScore();
+        ev.push({ t: 'longEnd', score, grade: this.flourishGrade(score) });
+      }
 
       this.emit('turnEnd', null, ev);
       this.tendsThisTurn = 0;
@@ -1391,7 +1437,7 @@
           return o;
         });
       return {
-        v: 2, seed: this.seed, asc: this.asc, s: this.rng.s,
+        v: 2, seed: this.seed, asc: this.asc, mode: this.mode, s: this.rng.s,
         turn: this.turn, stage: this.stage, order: this.order,
         carry: Math.round(this.carry * 1e6) / 1e6,
         terra: this.terra.map(t => [t.q, t.r, si(t.b)]),
@@ -1432,7 +1478,7 @@
       return o;
     }
     static fromJSON(o) {
-      const g = new Game(o.seed, { blank: true, ascension: o.asc });
+      const g = new Game(o.seed, { blank: true, ascension: o.asc, mode: o.mode });
       const SO = LP.CONTENT.SOIL_ORDER;
       g.rng.s = o.s >>> 0;
       g.terra = (o.terra || []).map(t => ({ q: t[0], r: t[1], b: SO[t[2]] || 'loam' }));

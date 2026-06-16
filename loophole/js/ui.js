@@ -16,7 +16,7 @@
   const KEY = 'loophole_v1';
   const defaultMeta = () => ({
     echoes: [], codex: [], runs: 0, wins: 0, best: null,
-    asc: 0, muted: false, values: false, hints: [], quotes: [],
+    asc: 0, muted: false, values: false, hints: [], quotes: [], bestFlourish: null,
   });
   let store = { v: 1, meta: defaultMeta(), run: null };
   try {
@@ -377,8 +377,13 @@
   function updateHUD() {
     if (!game) return;
     const st = C().STAGES[game.stage - 1];
-    $('stagename').textContent = st.name + ' · ' + C().roman(game.stage - 1);
-    $('stageblurb').textContent = st.blurb;
+    if (game.mode === 'longgame') {
+      $('stagename').textContent = 'the long game · ✦ ' + game.flourishScore();
+      $('stageblurb').textContent = st.name + ' — flourish by turn ' + game.turn + '/100';
+    } else {
+      $('stagename').textContent = st.name + ' · ' + C().roman(game.stage - 1);
+      $('stageblurb').textContent = st.blurb;
+    }
     if (LP.Music && LP.Music.running) LP.Music.setState(game.stage, game.coherence());
     $('order').textContent = Math.floor(game.order);
     $('income').textContent = lastIncome != null ? ('+' + lastIncome) : '';
@@ -418,9 +423,9 @@
       rb.textContent = coReady ? '❀' : (n || '');
       $('railbtn').classList.toggle('ripe', n > 0);
     }
-    /* coalesce panel */
+    /* coalesce panel (the long game has no single awakening — it runs to turn 100) */
     const cp = $('coalesce');
-    if (game.stage === 6 && !game.over) {
+    if (game.stage === 6 && !game.over && game.mode !== 'longgame') {
       cp.classList.remove('hidden');
       const checks = game.coalesceChecks();
       $('cochecks').innerHTML = checks.map(c =>
@@ -697,6 +702,7 @@
           break;
         case 'dissolveWarn': toast('the garden thins — coherence below 22% (' + e.streak + '/3)', 'warn', 5200); break;
         case 'dissolved': onDissolved(); break;
+        case 'longEnd': onLongEnd(e.score, e.grade); break;
         case 'saved': toast('« ' + e.via + ' » intercedes. the garden holds.', 'good', 6000); buildRail(); break;
         case 'coalesceReady': hint('coalesce'); break;
         case 'demon': break;
@@ -1230,6 +1236,33 @@
     }, { dismissible: false }), 900);
   }
 
+  /* the long game's ending: turn 100, a flourish score, no single awakening */
+  function onLongEnd(score, grade) {
+    AU.coalesce(); music('coalesce');
+    meta.runs++; meta.wins++;
+    if (meta.bestFlourish == null || score > meta.bestFlourish) meta.bestFlourish = score;
+    store.run = null; save();
+    const g = game;
+    const rows = g.flourishBreakdown().map(([label, val]) => `<div>${label}</div><div>+${val}</div>`).join('');
+    const best = meta.bestFlourish;
+    setTimeout(() => pushOverlay((wrap, close) => {
+      const box = el('div', 'panelbox endbox');
+      box.innerHTML = `
+        <div class="paneltitle">a hundred turns</div>
+        <p class="endnote">${grade}.</p>
+        <div class="flourishbig">✦ ${score}${best > score ? '' : ' <span class="muted small">— your best</span>'}</div>
+        <div class="statgrid">${rows}</div>
+        ${statsHTML(g)}
+        <div class="endbtns">
+          <button id="e-again">grow another</button>
+          <button id="e-title" class="ghostbtn">title</button>
+        </div>`;
+      box.querySelector('#e-again').onclick = () => { close(); newRun(undefined, g.asc, 'longgame'); };
+      box.querySelector('#e-title').onclick = () => { close(); showTitle(); };
+      wrap.appendChild(box);
+    }, { dismissible: false }), 900);
+  }
+
   function beginCoalescence() {
     if (!game.coalesceReady()) return;
     game.beginCoalescence();
@@ -1304,7 +1337,8 @@
     $('t-meta').textContent =
       (meta.runs ? `${meta.runs} garden${meta.runs > 1 ? 's' : ''} grown · ${meta.wins} awakened` : 'no gardens yet') +
       (meta.best ? ` · swiftest awakening ${meta.best} turns` : '') +
-      (meta.asc ? ` · difficulty ${meta.asc}/5 unlocked` : '');
+      (meta.asc ? ` · difficulty ${meta.asc}/5 unlocked` : '') +
+      (meta.bestFlourish ? ` · best flourish ✦ ${meta.bestFlourish}` : '');
   }
   function hideTitle() {
     $('title').classList.add('hidden');
@@ -1320,11 +1354,16 @@
     if (!d) return 'baseline — the garden at its native slope, as the second law wrote it.';
     return `difficulty ${d} of 5 — the dark presses ~${d * 12}% harder, new ground comes in rougher, and the garden needs a little more coherence to wake. (your murmurs, voices & relics-seen always carry over.)`;
   }
+  function modeLine(m) {
+    return m === 'longgame'
+      ? 'the long game — no single waking. cultivate the richest, most lasting world you can; scored at turn 100 on coherence, scale, diversity, life. (where the deeper game will grow.)'
+      : 'the garden — tend a world toward a single awakening. the base game.';
+  }
 
-  function newRun(seed, depth) {
+  function newRun(seed, depth, mode) {
     if (!seed) seed = C().prettySeed(Math.random);
     const d = depth == null ? meta.asc : Math.max(0, Math.min(meta.asc, depth));
-    game = new Game(seed, { ascension: d, echoes: meta.echoes });
+    game = new Game(seed, { ascension: d, echoes: meta.echoes, mode: mode || 'garden' });
     lastIncome = null; prevC = null; quotesThisRun = 0;
     R.attach(game);
     hideTitle();
@@ -1416,6 +1455,8 @@
     if (kind === 'murmurs') { meta.echoes = [0, 1, 2, 3, 4, 5, 6, 7]; meta.quotes = [0, 1, 4, 10, 20]; murmursOverlay(); }
     if (kind === 'voice') { meta.quotes = []; surfaceQuote(); }
     if (kind === 'won') { meta.asc = 2; game.asc = 1; game.stats.peakC = 0.91; pushOverlay(winOverlay(), { dismissible: false }); }
+    if (kind === 'long') { game.mode = 'longgame'; game.turn = 100; updateHUD(); } /* HUD in long-game mode */
+    if (kind === 'longend') { game.mode = 'longgame'; game.turn = 100; onLongEnd(game.flourishScore(), game.flourishGrade(game.flourishScore())); }
     if (kind === 'kit') {
       /* a developed build: a few cultivars + relics so the kit + compounding fill out */
       game.insight = 8; game.legendDiscount = 5;
@@ -1502,10 +1543,20 @@
         }</div>
           <div class="diffdesc" id="diffdesc"></div>
         </div>` : '';
+      const modepicker = `
+        <div class="diffpick">
+          <div class="codexhead">mode</div>
+          <div class="diffrow" id="moderow">
+            <button class="diffchip wide" data-m="garden">the garden</button>
+            <button class="diffchip wide" data-m="longgame">the long game</button>
+          </div>
+          <div class="diffdesc" id="modedesc"></div>
+        </div>`;
       pushOverlay(panelOverlay(`
         <div class="paneltitle">new garden</div>
         <p class="muted">a seed makes the same world twice. share one, or trust the wind.</p>
         <input id="seedin" type="text" spellcheck="false" placeholder="${C().prettySeed(Math.random)}">
+        ${modepicker}
         ${picker}
         <div class="endbtns">
           <button id="s-go">plant it</button>
@@ -1514,7 +1565,7 @@
         wire(box, close) {
           const inp = box.querySelector('#seedin');
           inp.focus();
-          let pickedD = meta.asc;
+          let pickedD = meta.asc, pickedMode = 'garden';
           const row = box.querySelector('#diffrow'), desc = box.querySelector('#diffdesc');
           const paint = () => {
             row.querySelectorAll('.diffchip').forEach(c => c.classList.toggle('on', +c.dataset.d === pickedD));
@@ -1524,10 +1575,17 @@
             row.querySelectorAll('.diffchip').forEach(c => c.onclick = () => { pickedD = +c.dataset.d; paint(); });
             paint();
           }
-          const go = () => { close(); newRun(inp.value.trim() || undefined, meta.asc ? pickedD : undefined); };
+          const mrow = box.querySelector('#moderow'), mdesc = box.querySelector('#modedesc');
+          const paintMode = () => {
+            mrow.querySelectorAll('.diffchip').forEach(c => c.classList.toggle('on', c.dataset.m === pickedMode));
+            mdesc.textContent = modeLine(pickedMode);
+          };
+          mrow.querySelectorAll('.diffchip').forEach(c => c.onclick = () => { pickedMode = c.dataset.m; paintMode(); });
+          paintMode();
+          const go = () => { close(); newRun(inp.value.trim() || undefined, meta.asc ? pickedD : undefined, pickedMode); };
           box.querySelector('#s-go').onclick = go;
           inp.onkeydown = e => { if (e.key === 'Enter') go(); };
-          box.querySelector('#s-rand').onclick = () => { close(); newRun(undefined, meta.asc ? pickedD : undefined); };
+          box.querySelector('#s-rand').onclick = () => { close(); newRun(undefined, meta.asc ? pickedD : undefined, pickedMode); };
         }
       }));
     };
