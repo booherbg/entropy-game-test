@@ -243,8 +243,9 @@ function greedyTurn(g) {
     tends++;
   }
 
-  /* stage 6: gather and wake */
-  if (g.stage === 6 && g.coalesceReady()) { g.beginCoalescence(); return; }
+  /* stage 6: gather and wake (in the long game beginCoalescence is a no-op, so
+     fall through to endTurn — the bot keeps cultivating toward turn 100) */
+  if (g.stage === 6 && g.coalesceReady() && g.beginCoalescence().ok) return;
   g.endTurn();
 }
 
