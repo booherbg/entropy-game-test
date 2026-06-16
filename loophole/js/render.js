@@ -282,6 +282,31 @@
       for (const c of g.cells.values()) if (c.pat) this._drawPattern(cx, c);
       /* blight gnaws over everything */
       if (g.blight) for (const [k, b] of g.blight) { const c = g.cells.get(k); if (c) this._drawBlight(cx, c, b); }
+      /* per-cell role dots: a glance tells you producer / fed / starving / idle */
+      for (const c of g.cells.values()) {
+        const p = c.pat; if (!p || !p._s) continue;
+        const s = p._s;
+        let dot = null;
+        if (s.role === 'producer') dot = s.prod > 0 ? PAL.sap : null;
+        else if (s.role === 'consumer') dot = (p.fed != null && p.fed < 0.5) ? PAL.sapStarve : PAL.dewBlue;
+        if (!dot) continue;
+        const pos = this.pos.get(HEX.key(c.q, c.r));
+        cx.fillStyle = rgba(dot, 0.92);
+        cx.beginPath(); cx.arc(pos.x + this.s * 0.42, pos.y - this.s * 0.42, this.s * 0.1, 0, TAU); cx.fill();
+        cx.strokeStyle = 'rgba(10,8,6,0.5)'; cx.lineWidth = 0.8; cx.stroke();
+      }
+      /* placement guide: with a plant tool held, ring every cell it can root in */
+      if (this.mode && this.mode.type === 'plant') {
+        for (const c of g.cells.values()) {
+          if (c.pat) continue;
+          const k = HEX.key(c.q, c.r), p = this.pos.get(k);
+          if (!p || !g.canPlant(this.mode.pt, k).ok) continue;
+          cx.save(); cx.translate(p.x, p.y); cx.scale(this.s, this.s);
+          cx.strokeStyle = rgba(PAL.mossGlow, 0.5); cx.lineWidth = 2.4 / this.s;
+          cx.stroke(this.shapes.get(k));
+          cx.restore();
+        }
+      }
       cx.restore();
       this.dirtyFlag = false;
     }
@@ -336,13 +361,13 @@
       /* soil tints the ground so the land can be read at a glance */
       const soilDef = (LP.CONTENT.SOILS && LP.CONTENT.SOILS[c.soil]) || null;
       const tint = soilDef ? soilDef.tint : null;
-      if (tint && c.soil !== 'loam') loam = mix(loam, tint, 0.72);
+      if (tint && c.soil !== 'loam') loam = mix(loam, tint, 0.85);
       /* order = warm loam (greening as it deepens); entropy = cold light static */
       let base = loam;
-      if (e < 0.45) base = mix(loam, '#4d5c38', (0.45 - e) * 1.5);
-      /* even noise keeps a whisper of the soil beneath it, so the land stays legible */
+      if (e < 0.45) base = mix(loam, '#4d5c38', (0.45 - e) * 1.2);
+      /* even noise keeps a clear cast of the soil beneath it, so biomes stay legible */
       let noiseGrey = mix(PAL.greyDark, PAL.grey, e);
-      if (tint && c.soil !== 'loam') noiseGrey = mix(noiseGrey, tint, 0.22);
+      if (tint && c.soil !== 'loam') noiseGrey = mix(noiseGrey, tint, 0.4);
       const fill = mix(base, noiseGrey, Math.pow(e, 0.95) * 0.92);
       cx.fillStyle = fill;
       cx.fill(this.shapes.get(k));
@@ -459,8 +484,10 @@
          earning moss (on a gradient/frontier, paying order) glows spring-green;
          idle interior moss (cleaned out, no longer paying) sits dark-green. */
       if (earning == null) earning = true;
-      const base = earning ? [PAL.moss1, PAL.moss2] : [PAL.mossDark, PAL.moss0];
-      const specks = earning ? [PAL.moss2, PAL.mossGlow, PAL.moss2] : [PAL.mossDark, PAL.moss0, PAL.moss1];
+      const young = age < 3;
+      /* young = pale grey-green (establishing) · producing = bright spring · idle = dark */
+      const base = young ? ['#586049', '#6e7a56'] : (earning ? [PAL.moss1, PAL.moss2] : [PAL.mossDark, PAL.moss0]);
+      const specks = young ? ['#6e7a56', '#838d68'] : (earning ? [PAL.moss2, PAL.mossGlow, PAL.moss2] : [PAL.mossDark, PAL.moss0, PAL.moss1]);
       const r = rngOf('moss' + seed);
       const grown = Math.min(age, 6) / 6;
       const patches = 2 + Math.round(grown * 2);
@@ -805,9 +832,21 @@
       cx.restore();
     }
 
-    /* starving consumers ask, visibly, to be fed */
+    /* producing patterns breathe a soft green; starving consumers ask to be fed */
     _sapFrame(cx, t) {
       const g = this.game;
+      cx.save();
+      cx.globalCompositeOperation = 'lighter';
+      for (const c of g.cells.values()) {
+        const p = c.pat;
+        if (!p || !p._s || p._s.role !== 'producer' || p._s.prod <= 0) continue;
+        const pos = this.pos.get(HEX.key(c.q, c.r));
+        if (!pos) continue;
+        const a = 0.05 + 0.05 * Math.sin(t * 2 + U.hash32(HEX.key(c.q, c.r)) % 6);
+        cx.fillStyle = rgba(PAL.sap, a);
+        cx.beginPath(); cx.arc(pos.x, pos.y, this.s * 0.42, 0, TAU); cx.fill();
+      }
+      cx.restore();
       for (const c of g.cells.values()) {
         const p = c.pat;
         if (!p || !p._s || p._s.role !== 'consumer') continue;

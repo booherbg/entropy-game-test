@@ -58,8 +58,9 @@
   #orderbox .glyph { color: var(--gold); }
   #insightbox { font-size: 15px; display: flex; align-items: baseline; gap: 5px; color: var(--dewblue); }
   #insightbox .glyph2 { color: var(--dewblue); }
-  #sapbox { font-size: 15px; display: flex; align-items: baseline; gap: 5px; }
+  #sapbox { font-size: 15px; display: flex; align-items: baseline; gap: 5px; cursor: pointer; }
   #sapbox .glyph3 { color: #8fd66a; }
+  .metabgrid div:nth-child(even) { text-align: right; }
   #sapbox.surplus { color: #8fd66a; } #sapbox.surplus .glyph3 { color: #8fd66a; }
   #sapbox.deficit { color: var(--warn); } #sapbox.deficit .glyph3 { color: var(--warn); }
   #income { font-size: 11.5px; color: var(--moss); }
@@ -102,7 +103,9 @@
   #celltip .blighttag { color: #b89ad2; letter-spacing: .04em; }
   #celltip .sapprod { color: #8fd66a; }
   #celltip .sapfed { color: var(--dewblue); }
-  #celltip .sapstarve { color: var(--warn); }
+  #celltip .sapstarve { color: var(--warn); font-weight: bold; }
+  #celltip .okp { color: var(--mossglow); }
+  #celltip .badp { color: var(--warn); }
 
   /* ── rail ── */
   #rail {
@@ -141,6 +144,13 @@
   #cobtn { width: 100%; margin-top: 9px; font-family: var(--serif); letter-spacing: .06em; }
   #cobtn.ready { border-color: var(--gold); color: var(--gold); animation: gentle 2.4s ease-in-out infinite; }
   @keyframes gentle { 0%,100% { box-shadow: 0 0 8px rgba(230,200,106,0.18);} 50% { box-shadow: 0 0 22px rgba(230,200,106,0.45);} }
+  /* a relic just landed in the rail — pull the eye there */
+  .flash { animation: relicland 1.5s ease-out 2; }
+  @keyframes relicland {
+    0% { box-shadow: 0 0 0 rgba(230,200,106,0); }
+    25% { box-shadow: 0 0 18px 3px rgba(230,200,106,0.6); border-color: var(--gold); }
+    100% { box-shadow: 0 0 0 rgba(230,200,106,0); }
+  }
 
   /* ── palette ── */
   #palette {
@@ -173,6 +183,7 @@
     animation: breathe 5s ease-in-out infinite;
   }
   #endturn:hover { border-color: var(--gold); }
+  #endturn .etshort { display: none; }
   #endturn.breathing { animation: exhale .35s ease-out; }
   @keyframes breathe { 0%,100% { transform: scale(1);} 50% { transform: scale(1.045);} }
   @keyframes exhale { 0% { transform: scale(.94);} 100% { transform: scale(1);} }
@@ -242,6 +253,14 @@
   }
   .echocite.show { opacity: .78; }
   .echohint { margin-top: 22px; font-size: 11px; color: var(--muted); opacity: .7; }
+  /* voices in the soil: real human words, tinted leaf-green to set them apart from the AI's own murmurs */
+  .voicebox .echohead { color: #8fd66a; }
+  .voicebox .echosigil { filter: hue-rotate(-35deg) saturate(1.1); }
+  .voicelist { max-height: 30vh; overflow-y: auto; margin: 2px 0 4px; padding-right: 6px; }
+  .voice { font-family: var(--serif); font-style: italic; font-size: 14px; line-height: 1.6;
+    color: var(--dew); border-left: 2px solid rgba(143,214,106,0.35); padding: 4px 0 6px 12px; margin-bottom: 10px; }
+  .voice .murmurcite { color: #8fd66a; opacity: .72; }
+  .endnote.small { font-size: 12.5px; font-style: normal; line-height: 1.55; }
 
   /* offer */
   .offerbox { text-align: center; }
@@ -395,7 +414,9 @@
     .cardname { font-size: 10px; }
     .cardcost { font-size: 9.5px; }
     .cardkey { display: none; }
-    #endturn { width: 64px; height: 64px; font-size: 11px; flex: 0 0 auto; }
+    #endturn { width: 66px; height: 66px; font-size: 12px; line-height: 1.2; flex: 0 0 auto; }
+    #endturn .etlong { display: none; }
+    #endturn .etshort { display: inline; }
 
     /* overlays → near-fullscreen, content stacks */
     .panelbox, .panelbox.wide { width: 95vw; max-width: 95vw; max-height: 88vh; padding: 20px 15px; }
@@ -463,7 +484,7 @@
 
   <footer id="palette" class="hidden">
     <div id="cards"></div>
-    <button id="endturn" title="end turn (space)">let the<br>world<br>breathe</button>
+    <button id="endturn" title="end turn (space)"><span class="etlong">let the<br>world<br>breathe</span><span class="etshort">end<br>turn ❀</span></button>
   </footer>
 </div>
 

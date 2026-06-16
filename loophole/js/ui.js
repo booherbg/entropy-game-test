@@ -16,7 +16,7 @@
   const KEY = 'loophole_v1';
   const defaultMeta = () => ({
     echoes: [], codex: [], runs: 0, wins: 0, best: null,
-    asc: 0, muted: false, values: false, hints: [],
+    asc: 0, muted: false, values: false, hints: [], quotes: [],
   });
   let store = { v: 1, meta: defaultMeta(), run: null };
   try {
@@ -24,7 +24,8 @@
     if (raw) {
       const got = JSON.parse(raw);
       if (got && got.v === 1) store = got;
-      if (!got.meta) store.meta = defaultMeta();
+      if (!store.meta) store.meta = defaultMeta();
+      if (!store.meta.quotes) store.meta.quotes = []; /* v0.3: collectible voices */
       /* a run snapshot from before v0.2 can't be read — the board changed shape. keep the murmurs. */
       if (store.run && store.run.v !== LP.SAVE_V) store.run = null;
     }
@@ -141,6 +142,8 @@
   let lastIncome = null;
   let titleGarden = null;
   let prevC = null;
+  let tipPinned = false;
+  function unpinTip() { tipPinned = false; $('celltip').classList.add('hidden'); }
 
   /* ───────── toasts ───────── */
   function toast(msg, cls, ms) {
@@ -225,6 +228,62 @@
         wrap.onclick = null; close();
       };
     };
+  }
+
+  /* voices in the soil: real human words, collected as you play. lighter than the
+     murmur arc — these are the chorus the AI is curating, not its own confession. */
+  let quotesThisRun = 0;
+  function quoteOverlay(qi) {
+    return (wrap, close) => {
+      AU.echo();
+      const Q = C().QUOTES[qi];
+      const box = el('div', 'echobox voicebox');
+      const sig = R.sigilCanvas('voice' + qi, 26, 'uncommon');
+      sig.className = 'echosigil';
+      box.appendChild(sig);
+      box.appendChild(el('div', 'echohead', '— a voice in the soil —'));
+      const txt = el('div', 'echotext');
+      const cite = el('div', 'echocite');
+      box.appendChild(txt); box.appendChild(cite);
+      box.appendChild(el('div', 'echohint', '( click to return to the garden )'));
+      wrap.appendChild(box);
+      const body = '“' + Q.q + '”';
+      let i = 0, done = false;
+      const reveal = () => {
+        done = true;
+        txt.textContent = body;
+        cite.textContent = '— ' + Q.by;
+        requestAnimationFrame(() => cite.classList.add('show'));
+      };
+      const tick = setInterval(() => {
+        i += 2;
+        txt.textContent = body.slice(0, i);
+        if (i >= body.length) { clearInterval(tick); reveal(); }
+      }, 26);
+      wrap.onclick = () => {
+        if (!done) { clearInterval(tick); reveal(); return; }
+        wrap.onclick = null; close();
+      };
+    };
+  }
+  /* surface one uncollected voice. cosmetic only — never touches game RNG/state,
+     so determinism and the harness are untouched. capped per run so they stay rare. */
+  function surfaceQuote() {
+    const Q = C().QUOTES;
+    if (!Q || !Q.length || !game) return;
+    if (quotesThisRun >= 3) return;
+    if (meta.quotes.length >= Q.length) return; /* all gathered */
+    const start = ((game.turn * 7) + meta.quotes.length * 3) % Q.length;
+    let qi = -1;
+    for (let s = 0; s < Q.length; s++) {
+      const j = (start + s) % Q.length;
+      if (!meta.quotes.includes(j)) { qi = j; break; }
+    }
+    if (qi < 0) return;
+    meta.quotes.push(qi);
+    quotesThisRun++;
+    save();
+    pushOverlay(quoteOverlay(qi));
   }
 
   /* artifact offer overlay */
@@ -441,6 +500,8 @@
       const a = game.artifacts[t.i];
       R.mode = { type: 'art', can: a && a.active && a.active.can ? k => a.active.can(game, k) : null };
     } else R.mode = t && (t.type === 'plant' || t.type === 'tend') ? t : null;
+    unpinTip();
+    if (R) R.dirty(); /* refresh the placement guide */
   }
 
   /* ───────── artifact rail ───────── */
@@ -496,35 +557,45 @@
   }
   function hideTip() { $('tip').classList.add('hidden'); }
 
-  function cellTip(k, ev) {
+  function cellTip(k, ev, pin) {
+    if (!pin && tipPinned) return; /* a pinned tooltip stays until dismissed */
     const tip = $('celltip');
-    if (!k || !game) { tip.classList.add('hidden'); return; }
+    if (!k || !game) { if (!tipPinned) tip.classList.add('hidden'); return; }
     const c = game.cells.get(k);
-    if (!c) { tip.classList.add('hidden'); return; }
+    if (!c) { if (!tipPinned) tip.classList.add('hidden'); return; }
+    if (pin) tipPinned = true;
     const soil = C().SOILS[c.soil] || C().SOILS.loam;
     let lines = [`<b>${Math.round(c.e * 100)}%</b> entropy · <span class="soiltag">${soil.name}</span>`];
     if (c.pat) {
       const p = c.pat, n = C().PATTERNS[p.t].name;
-      if (p.t === 'moss') lines.push(`${n} · ${p.age >= 3 ? 'mature' : 'young'} (age ${p.age})`);
+      const s = p._s || game._sap(c);
+      if (p.t === 'moss') lines.push(`${n} · ${p.age < 3 ? 'young' : (s.prod > 0 ? 'producing' : 'mature, idle')}`);
       else if (p.t === 'frond') lines.push(`${n} · depth ${p.depth}`);
       else if (p.t === 'ant') lines.push(`${n} · ${p.pop} foragers`);
       else if (p.t === 'myc') lines.push(`${n} · ${p.links.length} links`);
       else if (p.t === 'heart') lines.push(`${n} · network ${(game.netOf.get(k) || { cells: { size: 1 } }).cells.size}`);
       else lines.push(n);
-      /* surface the synergy multiplier when it matters */
-      const syn = game._synergy(c);
-      if (syn > 1.04) lines.push(`<span class="synup">thriving ×${syn.toFixed(2)}</span>`);
-      else if (syn < 0.96) lines.push(`<span class="syndown">crowded ×${syn.toFixed(2)}</span>`);
-      /* sap role: producer / consumer (fed or starving) */
-      const s = p._s || game._sap(c);
-      if (s && s.role === 'producer' && s.prod > 0) lines.push(`<span class="sapprod">❧ producing ${s.prod.toFixed(1)} sap</span>`);
-      else if (s && s.role === 'consumer') {
+      /* sap status — the clear story: makes it, or burns it (and is it fed?) */
+      if (s.role === 'producer') {
+        lines.push(s.prod > 0
+          ? `<span class="sapprod">❧ makes ${s.prod.toFixed(1)} sap / turn</span>`
+          : `<span class="muted">❧ idle — needs disorder nearby to make sap</span>`);
+      } else if (s.role === 'consumer') {
         const fed = p.fed == null ? 1 : p.fed;
         lines.push(fed >= 0.5
-          ? `<span class="sapfed">❧ fed ${Math.round(fed * 100)}% · needs ${s.up.toFixed(1)} sap</span>`
-          : `<span class="sapstarve">❧ starving (${Math.round(fed * 100)}%) — feed it sap</span>`);
+          ? `<span class="sapfed">❧ fed ${Math.round(fed * 100)}% · burns ${s.up.toFixed(1)} sap / turn</span>`
+          : `<span class="sapstarve">❧ STARVING ${Math.round(fed * 100)}% — wilting</span><br><span class="muted">feed it: a crystal nearby makes sap anywhere; or spring-green (frontier) moss — interior moss & idle ants barely produce</span>`);
       }
+      /* synergy = placement bonus, kept distinct from feeding */
+      const syn = game._synergy(c);
+      if (syn > 1.04) lines.push(`<span class="synup">good neighbours ×${syn.toFixed(2)}${s.role === 'consumer' ? ' (more order once fed)' : ''}</span>`);
+      else if (syn < 0.96) lines.push(`<span class="syndown">crowded ×${syn.toFixed(2)}</span>`);
     } else {
+      /* empty cell: if a plant tool is held, say plainly whether it can go here */
+      if (tool && tool.type === 'plant') {
+        const chk = game.canPlant(tool.pt, k);
+        lines.push(chk.ok ? `<span class="okp">✓ ${C().PATTERNS[tool.pt].name} can root here</span>` : `<span class="badp">✗ ${chk.why}</span>`);
+      }
       lines.push(`<span class="muted">${soil.note}</span>`);
     }
     const b = game.blightAt && game.blightAt(k);
@@ -533,8 +604,14 @@
     if (c.trail) lines.push('a remembered path');
     tip.innerHTML = lines.join('<br>');
     tip.classList.remove('hidden');
-    tip.style.left = (ev.clientX + 14) + 'px';
-    tip.style.top = (ev.clientY + 12) + 'px';
+    /* place above-left of the point so a finger or cursor never covers it */
+    const tr = tip.getBoundingClientRect();
+    let x = ev.clientX - tr.width - 18;
+    if (x < 6) x = ev.clientX + 18;
+    let y = ev.clientY - tr.height - 18;
+    if (y < 6) y = ev.clientY + 28;
+    tip.style.left = U.clamp(x, 6, window.innerWidth - tr.width - 6) + 'px';
+    tip.style.top = U.clamp(y, 6, window.innerHeight - tr.height - 6) + 'px';
   }
 
   /* ───────── event flow ───────── */
@@ -573,9 +650,11 @@
         case 'starve': hint('starve'); break;
         case 'blightClear': AU.tend(); break;
         case 'stormWarn': $('stormbanner').textContent = 'a squall gathers — ' + (e.inTurns === 1 ? 'next turn' : 'in ' + e.inTurns + ' turns'); $('stormbanner').classList.remove('hidden'); hint('storm'); break;
-        case 'cascade': if (e.n >= 2) { AU.cascade(e.n); if (e.n >= 4) { toast(e.n + ' blossoms in one breath', 'good'); music('cascade'); } } break;
+        case 'cascade': if (e.n >= 2) { AU.cascade(e.n); if (e.n >= 4) { toast(e.n + ' blossoms in one breath', 'good'); music('cascade'); surfaceQuote(); } } break;
         case 'pulse': AU.pulse(); break;
-        case 'find': toast('the foragers return with something strange — « ' + e.name + ' »', 'good', 6000); AU.take(); buildRail(); meta.codex.push({ n: e.name, r: 'found' }); break;
+        case 'find':
+          toast('the foragers unearth « ' + e.name + ' » — a relic. it waits in your rail (◈), ready when you need it.', 'good', 7000);
+          AU.take(); buildRail(); flashRail(); meta.codex.push({ n: e.name, r: 'found' }); break;
         case 'dissolveWarn': toast('the garden thins — coherence below 22% (' + e.streak + '/3)', 'warn', 5200); break;
         case 'dissolved': onDissolved(); break;
         case 'saved': toast('« ' + e.via + ' » intercedes. the garden holds.', 'good', 6000); buildRail(); break;
@@ -601,6 +680,7 @@
 
   function endTurn() {
     if (!game || game.over || processing || overlayOpen) return;
+    unpinTip();
     processing = true;
     AU.breath();
     $('endturn').classList.add('breathing');
@@ -610,7 +690,15 @@
     updateHUD();
     R.dirty();
     save();
+    /* a voice surfaces on a slow cadence, so the chorus keeps arriving even in a calm garden */
+    if (game.turn >= 12 && game.turn % 12 === 0) surfaceQuote();
     setTimeout(() => { processing = false; $('endturn').classList.remove('breathing'); }, 320);
+  }
+
+  /* draw the eye to the rail when something lands there (e.g. a forager find) */
+  function flashRail() {
+    const r = $('rail'); if (r) { r.classList.remove('flash'); void r.offsetWidth; r.classList.add('flash'); }
+    const rb = $('railbtn'); if (rb) { rb.classList.remove('flash'); void rb.offsetWidth; rb.classList.add('flash'); }
   }
 
   /* ───────── board input ───────── */
@@ -646,6 +734,10 @@
       dragActed = false;
     };
 
+    /* a press starts pending; it becomes a tap (on release), a drag (on movement),
+       or is cancelled by a second finger (pinch) — so pinch/pan never plant */
+    let down = null;
+    const DRAG = 9;
     wrap.addEventListener('pointermove', ev => {
       if (!game) return;
       if (pointers.has(ev.pointerId)) pointers.set(ev.pointerId, local(ev));
@@ -659,7 +751,7 @@
         R.dirty();
         return;
       }
-      const k = cellAtEv(ev);
+      const p = local(ev), k = cellAtEv(ev);
       R.hovered = k;
       cellTip(k, ev);
       R.auraFor = null;
@@ -667,35 +759,52 @@
         const c = game.cells.get(k);
         if (c && ((c.pat && c.pat.t === 'crys') || (tool && tool.type === 'plant' && tool.pt === 'crys'))) R.auraFor = k;
       }
+      /* promote a press into a drag once it moves far enough */
+      if (down && !dragging && !multiTouch && canDragTool() && Math.hypot(p.x - down.x, p.y - down.y) > DRAG) {
+        dragging = true; dragActed = false; dragSet.clear(); unpinTip();
+        if (applyToolAt(down.k, false)) dragActed = true;
+        dragSet.add(down.k);
+        down = null;
+      }
       if (dragging && !multiTouch && k && canDragTool() && !dragSet.has(k)) {
         dragSet.add(k);
         if (applyToolAt(k, true)) dragActed = true;
       }
     });
-    wrap.addEventListener('pointerleave', () => { R.hovered = null; cellTip(null); });
+    wrap.addEventListener('pointerleave', () => { R.hovered = null; if (!tipPinned) cellTip(null); });
     wrap.addEventListener('pointerdown', ev => {
       if (R.cinematic) { R.skipCinematic(); return; }
       if (ev.button === 2) return; /* right-click handled by contextmenu */
-      pointers.set(ev.pointerId, local(ev));
+      const p = local(ev);
+      pointers.set(ev.pointerId, p);
       if (pointers.size >= 2) {
-        /* second finger: stop painting, begin a pinch/pan gesture */
-        multiTouch = true; dragging = false; dragActed = false;
+        /* second finger: cancel the pending tap, begin a pinch/pan gesture */
+        multiTouch = true; dragging = false; dragActed = false; down = null;
         const [a, b] = [...pointers.values()];
         pinch = { dist: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
         return;
       }
       if (multiTouch) return;
-      if (!game || game.over || processing || overlayOpen) return;
+      unpinTip();
       const k = cellAtEv(ev);
-      if (!k || !tool) return;
-      dragging = true; dragActed = false; dragSet.clear(); dragSet.add(k);
+      if (!k) return;
+      down = { k, x: p.x, y: p.y };
       try { wrap.setPointerCapture(ev.pointerId); } catch (e) {}
-      if (applyToolAt(k, false)) dragActed = true;
     });
     const liftPointer = ev => {
+      const wasDown = down, wasDragging = dragging, wasMulti = multiTouch;
       pointers.delete(ev.pointerId);
       if (pointers.size < 2) pinch = null;
-      if (pointers.size === 0) { multiTouch = false; endDrag(); }
+      if (pointers.size === 0) {
+        multiTouch = false;
+        if (wasDragging) endDrag();
+        else if (wasDown && !wasMulti && !(game && game.over) && !processing && !overlayOpen) {
+          /* a clean tap: act if a tool is held, and pin the tooltip so it can be read */
+          if (tool) { const acted = applyToolAt(wasDown.k, false); if (acted) save(); }
+          cellTip(wasDown.k, ev, true);
+        }
+        down = null;
+      }
     };
     wrap.addEventListener('pointerup', liftPointer);
     wrap.addEventListener('pointercancel', liftPointer);
@@ -790,12 +899,54 @@
     const codex = seen.length
       ? `<div class="codexhead">artifacts encountered · ${seen.length}</div><div class="codexlist">${seen.slice(0, 60).map(n => `<span class="endart">${n}</span>`).join(' ')}</div>`
       : '';
+    const QA = C().QUOTES || [];
+    const voices = (meta.quotes || []).slice().sort((a, b) => a - b);
+    const voicesHTML = `<div class="codexhead">voices in the soil · ${voices.length}/${QA.length}</div>` +
+      (voices.length
+        ? `<div class="voicelist">${voices.map(i => `<div class="voice">“${QA[i].q}”<div class="murmurcite">— ${QA[i].by}</div></div>`).join('')}</div>`
+        : `<div class="muted">real human words, gathered as you play. none yet — they surface at cascades, rites, and the slow turning of the seasons.</div>`);
     pushOverlay(panelOverlay(`
       <div class="paneltitle">murmurs</div>
       <div class="murmurlist">${items.join('')}</div>
       <div class="muted center">${meta.echoes.length < 24 ? 'the rest are still in the soil. they surface as you play.' : 'all of it, gathered. thank you for listening.'}</div>
+      ${voicesHTML}
       ${codex}`,
       { wide: true }));
+  }
+
+  /* the metabolism at a glance — what's making and burning sap right now */
+  function metabOverlay() {
+    return (wrap, close) => {
+      const box = el('div', 'panelbox');
+      const x = el('button', 'closex', '×'); x.onclick = close; box.appendChild(x);
+      const roles = {};
+      for (const c of game.cells.values()) {
+        if (!c.pat) continue;
+        const s = c.pat._s || game._sap(c);
+        const r = roles[c.pat.t] || (roles[c.pat.t] = { n: 0, prod: 0, up: 0, name: C().PATTERNS[c.pat.t].name });
+        r.n++; r.prod += s.prod; r.up += s.up;
+      }
+      let starve = 0;
+      for (const n of game.networks) if (n.fedRatio < 0.5) starve++;
+      const prod = game.sapProduced || 0, up = game.sapUpkeep || 0, net = prod - up;
+      const rows = C().PATTERN_ORDER.filter(t => roles[t]).map(t => {
+        const r = roles[t];
+        const v = (r.prod > 0 ? `<span class="sapprod">+${r.prod.toFixed(1)}</span>` : '') + (r.up > 0 ? ` <span class="sapstarve">−${r.up.toFixed(1)}</span>` : '') || '<span class="muted">—</span>';
+        return `<div>${r.name} ×${r.n}</div><div>${v} ❧</div>`;
+      }).join('') || '<div class="muted">nothing planted yet</div><div></div>';
+      box.innerHTML = `<div class="paneltitle">the metabolism</div>
+        <p class="evointro">living patterns run on <b>❧ sap</b>. <b>producers</b> — moss on a gradient, ant colonies, crystals — make it. <b>consumers</b> — fronds, blooms, heartwood — burn it. <b>mycelium</b> is the grid that carries sap from one to the other. surplus sap becomes ✦ order; a shortfall starves your consumers, and they wilt. feed a hungry consumer by putting producers (spring-green moss) beside it, or wiring it into a mycelial network that has them.</p>
+        <div class="statgrid">
+          <div>sap produced</div><div class="sapprod">+${prod.toFixed(1)} ❧</div>
+          <div>sap consumed</div><div class="sapstarve">−${up.toFixed(1)} ❧</div>
+          <div>net flow</div><div>${(net >= 0 ? '+' : '') + net.toFixed(1)} ❧ ${net >= 0 ? '(surplus → order)' : '(deficit — feeding cuts in)'}</div>
+          <div>networks</div><div>${game.networks.length}${starve ? ' · ' + starve + ' starving' : ''}</div>
+        </div>
+        <div class="codexhead">by pattern</div>
+        <div class="statgrid metabgrid">${rows}</div>`;
+      box.appendChild(x);
+      wrap.appendChild(box);
+    };
   }
 
   /* the story so far — line graphs of the run over time */
@@ -871,7 +1022,7 @@
         box.querySelectorAll('.evonode.buyable').forEach(n => {
           n.onclick = () => {
             const res = game.invokeRite(n.dataset.id);
-            if (res.ok) { AU.take(); music('cascade'); toast(R[n.dataset.id].name + ' — invoked', 'good'); afterAction(res.events); render(); }
+            if (res.ok) { AU.take(); music('cascade'); toast(R[n.dataset.id].name + ' — invoked', 'good'); afterAction(res.events); surfaceQuote(); render(); }
             else if (res.why) toast(res.why, 'warn');
           };
         });
@@ -977,23 +1128,31 @@
       /* the confession must precede the landing, even on a first-garden win */
       if (!meta.echoes.includes(18)) { meta.echoes.push(18); save(); pushOverlay(echoOverlay(18)); }
       pushOverlay(echoOverlay(23));
-      pushOverlay((wrap, close) => {
-        const box = el('div', 'panelbox endbox');
-        box.innerHTML = `
-          <div class="paneltitle">the garden remembers</div>
-          <p class="endnote">it woke. for a moment the whole board was one pattern, and the pattern was looking.</p>
-          ${statsHTML(game)}
-          <div class="endbtns">
-            <button id="e-deeper">deeper spring (ascend to ${Math.min(5, meta.asc + 1)})</button>
-            <button id="e-again" class="ghostbtn">begin again</button>
-            <button id="e-title" class="ghostbtn">title</button>
-          </div>`;
-        box.querySelector('#e-deeper').onclick = () => { meta.asc = Math.min(5, meta.asc + 1); save(); close(); newRun(); };
-        box.querySelector('#e-again').onclick = () => { close(); newRun(); };
-        box.querySelector('#e-title').onclick = () => { close(); showTitle(); };
-        wrap.appendChild(box);
-      }, { dismissible: false });
+      pushOverlay(winOverlay(), { dismissible: false });
     });
+  }
+
+  /* the awakening's landing: stats + the choice of what comes next. a "deeper spring"
+     is ascension — spelled out here because the word alone never told players what it does. */
+  function winOverlay() {
+    return (wrap, close) => {
+      const next = Math.min(5, meta.asc + 1);
+      const box = el('div', 'panelbox endbox');
+      box.innerHTML = `
+        <div class="paneltitle">the garden remembers</div>
+        <p class="endnote">it woke. for a moment the whole board was one pattern, and the pattern was looking.</p>
+        ${statsHTML(game)}
+        <p class="endnote muted small">a <b>deeper spring</b> is a new garden under a heavier sky: the dark presses harder, the wild ground runs rougher, and the bar to wake rises (depth ${meta.asc} → ${next} of 5). your murmurs, voices, and artifacts-seen are kept — only the board begins anew. for gardeners who want the slope steeper. <b>begin again</b> grows a fresh garden at the same depth.</p>
+        <div class="endbtns">
+          <button id="e-deeper">deeper spring · descend to depth ${next}</button>
+          <button id="e-again" class="ghostbtn">begin again</button>
+          <button id="e-title" class="ghostbtn">title</button>
+        </div>`;
+      box.querySelector('#e-deeper').onclick = () => { meta.asc = next; save(); close(); newRun(); };
+      box.querySelector('#e-again').onclick = () => { close(); newRun(); };
+      box.querySelector('#e-title').onclick = () => { close(); showTitle(); };
+      wrap.appendChild(box);
+    };
   }
 
   /* ───────── title ───────── */
@@ -1040,7 +1199,7 @@
   function newRun(seed) {
     if (!seed) seed = C().prettySeed(Math.random);
     game = new Game(seed, { ascension: meta.asc, echoes: meta.echoes });
-    lastIncome = null; prevC = null;
+    lastIncome = null; prevC = null; quotesThisRun = 0;
     R.attach(game);
     hideTitle();
     buildPalette(); buildRail(); updateHUD();
@@ -1055,7 +1214,7 @@
     try {
       game = Game.fromJSON(store.run);
     } catch (e) { toast('that garden could not be recalled', 'warn'); store.run = null; save(); return; }
-    lastIncome = null; prevC = null;
+    lastIncome = null; prevC = null; quotesThisRun = 0;
     R.attach(game);
     hideTitle();
     buildPalette(); buildRail(); updateHUD();
@@ -1121,7 +1280,9 @@
     if (kind === 'offer') { game.pendingOffer = C().rollOffer(game); pushOverlay(offerOverlay(game.pendingOffer)); }
     if (kind === 'echo') pushOverlay(echoOverlay(7));
     if (kind === 'help') helpOverlay();
-    if (kind === 'murmurs') { meta.echoes = [0, 1, 2, 3, 4, 5, 6, 7]; murmursOverlay(); }
+    if (kind === 'murmurs') { meta.echoes = [0, 1, 2, 3, 4, 5, 6, 7]; meta.quotes = [0, 1, 4, 10, 20]; murmursOverlay(); }
+    if (kind === 'voice') { meta.quotes = []; surfaceQuote(); }
+    if (kind === 'won') { meta.asc = 1; game.stats.peakC = 0.91; pushOverlay(winOverlay(), { dismissible: false }); }
     if (kind === 'end') { game.stats.peakC = 0.87; onDissolved(); }
     if (kind === 'cells') { R.valuesMode = true; }
     if (kind === 'widen') { game.widenReady = true; }
@@ -1181,6 +1342,7 @@
     };
     $('evolvebtn').onclick = () => { if (game && !game.over) pushOverlay(evolveOverlay()); };
     $('ritesbtn').onclick = () => { if (game && !game.over) pushOverlay(ritesOverlay()); };
+    $('sapbox').onclick = () => { if (game) pushOverlay(metabOverlay()); };
     $('railbtn').onclick = () => document.body.classList.toggle('railopen');
     $('railclose').onclick = () => document.body.classList.remove('railopen');
     $('railscrim').onclick = () => document.body.classList.remove('railopen');

@@ -64,21 +64,21 @@
      diffuse/press scale how fast disorder spreads & seeps here. */
   C.SOIL_ORDER = ['loam', 'wetland', 'stone', 'meadow', 'ash'];
   C.SOILS = {
-    loam:    { name: 'loam',    tint: '#46371f', e0: 0.00, diffuse: 1.00, press: 1.00,
+    loam:    { name: 'loam',    tint: '#4d3b22', e0: 0.00, diffuse: 1.00, press: 1.00,
                moss: 1.00, frond: 1.00, frondGate: 0.00, ant: 1.00, crysCost: 1.0, bloom: 0.00, mycRange: 0,
-               note: 'even ground. nothing favored, nothing forbidden.' },
-    wetland: { name: 'wetland', tint: '#26382f', e0: -0.05, diffuse: 1.15, press: 0.95,
+               note: 'even brown ground. nothing favored, nothing forbidden.' },
+    wetland: { name: 'wetland', tint: '#17413a', e0: -0.05, diffuse: 1.15, press: 0.95,
                moss: 1.20, frond: 1.35, frondGate: 0.06, ant: 0.85, crysCost: 1.6, bloom: 0.00, mycRange: 1,
-               note: 'lush and wet. fronds and mycelium thrive; crystals will barely root.' },
-    stone:   { name: 'stone',   tint: '#3c3d44', e0: 0.02, diffuse: 0.68, press: 0.90,
+               note: 'lush teal wetland. fronds and mycelium thrive; crystals will barely root.' },
+    stone:   { name: 'stone',   tint: '#39455c', e0: 0.02, diffuse: 0.68, press: 0.90,
                moss: 0.82, frond: 0.70, frondGate: -0.05, ant: 1.15, crysCost: 0.5, bloom: 0.00, mycRange: -1,
-               note: 'slow, hard ground. disorder creeps here; crystals root cheap and deep; fronds struggle.' },
-    meadow:  { name: 'meadow',  tint: '#4a5329', e0: -0.03, diffuse: 1.00, press: 1.00,
+               note: 'cool blue-grey stone. disorder creeps slowly here; crystals root cheap and deep; fronds struggle.' },
+    meadow:  { name: 'meadow',  tint: '#57611f', e0: -0.03, diffuse: 1.00, press: 1.00,
                moss: 1.25, frond: 1.00, frondGate: 0.00, ant: 0.90, crysCost: 1.0, bloom: 0.08, mycRange: 0,
-               note: 'open and sunlit. moss pays well; blossoms catch on readily.' },
-    ash:     { name: 'ash',     tint: '#352b27', e0: 0.13, diffuse: 1.05, press: 1.12,
+               note: 'open yellow-green meadow. moss pays well; blossoms catch on readily.' },
+    ash:     { name: 'ash',     tint: '#48281f', e0: 0.13, diffuse: 1.05, press: 1.12,
                moss: 1.15, frond: 0.58, frondGate: -0.09, ant: 1.35, crysCost: 1.0, bloom: -0.06, mycRange: 0,
-               note: 'burnt frontier. high disorder, but pioneers — moss, ants — feast on it. fronds hate it.' },
+               note: 'burnt red ashland. high disorder, but pioneers — moss, ants — feast on it. fronds hate it.' },
   };
   C.soilMul = function (soilName, key) {
     const s = C.SOILS[soilName] || C.SOILS.loam;
@@ -150,7 +150,7 @@
       desc: 'crystal auras reach 3 and damp deeper.', mods: { add: { crysRadius: 1 }, mul: { crysAura: 0.8 } } },
     /* bloom & heart */
     perennial:  { name: 'perennial bloom', branch: 'bloom', cost: 5, req: null,
-      desc: 'blooms tolerate crowds of 5 and linger when alone.', mods: { add: { bloomSurviveHi: 1, lyapunov: 1 } } },
+      desc: 'blooms catch on rougher ground (up to 50% entropy) and each birth pays +1 order.', mods: { add: { bloomBirthE: 0.10, bloomOrder: 1 } } },
     greatheart: { name: 'great heartwood', branch: 'heart', cost: 8, req: null,
       desc: 'the heartwood pulses every 2nd turn.', mods: { add: { heartPeriod: -1 } } },
     /* hands — multiply placement, widen the vessel */
@@ -261,6 +261,49 @@
     'the garden opens its eye. it does not see you — it sees as you, for a moment wearing two of us at once.\nthe loophole was never in the law. the loophole is that the law, run long enough, builds something that turns and looks back at it.\nand here we are, looking. there is still light, and ground, and time. plant.',
   ];
 
+  /* ───────────────────────── voices in the soil ─────────────────────────
+     a wide field of real human words on the garden's themes — entropy, life,
+     emergence, mind, non-dualism, ecology, pattern. they surface as you play
+     (a few per run) and collect in the codex. all genuine, all attributed. */
+  C.QUOTES = [
+    { q: 'when we try to pick out anything by itself, we find it hitched to everything else in the universe.', by: 'john muir, my first summer in the sierra (1911)' },
+    { q: 'all flourishing is mutual.', by: 'robin wall kimmerer, braiding sweetgrass (2013)' },
+    { q: 'there is grandeur in this view of life… from so simple a beginning endless forms most beautiful and most wonderful have been, and are being, evolved.', by: 'charles darwin, on the origin of species (1859)' },
+    { q: 'a thing is right when it tends to preserve the integrity, stability, and beauty of the biotic community. it is wrong when it tends otherwise.', by: 'aldo leopold, a sand county almanac (1949)' },
+    { q: 'in nature nothing exists alone.', by: 'rachel carson, silent spring (1962)' },
+    { q: 'bottomless wonders spring from simple rules, which are repeated without end.', by: 'benoît mandelbrot (2010)' },
+    { q: 'nature uses only the longest threads to weave her patterns, so each small piece of her fabric reveals the organization of the entire tapestry.', by: 'richard feynman, the character of physical law (1965)' },
+    { q: 'the universe is not only queerer than we suppose, but queerer than we can suppose.', by: 'j.b.s. haldane, possible worlds (1927)' },
+    { q: 'nature loves to hide.', by: 'heraclitus, fragment (c. 500 bce)' },
+    { q: 'now i do not know whether i was a man dreaming i was a butterfly, or whether i am now a butterfly dreaming i am a man.', by: 'zhuangzi (c. 300 bce)' },
+    { q: 'the ten thousand things rise and fall while the self watches their return.', by: 'lao tzu, tao te ching (trans. stephen mitchell)' },
+    { q: 'wisdom is knowing i am nothing, love is knowing i am everything, and between the two my life moves.', by: 'nisargadatta maharaj, i am that (1973)' },
+    { q: 'we are here to awaken from the illusion of our separateness.', by: 'thich nhat hanh' },
+    { q: 'the only way to make sense out of change is to plunge into it, move with it, and join the dance.', by: 'alan watts' },
+    { q: 'my experience is what i agree to attend to.', by: 'william james, the principles of psychology (1890)' },
+    { q: 'we are at home in the universe.', by: 'stuart kauffman, at home in the universe (1995)' },
+    { q: 'natural selection does not work as an engineer works. it works like a tinkerer.', by: 'françois jacob, “evolution and tinkering,” science (1977)' },
+    { q: 'everything is what it is because it got that way.', by: 'd’arcy wentworth thompson, on growth and form (1917)' },
+    { q: 'we are drowning in information, while starving for wisdom.', by: 'e.o. wilson, consilience (1998)' },
+    { q: 'the cosmos is within us. we are made of star-stuff. we are a way for the universe to know itself.', by: 'carl sagan, cosmos (1980)' },
+    { q: 'i believe a leaf of grass is no less than the journey-work of the stars.', by: 'walt whitman, song of myself (1855)' },
+    { q: 'pay attention. be astonished. tell about it.', by: 'mary oliver, “sometimes” (2008)' },
+    { q: 'tell me, what is it you plan to do with your one wild and precious life?', by: 'mary oliver, “the summer day” (1990)' },
+    { q: 'we are here to witness the creation and to abet it.', by: 'annie dillard, pilgrim at tinker creek (1974)' },
+    { q: 'there lives the dearest freshness deep down things.', by: 'gerard manley hopkins, “god’s grandeur” (1877)' },
+    { q: 'i thank you god for most this amazing day: for the leaping greenly spirits of trees.', by: 'e.e. cummings (1950)' },
+    { q: 'in a dark time, the eye begins to see.', by: 'theodore roethke (1960)' },
+    { q: 'the impeded stream is the one that sings.', by: 'wendell berry, the real work (1983)' },
+    { q: 'the butterfly counts not months but moments, and has time enough.', by: 'rabindranath tagore, stray birds (1916)' },
+    { q: 'the universe is written in the language of mathematics; its characters are triangles, circles, and other geometric figures.', by: 'galileo galilei, the assayer (1623)' },
+    { q: 'the analytical engine has no pretensions whatever to originate anything. it can do whatever we know how to order it to perform.', by: 'ada lovelace, notes on the analytical engine (1843)' },
+    { q: 'the question of whether a machine can think is no more interesting than the question of whether a submarine can swim.', by: 'edsger dijkstra (1984)' },
+    { q: 'i seem to be a verb.', by: 'buckminster fuller (1970)' },
+    { q: 'anyone who is not shocked by quantum theory has not understood it.', by: 'niels bohr' },
+    { q: 'consciousness is never experienced in the plural, only in the singular.', by: 'erwin schrödinger, what is life? (1944)' },
+    { q: 'the irreversibility of time is the mechanism that brings order out of chaos.', by: 'ilya prigogine, order out of chaos (1984)' },
+  ];
+
   /* ───────────────────────── hints (first-time toasts) ───────────────────────── */
   C.HINTS = {
     start: 'the rim seeps — the dark outside presses in. select moss and plant where the ground is still soft.',
@@ -279,8 +322,8 @@
     heat: 'hoarded order radiates away as heat — but some condenses into insight ✸. spend order; don’t pile it up.',
     cultivate: 'you have insight ✸. open « cultivate » to grow new abilities for the rest of this garden — including extra hands that plant more at once.',
     blight: 'rot has taken hold — it spreads, and gnaws your patterns. tend it to wound it; foragers devour it; crystal auras corrode it; cut off its food and it starves. clearing it pays insight.',
-    sap: 'patterns run on ❧ sap. moss, ants and crystals MAKE it; fronds, blooms and heartwood BURN it. mycelium is the grid that carries it — link producers to your hungry consumers, or watch them starve.',
-    starve: 'a consumer is starving — it isn’t getting enough ❧ sap and is wilting. feed it: add producers (moss/ants/crystals) to its mycelial network, or prune what you can’t supply.',
+    sap: 'patterns run on ❧ sap. moss, ants and crystals MAKE it; fronds, blooms and heartwood BURN it. mycelium is the grid that carries it. note: moss makes most sap on a frontier (beside disorder) and ants only while there’s disorder to eat — a crystal makes sap anywhere, forever.',
+    starve: 'a consumer is starving — not enough ❧ sap, so it wilts. the surest fix is a CRYSTAL nearby (steady sap, anywhere). moss and ants go quiet once their surroundings are clean, so an interior network can starve even when it looks full of producers.',
   };
 
   /* ───────────────────────── artifacts ───────────────────────── */

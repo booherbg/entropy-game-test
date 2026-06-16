@@ -284,28 +284,33 @@
       switch (p.t) {
         case 'moss': {
           if (p.age < 3) return { prod: 0, up: 0, out: 0, role: 'grid' };
+          /* mature moss always trickles a little sap; on a gradient it makes much more */
           let grad = false;
           for (const nk of HEX.neighborsK(k)) { const nc = this.cells.get(nk); if (!nc || nc.e >= 0.3) { grad = true; break; } }
-          const prod = grad ? 0.45 * this.mod('mossIncome', 1) * this.soilMul(c, 'moss') * this._synergy(c) : 0;
-          return { prod, up: 0, out: 0, role: prod > 0 ? 'producer' : 'grid' };
+          const prod = (0.2 + (grad ? 0.35 : 0)) * this.mod('mossIncome', 1) * this.soilMul(c, 'moss') * this._synergy(c);
+          return { prod, up: 0, out: 0, role: 'producer' };
         }
-        case 'ant': return { prod: (p.lastEaten || 0) * 7 * this._synergy(c), up: 0, out: 0, role: 'producer' };
-        case 'crys': return { prod: 0.8 * this.mod('crysSap', 1), up: 0, out: 0, role: 'producer' };
-        case 'frond': return { prod: 0, up: 0.8 + p.depth * 0.5, out: 0.34 * (p.depth * (p.depth + 1) / 2) * this.mod('frondIncome', 1) * this.soilMul(c, 'frond') * this._synergy(c), role: 'consumer' };
-        case 'bloom': return { prod: 0, up: 0.5, out: 0, role: 'consumer' };
-        case 'heart': { const net = this.netOf.get(k); return { prod: 0, up: 5, out: (net ? net.cells.size : 1) / 5 * this.mod('heartIncome', 1), role: 'consumer' }; }
+        /* a living colony stores food (a steady trickle), plus what it eats this turn */
+        case 'ant': return { prod: (0.25 + (p.pop || 0) * 0.015 + (p.lastEaten || 0) * 6) * this._synergy(c), up: 0, out: 0, role: 'producer' };
+        /* the crystal is order without hunger — a steady sap battery, anywhere, forever */
+        case 'crys': return { prod: 1.8 * this.mod('crysSap', 1), up: 0, out: 0, role: 'producer' };
+        case 'frond': return { prod: 0, up: 0.4 + p.depth * 0.3, out: 0.34 * (p.depth * (p.depth + 1) / 2) * this.mod('frondIncome', 1) * this.soilMul(c, 'frond') * this._synergy(c), role: 'consumer' };
+        case 'bloom': return { prod: 0, up: 0.45, out: 0, role: 'consumer' };
+        case 'heart': { const net = this.netOf.get(k); return { prod: 0, up: 4, out: (net ? net.cells.size : 1) / 5 * this.mod('heartIncome', 1), role: 'consumer' }; }
         case 'myc': return { prod: 0, up: 0.2, out: 0, role: 'grid' };
       }
       return { prod: 0, up: 0, out: 0, role: 'grid' };
     }
 
-    /* pure: tag each pattern with its sap stats + fed ratio (for income & display) */
+    /* pure: tag each pattern with its sap stats + fed ratio (for income & display).
+       a small ambient floor keeps a lone consumer alive; real scarcity is at scale. */
     _computeFlows() {
+      const ambient = this.mod('ambientSap', 0.9);
       const seen = new Set();
       for (const n of this.networks) {
         let prod = 0, up = 0;
         for (const k of n.cells) { const c = this.cells.get(k); if (!c || !c.pat) continue; const s = this._sap(c); c.pat._s = s; prod += s.prod; up += s.up; seen.add(k); }
-        const fed = up > 0 ? U.clamp(prod / up, 0, 1) : 1;
+        const fed = up > 0 ? U.clamp((prod + ambient) / up, 0, 1) : 1;
         n.prod = prod; n.upkeep = up; n.fedRatio = fed; n.surplus = Math.max(0, prod - up);
         for (const k of n.cells) { const c = this.cells.get(k); if (c && c.pat) c.pat.fed = fed; }
       }
@@ -313,9 +318,9 @@
         const k = HEX.key(c.q, c.r);
         if (seen.has(k)) continue;
         const s = this._sap(c); c.pat._s = s;
-        let prod = s.prod;
-        for (const nk of HEX.neighborsK(k)) { const nc = this.cells.get(nk); if (nc && nc.pat) prod += 0.6 * this._sap(nc).prod; }
-        c.pat.fed = s.up > 0 ? U.clamp(prod / s.up, 0, 1) : 1;
+        let local = s.prod; /* its own + neighbours' production reaches an unnetworked cell */
+        for (const nk of HEX.neighborsK(k)) { const nc = this.cells.get(nk); if (nc && nc.pat) local += this._sap(nc).prod; }
+        c.pat.fed = s.up > 0 ? U.clamp((local + ambient) / s.up, 0, 1) : 1;
       }
       let tp = 0, tu = 0;
       for (const c of this.cells.values()) if (c.pat && c.pat._s) { tp += c.pat._s.prod; tu += c.pat._s.up; }
@@ -387,6 +392,9 @@
           const refund = tc.pat.fresh ? this.plantCost('moss', k) : Math.floor(this.plantCost('moss', k) * this.mod('pruneRefund', 0.3));
           if (this.order + refund >= this.plantCost(t, k)) {
             tc.pat = null; this.order += refund; this.stats.prunes++;
+          } else {
+            /* you meant to build over the moss but can't afford it — say so plainly */
+            return { ok: false, why: 'not enough order' };
           }
         }
       }
