@@ -648,24 +648,24 @@
   };
 
   C.rollOffer = function (g) {
-    const ownedLegend = g.artifacts.some(a => a.spec.id);
-    const pLegend = (!ownedLegend && g.stage >= 4) ? 0.35 : 0.14;
+    /* the three free cards are commons & uncommons only — legendaries are no longer a
+       free grab. one unowned legendary rides in a separate slot, claimable for insight. */
     const specs = [];
-    const usedEff = new Set(), usedLegend = new Set();
+    const usedEff = new Set();
     for (let i = 0; i < 3; i++) {
       for (let tries = 0; tries < 8; tries++) {
-        const roll = g.rng.f();
-        let s;
-        if (roll < pLegend) s = rollLegend(g);
-        else s = rollProc(g, roll < pLegend + 0.32 ? 2 : 1);
-        if (s.id) { if (usedLegend.has(s.id)) continue; usedLegend.add(s.id); }
-        else { if (usedEff.has(s.proc.eff)) continue; usedEff.add(s.proc.eff); }
+        const s = rollProc(g, g.rng.f() < 0.38 ? 2 : 1);
+        if (usedEff.has(s.proc.eff)) continue;
+        usedEff.add(s.proc.eff);
         specs.push(s);
         break;
       }
     }
     while (specs.length < 3) specs.push(rollProc(g, 1));
-    return specs;
+    const owned = new Set(g.artifacts.filter(a => a.spec.id).map(a => a.spec.id));
+    const pool = LEGEND_IDS.filter(id => !owned.has(id));
+    const legend = pool.length ? { id: pool[g.rng.i(pool.length)] } : null;
+    return { cards: specs, legend };
   };
 
   C.rollAntFind = function (g) {

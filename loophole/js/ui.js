@@ -286,23 +286,24 @@
     pushOverlay(quoteOverlay(qi));
   }
 
-  /* artifact offer overlay */
-  function offerOverlay(specs) {
+  /* artifact offer overlay: three free commons/uncommons (pick one), and — in its own
+     slot — a legendary you may instead claim by spending insight. one thing per draft. */
+  function offerOverlay(specs, legend) {
     return (wrap, close) => {
       AU.offer();
       hint('offer');
       const box = el('div', 'offerbox');
       box.appendChild(el('div', 'offerhead', 'the garden offers'));
       const row = el('div', 'offerrow');
-      const choose = i => {
-        const res = game.takeOffer(i);
-        if (res.artifact) {
+      const finish = (res, verb) => {
+        if (res && res.artifact) {
           AU.take();
           meta.codex.push({ n: res.artifact.name, r: res.artifact.rarity });
-          toast('« ' + res.artifact.name + ' » joins the garden', 'good');
+          toast('« ' + res.artifact.name + ' » ' + verb, 'good');
         }
         save(); buildRail(); updateHUD(); close();
       };
+      const choose = i => finish(game.takeOffer(i), 'joins the garden');
       specs.forEach((spec, i) => {
         const a = C().buildArtifact(spec);
         const card = el('div', 'artcard r-' + a.rarity);
@@ -317,12 +318,39 @@
         row.appendChild(card);
       });
       box.appendChild(row);
+      box.appendChild(el('div', 'offersub', 'take one, freely'));
+
+      /* the paid legendary slot */
+      const claimLegend = () => {
+        const res = game.takeLegend();
+        if (res.ok) finish(res, 'is yours — a rule bends');
+        else toast(res.why || 'cannot claim it', 'warn');
+      };
+      if (legend) {
+        const a = C().buildArtifact(legend.spec);
+        const afford = game.insight >= legend.cost;
+        box.appendChild(el('div', 'offerhead leg', '— or spend insight to bend a rule —'));
+        const card = el('div', 'artcard r-legendary legcard' + (afford ? '' : ' cant'));
+        const sig = R.sigilCanvas(a.sigilSeed, 46, 'legendary');
+        sig.className = 'artsigil';
+        card.appendChild(sig);
+        card.appendChild(el('div', 'artname', a.name));
+        card.appendChild(el('div', 'artrarity', 'legendary'));
+        card.appendChild(el('div', 'artdesc', a.desc));
+        card.appendChild(el('div', 'artflavor', a.flavor));
+        card.appendChild(el('div', 'legprice' + (afford ? '' : ' short'),
+          `✸ ${legend.cost}  ·  you hold ✸ ${game.insight}` + (afford ? '  ·  L' : ' — not enough')));
+        card.onclick = claimLegend;
+        box.appendChild(card);
+      }
+
       const pass = el('button', 'ghostbtn', 'let it pass (+3 order) · P');
       pass.onclick = () => choose(-1);
       box.appendChild(pass);
       wrap.appendChild(box);
       const keys = e => {
         if (e.key >= '1' && e.key <= '3' && specs[+e.key - 1]) choose(+e.key - 1);
+        if ((e.key === 'l' || e.key === 'L') && legend) claimLegend();
         if (e.key === 'p' || e.key === 'P') choose(-1);
       };
       window.addEventListener('keydown', keys);
@@ -638,7 +666,7 @@
           toast('the world strains at its rim — widen it when you are ready.', 'stage', 6000);
           hint('widen');
           break;
-        case 'offer': pushOverlay(offerOverlay(e.specs), { dismissible: false }); break;
+        case 'offer': pushOverlay(offerOverlay(e.specs, e.legend), { dismissible: false }); break;
         case 'stageUp': {
           AU.stageUp(); music('stage');
           const st = C().STAGES[e.stage - 1];
@@ -1235,7 +1263,7 @@
     buildPalette(); buildRail(); updateHUD();
     R.valuesMode = meta.values;
     selectTool(null);
-    if (game.pendingOffer) pushOverlay(offerOverlay(game.pendingOffer), { dismissible: false });
+    if (game.pendingOffer) pushOverlay(offerOverlay(game.pendingOffer, game.pendingLegend), { dismissible: false });
     toast('the garden kept growing in your absence. (it didn’t. it waited.)', '', 5000);
   }
 
@@ -1292,7 +1320,13 @@
       g._recompute();
     }
     overlayQueue = []; closeOverlay();
-    if (kind === 'offer') { game.pendingOffer = C().rollOffer(game); pushOverlay(offerOverlay(game.pendingOffer)); }
+    if (kind === 'offer') {
+      game.insight = 24; /* enough to show the legendary as affordable */
+      const o = C().rollOffer(game);
+      game.pendingOffer = o.cards;
+      game.pendingLegend = o.legend ? { spec: o.legend, cost: game.legendCost() } : null;
+      pushOverlay(offerOverlay(game.pendingOffer, game.pendingLegend));
+    }
     if (kind === 'echo') pushOverlay(echoOverlay(7));
     if (kind === 'help') helpOverlay();
     if (kind === 'murmurs') { meta.echoes = [0, 1, 2, 3, 4, 5, 6, 7]; meta.quotes = [0, 1, 4, 10, 20]; murmursOverlay(); }

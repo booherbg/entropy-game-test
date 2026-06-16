@@ -112,6 +112,8 @@
       this.cells = new Map();
       this.artifacts = [];
       this.pendingOffer = null;
+      this.pendingLegend = null;   /* a legendary you may claim by spending insight */
+      this.legendsBought = 0;      /* each purchase escalates the next legendary's price */
       this.firedOcc = {};
       this.stormI = 0;
       this.stormQueue = [];
@@ -540,7 +542,28 @@
       if (i >= 0 && i < this.pendingOffer.length) a = this.addArtifact(this.pendingOffer[i]);
       else this.order += 3; /* declining is also a choice */
       this.pendingOffer = null;
+      this.pendingLegend = null; /* one thing per draft: taking a card forfeits the legendary */
       return { ok: true, artifact: a };
+    }
+
+    /* legendaries are bought, not grabbed — an escalating insight price so going
+       relic-heavy is a deliberate commitment (a cultivar runs ~2-5 insight). */
+    legendCost() {
+      const sched = [6, 12, 20, 30, 45];
+      const n = this.legendsBought;
+      const base = n < sched.length ? sched[n] : sched[sched.length - 1] + (n - sched.length + 1) * 18;
+      return Math.max(1, Math.round(base * this.mod('legendCostMul', 1)));
+    }
+    takeLegend() {
+      if (!this.pendingLegend) return { ok: false, why: 'no legendary offered' };
+      const cost = this.pendingLegend.cost;
+      if (this.insight < cost) return { ok: false, why: 'not enough insight ✸' };
+      this.insight -= cost;
+      const a = this.addArtifact(this.pendingLegend.spec);
+      this.legendsBought++;
+      this.pendingOffer = null;
+      this.pendingLegend = null;
+      return { ok: true, artifact: a, cost };
     }
 
     useArtifact(i, k) {
@@ -1271,8 +1294,10 @@
       this.grantInsight('stage' + this.stage, 2);
       ev.push({ t: 'stageUp', stage: this.stage, name: st.name, unlocks: st.unlocks });
       this._occasion('stage' + this.stage, ev);
-      this.pendingOffer = this.C.rollOffer(this);
-      ev.push({ t: 'offer', specs: this.pendingOffer });
+      const offer = this.C.rollOffer(this);
+      this.pendingOffer = offer.cards;
+      this.pendingLegend = offer.legend ? { spec: offer.legend, cost: this.legendCost() } : null;
+      ev.push({ t: 'offer', specs: this.pendingOffer, legend: this.pendingLegend });
       this.emit('stageUp', { stage: this.stage }, ev);
       this._recompute();
       return { ok: true, events: ev };
@@ -1373,6 +1398,8 @@
         firedOcc: Object.keys(this.firedOcc).sort(),
         artifacts: this.artifacts.map(a => ({ spec: a.spec, charges: a.charges == null ? null : a.charges })),
         pendingOffer: this.pendingOffer,
+        pendingLegend: this.pendingLegend,
+        legendsBought: this.legendsBought,
         stats: this.stats,
         series: this.series,
         cells,
@@ -1420,6 +1447,8 @@
         return inst;
       });
       g.pendingOffer = o.pendingOffer || null;
+      g.pendingLegend = o.pendingLegend || null;
+      g.legendsBought = o.legendsBought || 0;
       g.stats = o.stats;
       g.series = o.series || [];
       for (const cd of o.cells) {

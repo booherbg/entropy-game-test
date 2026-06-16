@@ -63,13 +63,18 @@ function greedyTurn(g) {
   /* spend insight as it comes, in a sensible order */
   for (const id of EVO_PRIORITY) if (g.canEvolve(id).ok) { g.evolve(id); break; }
   if (g.pendingOffer) {
-    let best = 0, bestR = -1;
-    g.pendingOffer.forEach((spec, i) => {
-      const a = C.buildArtifact(spec);
-      const r = rarityRank[a.rarity];
-      if (r > bestR) { bestR = r; best = i; }
-    });
-    g.takeOffer(best);
+    /* buy the legendary when flush (keep a cultivar reserve), else take the best free card */
+    if (g.pendingLegend && g.insight >= g.pendingLegend.cost + 4) {
+      g.takeLegend();
+    } else {
+      let best = 0, bestR = -1;
+      g.pendingOffer.forEach((spec, i) => {
+        const a = C.buildArtifact(spec);
+        const r = rarityRank[a.rarity];
+        if (r > bestR) { bestR = r; best = i; }
+      });
+      g.takeOffer(best);
+    }
   }
   const reserve = 4 + 2 * g.stage;
   const can = cost => g.order >= cost + reserve;
@@ -316,12 +321,16 @@ function main() {
     }
     ok(valid === 1000, '1000 rolled artifacts all valid', valid + '');
     ok(names.size > 250, 'artifact permutations are plentiful', names.size + ' distinct');
-    let offers = true;
+    let offers = true, freeAreNotLegend = true, legendIsLegend = true;
     for (let i = 0; i < 50; i++) {
       const o = C.rollOffer(g);
-      if (o.length !== 3 || o.some(s => !C.buildArtifact(s).name)) offers = false;
+      if (!o.cards || o.cards.length !== 3 || o.cards.some(s => !C.buildArtifact(s).name)) offers = false;
+      if (o.cards.some(s => C.buildArtifact(s).rarity === 'legendary')) freeAreNotLegend = false;
+      if (o.legend && C.buildArtifact(o.legend).rarity !== 'legendary') legendIsLegend = false;
     }
-    ok(offers, '50 offers of 3 all build');
+    ok(offers, '50 offers of 3 free cards all build');
+    ok(freeAreNotLegend, 'free cards are never legendary (paid slot only)');
+    ok(legendIsLegend, 'the paid slot, when present, is a legendary');
   }
 
   /* echo sequencing */
