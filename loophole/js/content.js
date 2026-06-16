@@ -669,9 +669,9 @@
   };
 
   C.rollAntFind = function (g) {
-    const roll = g.rng.f();
-    if (roll < 0.25) return rollLegend(g);
-    return rollProc(g, roll < 0.6 ? 2 : 1);
+    /* commons & uncommons only — legendaries are bought in the draft, not dug up free.
+       (foragers instead surface relic fragments that discount the next legendary.) */
+    return rollProc(g, g.rng.f() < 0.45 ? 2 : 1);
   };
 
   /* pretty seeds for new runs */

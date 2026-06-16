@@ -114,6 +114,7 @@
       this.pendingOffer = null;
       this.pendingLegend = null;   /* a legendary you may claim by spending insight */
       this.legendsBought = 0;      /* each purchase escalates the next legendary's price */
+      this.legendDiscount = 0;     /* relic fragments foragers dig up, off the next legendary */
       this.firedOcc = {};
       this.stormI = 0;
       this.stormQueue = [];
@@ -552,15 +553,16 @@
       const sched = [6, 12, 20, 30, 45];
       const n = this.legendsBought;
       const base = n < sched.length ? sched[n] : sched[sched.length - 1] + (n - sched.length + 1) * 18;
-      return Math.max(1, Math.round(base * this.mod('legendCostMul', 1)));
+      return Math.max(1, Math.round(base * this.mod('legendCostMul', 1)) - (this.legendDiscount || 0));
     }
     takeLegend() {
       if (!this.pendingLegend) return { ok: false, why: 'no legendary offered' };
-      const cost = this.pendingLegend.cost;
+      const cost = this.legendCost(); /* live — a fragment foraged while this offer waits still counts */
       if (this.insight < cost) return { ok: false, why: 'not enough insight ✸' };
       this.insight -= cost;
       const a = this.addArtifact(this.pendingLegend.spec);
       this.legendsBought++;
+      this.legendDiscount = 0; /* the fragments fuse into this one relic */
       this.pendingOffer = null;
       this.pendingLegend = null;
       return { ok: true, artifact: a, cost };
@@ -785,13 +787,19 @@
         if (p.food >= 1 && p.pop < popMax) { p.pop = Math.min(p.pop + 2, popMax); p.food -= 1; }
         if (eaten < p.pop * 0.012) p.pop -= 1;
         if (eaten > 0) ev.push({ t: 'eat', from: HEX.key(c.q, c.r), targets: p.lastTargets });
-        /* foragers unearth strange things */
+        /* foragers unearth strange things — a relic for the rail, or a fragment that
+           discounts the next legendary. the disorder they eat becomes a key to a rule. */
         if (eaten > 0.25 && this.finds < 2 &&
             this.rng.chance(0.035 * this.mod('antFindChance', 1))) {
           this.finds++;
-          const spec = this.C.rollAntFind(this);
-          const a = this.addArtifact(spec);
-          ev.push({ t: 'find', name: a.name, k: HEX.key(c.q, c.r) });
+          if (this.rng.chance(0.45)) {
+            const frag = 4 + this.rng.i(5); /* 4-8 insight off the next legendary */
+            this.legendDiscount += frag;
+            ev.push({ t: 'find', kind: 'fragment', amount: frag, k: HEX.key(c.q, c.r) });
+          } else {
+            const a = this.addArtifact(this.C.rollAntFind(this));
+            ev.push({ t: 'find', name: a.name, k: HEX.key(c.q, c.r) });
+          }
           this._occasion('find1', ev);
         }
       }
@@ -914,7 +922,10 @@
         if (cc && !cc.pat && cc.e <= 0.6) opts.push(cc);
       }
       if (!opts.length) return false;
-      opts.sort((a, b) => a.e - b.e);
+      /* moss climbs toward the frontier — the wildest ground it can still survive — not back
+         into the calm interior. (it used to seed the calmest neighbour, so it crawled onto
+         cells you'd just pruned; now it advances on the gradient, where its sap is made.) */
+      opts.sort((a, b) => b.e - a.e);
       const tgt = opts[0];
       tgt.pat = this._mkPat('moss');
       ev.push({ t: 'spread', from: HEX.key(c.q, c.r), to: HEX.key(tgt.q, tgt.r) });
@@ -1296,7 +1307,7 @@
       this._occasion('stage' + this.stage, ev);
       const offer = this.C.rollOffer(this);
       this.pendingOffer = offer.cards;
-      this.pendingLegend = offer.legend ? { spec: offer.legend, cost: this.legendCost() } : null;
+      this.pendingLegend = offer.legend ? { spec: offer.legend } : null; /* cost computed live */
       ev.push({ t: 'offer', specs: this.pendingOffer, legend: this.pendingLegend });
       this.emit('stageUp', { stage: this.stage }, ev);
       this._recompute();
@@ -1400,6 +1411,7 @@
         pendingOffer: this.pendingOffer,
         pendingLegend: this.pendingLegend,
         legendsBought: this.legendsBought,
+        legendDiscount: this.legendDiscount,
         stats: this.stats,
         series: this.series,
         cells,
@@ -1449,6 +1461,7 @@
       g.pendingOffer = o.pendingOffer || null;
       g.pendingLegend = o.pendingLegend || null;
       g.legendsBought = o.legendsBought || 0;
+      g.legendDiscount = o.legendDiscount || 0;
       g.stats = o.stats;
       g.series = o.series || [];
       for (const cd of o.cells) {

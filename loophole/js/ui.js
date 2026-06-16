@@ -328,7 +328,9 @@
       };
       if (legend) {
         const a = C().buildArtifact(legend.spec);
-        const afford = game.insight >= legend.cost;
+        const cost = game.legendCost();
+        const afford = game.insight >= cost;
+        const disc = game.legendDiscount || 0;
         box.appendChild(el('div', 'offerhead leg', '— or spend insight to bend a rule —'));
         const card = el('div', 'artcard r-legendary legcard' + (afford ? '' : ' cant'));
         const sig = R.sigilCanvas(a.sigilSeed, 46, 'legendary');
@@ -339,7 +341,7 @@
         card.appendChild(el('div', 'artdesc', a.desc));
         card.appendChild(el('div', 'artflavor', a.flavor));
         card.appendChild(el('div', 'legprice' + (afford ? '' : ' short'),
-          `✸ ${legend.cost}  ·  you hold ✸ ${game.insight}` + (afford ? '  ·  L' : ' — not enough')));
+          `✸ ${cost}  ·  you hold ✸ ${game.insight}` + (disc ? `  ·  −${disc} foraged` : '') + (afford ? '  ·  L' : ' — not enough')));
         card.onclick = claimLegend;
         box.appendChild(card);
       }
@@ -685,8 +687,14 @@
         case 'cascade': if (e.n >= 2) { AU.cascade(e.n); if (e.n >= 4) { toast(e.n + ' blossoms in one breath', 'good'); music('cascade'); surfaceQuote(); } } break;
         case 'pulse': AU.pulse(); break;
         case 'find':
-          toast('the foragers unearth « ' + e.name + ' » — a relic. it waits in your rail (◈), ready when you need it.', 'good', 7000);
-          AU.take(); buildRail(); flashRail(); meta.codex.push({ n: e.name, r: 'found' }); break;
+          if (e.kind === 'fragment') {
+            toast('the foragers break into a buried hollow — a <b>relic fragment</b> ✸. your next legendary costs <b>' + e.amount + ' less</b> insight.', 'good', 7000);
+            AU.take(); updateHUD();
+          } else {
+            toast('the foragers unearth « ' + e.name + ' » — a relic. it waits in your rail (◈), ready when you need it.', 'good', 7000);
+            AU.take(); buildRail(); flashRail(); meta.codex.push({ n: e.name, r: 'found' });
+          }
+          break;
         case 'dissolveWarn': toast('the garden thins — coherence below 22% (' + e.streak + '/3)', 'warn', 5200); break;
         case 'dissolved': onDissolved(); break;
         case 'saved': toast('« ' + e.via + ' » intercedes. the garden holds.', 'good', 6000); buildRail(); break;
@@ -1322,9 +1330,10 @@
     overlayQueue = []; closeOverlay();
     if (kind === 'offer') {
       game.insight = 24; /* enough to show the legendary as affordable */
+      game.legendDiscount = 5; /* show the foraged-fragment discount line */
       const o = C().rollOffer(game);
       game.pendingOffer = o.cards;
-      game.pendingLegend = o.legend ? { spec: o.legend, cost: game.legendCost() } : null;
+      game.pendingLegend = o.legend ? { spec: o.legend } : null;
       pushOverlay(offerOverlay(game.pendingOffer, game.pendingLegend));
     }
     if (kind === 'echo') pushOverlay(echoOverlay(7));
