@@ -1094,7 +1094,7 @@
       </div>
       ${evos ? '<div class="endarts">' + evos + '</div>' : ''}
       <div class="endarts">${arts}</div>
-      <div class="muted center">seed · ${g.seed}${meta.asc ? ' · deeper spring ' + meta.asc : ''}</div>`;
+      <div class="muted center">seed · ${g.seed}${g.asc ? ' · difficulty ' + g.asc : ''}</div>`;
   }
 
   function onDissolved() {
@@ -1140,20 +1140,22 @@
      is ascension — spelled out here because the word alone never told players what it does. */
   function winOverlay() {
     return (wrap, close) => {
-      const next = Math.min(5, meta.asc + 1);
+      const cur = game.asc || 0;
+      const next = Math.min(5, cur + 1);
+      const canDeeper = cur < 5;
       const box = el('div', 'panelbox endbox');
       box.innerHTML = `
         <div class="paneltitle">the garden remembers</div>
         <p class="endnote">it woke. for a moment the whole board was one pattern, and the pattern was looking.</p>
         ${statsHTML(game)}
-        <p class="endnote muted small">a <b>deeper spring</b> is a new garden under a heavier sky: the dark presses harder, the wild ground runs rougher, and the bar to wake rises (depth ${meta.asc} → ${next} of 5). your murmurs, voices, and artifacts-seen are kept — only the board begins anew. for gardeners who want the slope steeper. <b>begin again</b> grows a fresh garden at the same depth.</p>
+        <p class="endnote muted small">you woke this garden at <b>difficulty ${cur}</b>${cur ? '' : ' (baseline)'}.${canDeeper ? ` <b>go deeper</b> unlocks and plays <b>difficulty ${next}</b> — the dark presses ~12% harder, the wild ground rougher, the bar to wake higher.` : ' you stand at the deepest spring there is.'} <b>begin again</b> replays difficulty ${cur}. pick any unlocked level from the title's <i>new garden</i>. (murmurs, voices &amp; relics-seen always carry over.)</p>
         <div class="endbtns">
-          <button id="e-deeper">deeper spring · descend to depth ${next}</button>
+          ${canDeeper ? `<button id="e-deeper">go deeper · difficulty ${next}</button>` : ''}
           <button id="e-again" class="ghostbtn">begin again</button>
           <button id="e-title" class="ghostbtn">title</button>
         </div>`;
-      box.querySelector('#e-deeper').onclick = () => { meta.asc = next; save(); close(); newRun(); };
-      box.querySelector('#e-again').onclick = () => { close(); newRun(); };
+      if (canDeeper) box.querySelector('#e-deeper').onclick = () => { meta.asc = Math.max(meta.asc, next); save(); close(); newRun(undefined, next); };
+      box.querySelector('#e-again').onclick = () => { close(); newRun(undefined, cur); };
       box.querySelector('#e-title').onclick = () => { close(); showTitle(); };
       wrap.appendChild(box);
     };
@@ -1191,7 +1193,7 @@
     $('t-meta').textContent =
       (meta.runs ? `${meta.runs} garden${meta.runs > 1 ? 's' : ''} grown · ${meta.wins} awakened` : 'no gardens yet') +
       (meta.best ? ` · swiftest awakening ${meta.best} turns` : '') +
-      (meta.asc ? ` · deeper spring ${meta.asc}` : '');
+      (meta.asc ? ` · difficulty ${meta.asc}/5 unlocked` : '');
   }
   function hideTitle() {
     $('title').classList.add('hidden');
@@ -1200,9 +1202,18 @@
     $('rail').classList.remove('hidden');
   }
 
-  function newRun(seed) {
+  /* difficulty — internally "ascension"/"the depth of the spring". each step adds
+     entropy pressure, roughens new ground, and raises the bar to wake. stated plainly
+     wherever it's chosen so it never reads as mystery jargon. */
+  function diffLine(d) {
+    if (!d) return 'baseline — the garden at its native slope, as the second law wrote it.';
+    return `difficulty ${d} of 5 — the dark presses ~${d * 12}% harder, new ground comes in rougher, and the garden needs a little more coherence to wake. (your murmurs, voices & relics-seen always carry over.)`;
+  }
+
+  function newRun(seed, depth) {
     if (!seed) seed = C().prettySeed(Math.random);
-    game = new Game(seed, { ascension: meta.asc, echoes: meta.echoes });
+    const d = depth == null ? meta.asc : Math.max(0, Math.min(meta.asc, depth));
+    game = new Game(seed, { ascension: d, echoes: meta.echoes });
     lastIncome = null; prevC = null; quotesThisRun = 0;
     R.attach(game);
     hideTitle();
@@ -1286,7 +1297,8 @@
     if (kind === 'help') helpOverlay();
     if (kind === 'murmurs') { meta.echoes = [0, 1, 2, 3, 4, 5, 6, 7]; meta.quotes = [0, 1, 4, 10, 20]; murmursOverlay(); }
     if (kind === 'voice') { meta.quotes = []; surfaceQuote(); }
-    if (kind === 'won') { meta.asc = 1; game.stats.peakC = 0.91; pushOverlay(winOverlay(), { dismissible: false }); }
+    if (kind === 'won') { meta.asc = 2; game.asc = 1; game.stats.peakC = 0.91; pushOverlay(winOverlay(), { dismissible: false }); }
+    if (kind === 'newgarden') { meta.asc = 3; game = null; showTitle(); $('t-new').click(); }
     if (kind === 'end') { game.stats.peakC = 0.87; onDissolved(); }
     if (kind === 'cells') { R.valuesMode = true; }
     if (kind === 'widen') { game.widenReady = true; }
@@ -1352,10 +1364,22 @@
     $('railscrim').onclick = () => document.body.classList.remove('railopen');
     $('menubtn').onclick = () => menuOverlay();
     $('t-new').onclick = () => {
+      /* difficulty picker — only once you've unlocked deeper springs. defaults to your
+         hardest (where you left off), but you can step back down to baseline any time. */
+      const picker = meta.asc ? `
+        <div class="diffpick">
+          <div class="codexhead">difficulty · unlocked through depth ${meta.asc}</div>
+          <div class="diffrow" id="diffrow">${
+        Array.from({ length: meta.asc + 1 }, (_, d) =>
+          `<button class="diffchip" data-d="${d}">${d === 0 ? 'baseline' : d}</button>`).join('')
+        }</div>
+          <div class="diffdesc" id="diffdesc"></div>
+        </div>` : '';
       pushOverlay(panelOverlay(`
         <div class="paneltitle">new garden</div>
-        <p class="muted">a seed makes the same world twice. share one, or trust the wind.${meta.asc ? `<br>it begins at <b>depth ${meta.asc}</b> of 5 — the deepest spring you've reached. (a heavier sky; your murmurs &amp; voices carry over.)` : ''}</p>
+        <p class="muted">a seed makes the same world twice. share one, or trust the wind.</p>
         <input id="seedin" type="text" spellcheck="false" placeholder="${C().prettySeed(Math.random)}">
+        ${picker}
         <div class="endbtns">
           <button id="s-go">plant it</button>
           <button id="s-rand" class="ghostbtn">trust the wind</button>
@@ -1363,10 +1387,20 @@
         wire(box, close) {
           const inp = box.querySelector('#seedin');
           inp.focus();
-          const go = () => { close(); newRun(inp.value.trim() || undefined); };
+          let pickedD = meta.asc;
+          const row = box.querySelector('#diffrow'), desc = box.querySelector('#diffdesc');
+          const paint = () => {
+            row.querySelectorAll('.diffchip').forEach(c => c.classList.toggle('on', +c.dataset.d === pickedD));
+            desc.textContent = diffLine(pickedD);
+          };
+          if (row) {
+            row.querySelectorAll('.diffchip').forEach(c => c.onclick = () => { pickedD = +c.dataset.d; paint(); });
+            paint();
+          }
+          const go = () => { close(); newRun(inp.value.trim() || undefined, meta.asc ? pickedD : undefined); };
           box.querySelector('#s-go').onclick = go;
           inp.onkeydown = e => { if (e.key === 'Enter') go(); };
-          box.querySelector('#s-rand').onclick = () => { close(); newRun(); };
+          box.querySelector('#s-rand').onclick = () => { close(); newRun(undefined, meta.asc ? pickedD : undefined); };
         }
       }));
     };
