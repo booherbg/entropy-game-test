@@ -486,8 +486,15 @@
       const r = rngOf('flora' + (sp ? sp.id : 0));
       const petals = 4 + r.i(4);
       const est = p.est;
-      const size = s * (est ? 0.33 : 0.21) * (0.85 + Math.min(p.age || 0, 6) * 0.025);
+      const size = s * (est ? 0.36 : 0.22) * (0.85 + Math.min(p.age || 0, 6) * 0.025);
       cx.save();
+      /* an established bed glows faintly in its diet colour — emergent life reads as special,
+         not lost amid the moss; pioneers stay quiet until they take */
+      if (est) {
+        const g = cx.createRadialGradient(0, 0, 0, 0, 0, size * 1.7);
+        g.addColorStop(0, rgba(col, 0.26)); g.addColorStop(1, rgba(col, 0));
+        cx.fillStyle = g; cx.beginPath(); cx.arc(0, 0, size * 1.7, 0, TAU); cx.fill();
+      }
       cx.rotate(r.f() * TAU + (p.age || 0) * 0.025);
       for (let i = 0; i < petals; i++) {
         const a = TAU * i / petals;
