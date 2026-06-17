@@ -1105,6 +1105,10 @@
             break;
           }
           case 'death': this.burst(e.k, PAL.greyDark, 8, 1.1); break;
+          /* emergent life — draw the eye to where a flower arrives, spreads, or is cleared */
+          case 'species': if (e.k) { this.burst(e.k, e.color, 12, 1.6); this.ring(e.k, e.color, 0.7); } break;
+          case 'floraGrow': if (e.k) this.burst(e.k, e.color, 4, 0.7); break;
+          case 'cull': if (e.k) this.burst(e.k, PAL.greyDark, 6, 0.9); break;
           case 'demon': this.ring(e.k, PAL.gold, 0.9); this.burst(e.k, PAL.gold, 6, 1); break;
           case 'hand': for (const k of e.cells) this.ring(k, PAL.dew, 0.5); break;
           case 'gaia': case 'recur': {

@@ -515,7 +515,7 @@
     pruneCard.appendChild(el('div', 'cardcost', '↩30%'));
     pruneCard.appendChild(el('div', 'cardkey', 'X'));
     pruneCard.onclick = () => selectTool({ type: 'prune' });
-    pruneCard.onmouseenter = () => showCardTip(pruneCard, { name: 'prune', rule: 'remove one of your patterns, refund 30% of its cost.', long: 'every garden is also edited. clear carpet to make room for what matters; move colonies that have eaten themselves out of work.' });
+    pruneCard.onmouseenter = () => showCardTip(pruneCard, { name: 'prune', rule: 'remove one of your patterns (refund 30%) — or cull a wild flower (no refund).', long: 'every garden is also edited. clear carpet to make room for what matters; move colonies that have eaten themselves out of work; or cull a flower that is choking the others, to reopen its ground for new life.' });
     pruneCard.onmouseleave = hideTip;
     pal.appendChild(pruneCard);
   }
@@ -716,7 +716,8 @@
         case 'species':
           toast('a flower opens that no one planted — « <b style="color:' + e.color + '">' + e.name + '</b> », risen from a <b>' + e.diet + '</b> surplus. it eats what your garden makes in excess.', 'good', 7500);
           AU.take();
-          if (!meta.flora.some(f => f.name === e.name)) { meta.flora.push({ name: e.name, color: e.color, ch: e.ch, born: game ? game.turn : 0 }); save(); }
+          { const fl = meta.flora || (meta.flora = []);
+            if (!fl.some(f => f.name === e.name && f.color === e.color)) { fl.push({ name: e.name, color: e.color, ch: e.ch, born: game ? game.turn : 0 }); save(); } }
           break;
         case 'extinct': toast('« <b style="color:' + e.color + '">' + e.name + '</b> » is gone — its niche closed. it is remembered in the soil.', '', 5500); break;
         case 'cull': toast('you clear « ' + e.name + ' » — the ground opens again.', '', 3000); break;
@@ -971,11 +972,12 @@
       (voices.length
         ? `<div class="voicelist">${voices.map(i => `<div class="voice">“${QA[i].q}”<div class="murmurcite">— ${QA[i].by}</div></div>`).join('')}</div>`
         : `<div class="muted">real human words, gathered as you play. none yet — they surface at cascades, rites, and the slow turning of the seasons.</div>`);
-    const flora = meta.flora || [];
+    const flora = meta.flora || [], DIET = ['light', 'stone', 'rot'];
     const floraHTML = `<div class="codexhead">life witnessed · ${flora.length}</div>` +
       (flora.length
-        ? `<div class="codexlist">${flora.slice(0, 80).map(f => `<span class="endart" style="border-color:${f.color}99;color:${f.color}">❀ ${f.name}</span>`).join(' ')}</div>`
-        : `<div class="muted">flora your worlds dream up — summoned by what you leave in surplus, in the long game. none yet.</div>`);
+        ? `<div class="muted" style="margin-bottom:7px">a flower wears its <b>diet</b> — <span style="color:#d4e878">chartreuse eats light</span> · <span style="color:#78c8ec">cyan eats stone</span> · <span style="color:#ce7ad4">violet eats rot</span> · blends between.</div>
+           <div class="codexlist">${flora.slice(0, 80).map(f => `<span class="endart" style="border-color:${f.color}99;color:${f.color}" title="eats ${DIET[f.ch] || '?'}">❀ ${f.name}</span>`).join(' ')}</div>`
+        : `<div class="muted">flora your worlds dream up — summoned by what you leave in surplus, in the long game. none yet. point at one to read what it eats; its colour is its diet.</div>`);
     pushOverlay(panelOverlay(`
       <div class="paneltitle">murmurs</div>
       <div class="murmurlist">${items.join('')}</div>
@@ -1478,7 +1480,11 @@
     }
     if (kind === 'echo') pushOverlay(echoOverlay(7));
     if (kind === 'help') helpOverlay();
-    if (kind === 'murmurs') { meta.echoes = [0, 1, 2, 3, 4, 5, 6, 7]; meta.quotes = [0, 1, 4, 10, 20]; murmursOverlay(); }
+    if (kind === 'murmurs') {
+      meta.echoes = [0, 1, 2, 3, 4, 5, 6, 7]; meta.quotes = [0, 1, 4, 10, 20];
+      meta.flora = [{ name: 'goldfern', color: '#bcd87a', ch: 0 }, { name: 'dawncup', color: '#a9d49a', ch: 0 }, { name: 'quartzveil', color: '#86c6d0', ch: 1 }, { name: 'ashlace', color: '#c389c6', ch: 2 }, { name: 'mirebloom', color: '#be7fc0', ch: 2 }];
+      murmursOverlay();
+    }
     if (kind === 'voice') { meta.quotes = []; surfaceQuote(); }
     if (kind === 'won') { meta.asc = 2; game.asc = 1; game.stats.peakC = 0.91; pushOverlay(winOverlay(), { dismissible: false }); }
     if (kind === 'long') { game.mode = 'longgame'; game.turn = 100; updateHUD(); } /* HUD in long-game mode */

@@ -505,7 +505,7 @@
       };
       this.species.set(id, sp);
       const spot = this._floraSeedSpot(ch, sp);
-      if (spot) { spot.pat = this._mkPat('flora'); spot.pat.sp = id; sp.seeded = true; ev.push({ t: 'species', name: sp.name, color: sp.color, ch, diet: ['light', 'stone', 'rot'][ch] }); }
+      if (spot) { spot.pat = this._mkPat('flora'); spot.pat.sp = id; sp.seeded = true; ev.push({ t: 'species', name: sp.name, color: sp.color, ch, diet: ['light', 'stone', 'rot'][ch], k: HEX.key(spot.q, spot.r) }); }
       else this.species.delete(id); /* nowhere to root yet — stillborn */
     }
     _floraSeedSpot(ch, sp) {
