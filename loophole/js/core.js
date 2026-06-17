@@ -393,7 +393,7 @@
       /* the ecology lives in the long game — the base "garden" (awaken) stays pristine and
          debuggable. emergence is what the long game is FOR. */
       if (this.mode !== 'longgame') return 0;
-      const EAT = 0.6, YIELD = 0.06, EXCR = 0.4, THRESH = 1.2, SUSTAIN = 3,
+      const EAT = 0.6, YIELD = 0.06, EXCR = 0.5, THRESH = 1.2, SUSTAIN = 3,
         SP_CAP = 10, FLORA_CAP = 60, SETTLE_MIN = 3;
       /* 1. element production from producers (by blend) + last-turn flora excretion */
       const prod = [0, 0, 0];
@@ -402,7 +402,11 @@
         if (b && c.pat._s && c.pat._s.prod > 0) for (let e = 0; e < 3; e++) prod[e] += b[e] * c.pat._s.prod;
       }
       let flora = this._patternCells('flora');
-      for (const c of flora) { const sp = this.species.get(c.pat.sp); if (sp && c.pat.fedOk) prod[sp.ex] += EXCR; }
+      /* a fed flora excretes into another channel — an established bed processes far more
+         than a pioneer, so a mature meadow genuinely manufactures the NEXT niche. this is
+         what lets the food web self-extend (Kauffman's autocatalytic closure), not just the
+         player's producers opening every niche. */
+      for (const c of flora) { const sp = this.species.get(c.pat.sp); if (sp && c.pat.fedOk) prod[sp.ex] += c.pat.est ? EXCR * 1.7 : EXCR * 0.5; }
       this.elemProd = prod;
 
       /* 2. feeding by carrying capacity, per channel (established & older survive first) */
