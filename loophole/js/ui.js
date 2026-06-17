@@ -607,29 +607,40 @@
     const soil = C().SOILS[c.soil] || C().SOILS.loam;
     let lines = [`<b>${Math.round(c.e * 100)}%</b> entropy · <span class="soiltag">${soil.name}</span>`];
     if (c.pat) {
-      const p = c.pat, n = C().PATTERNS[p.t].name;
-      const s = p._s || game._sap(c);
-      if (p.t === 'moss') lines.push(`${n} · ${p.age < 3 ? 'young' : (s.prod > 0 ? 'producing' : 'mature, idle')}`);
-      else if (p.t === 'frond') lines.push(`${n} · depth ${p.depth}`);
-      else if (p.t === 'ant') lines.push(`${n} · ${p.pop} foragers`);
-      else if (p.t === 'myc') lines.push(`${n} · ${p.links.length} links`);
-      else if (p.t === 'heart') lines.push(`${n} · network ${(game.netOf.get(k) || { cells: { size: 1 } }).cells.size}`);
-      else lines.push(n);
-      /* sap status — the clear story: makes it, or burns it (and is it fed?) */
-      if (s.role === 'producer') {
-        lines.push(s.prod > 0
-          ? `<span class="sapprod">❧ makes ${s.prod.toFixed(1)} sap / turn</span>`
-          : `<span class="muted">❧ idle — needs disorder nearby to make sap</span>`);
-      } else if (s.role === 'consumer') {
-        const fed = p.fed == null ? 1 : p.fed;
-        lines.push(fed >= 0.5
-          ? `<span class="sapfed">❧ fed ${Math.round(fed * 100)}% · burns ${s.up.toFixed(1)} sap / turn</span>`
-          : `<span class="sapstarve">❧ STARVING ${Math.round(fed * 100)}% — wilting</span><br><span class="muted">feed it: a crystal nearby makes sap anywhere; or spring-green (frontier) moss — interior moss & idle ants barely produce</span>`);
+      const p = c.pat;
+      if (p.t === 'flora') {
+        /* an emergent flower — read like a haiku of fact: what it eats, what it leaves, where it thrives */
+        const sp = game.species && game.species.get(p.sp), D = ['light', 'stone', 'rot'];
+        if (sp) {
+          lines.push(`<b style="color:${sp.color}">❀ ${sp.name}</b> · ${p.est ? 'an established bed' : 'a young pioneer'}`);
+          lines.push(`<span class="muted">eats <b>${D[sp.ch]}</b>, leaves <b>${D[sp.ex]}</b> · ${p.fedOk ? 'fed' : 'lean'} · age ${p.age}</span>`);
+          lines.push(`<span class="muted">thrives at ${Math.round(sp.eLo * 100)}–${Math.round(sp.eHi * 100)}% entropy — a flower your world dreamed up. prune to cull it.</span>`);
+        } else lines.push('a wild flower');
+      } else {
+        const n = C().PATTERNS[p.t].name;
+        const s = p._s || game._sap(c);
+        if (p.t === 'moss') lines.push(`${n} · ${p.age < 3 ? 'young' : (s.prod > 0 ? 'producing' : 'mature, idle')}`);
+        else if (p.t === 'frond') lines.push(`${n} · depth ${p.depth}`);
+        else if (p.t === 'ant') lines.push(`${n} · ${p.pop} foragers`);
+        else if (p.t === 'myc') lines.push(`${n} · ${p.links.length} links`);
+        else if (p.t === 'heart') lines.push(`${n} · network ${(game.netOf.get(k) || { cells: { size: 1 } }).cells.size}`);
+        else lines.push(n);
+        /* sap status — the clear story: makes it, or burns it (and is it fed?) */
+        if (s.role === 'producer') {
+          lines.push(s.prod > 0
+            ? `<span class="sapprod">❧ makes ${s.prod.toFixed(1)} sap / turn</span>`
+            : `<span class="muted">❧ idle — needs disorder nearby to make sap</span>`);
+        } else if (s.role === 'consumer') {
+          const fed = p.fed == null ? 1 : p.fed;
+          lines.push(fed >= 0.5
+            ? `<span class="sapfed">❧ fed ${Math.round(fed * 100)}% · burns ${s.up.toFixed(1)} sap / turn</span>`
+            : `<span class="sapstarve">❧ STARVING ${Math.round(fed * 100)}% — wilting</span><br><span class="muted">feed it: a crystal nearby makes sap anywhere; or spring-green (frontier) moss — interior moss & idle ants barely produce</span>`);
+        }
+        /* synergy = placement bonus, kept distinct from feeding */
+        const syn = game._synergy(c);
+        if (syn > 1.04) lines.push(`<span class="synup">good neighbours ×${syn.toFixed(2)}${s.role === 'consumer' ? ' (more order once fed)' : ''}</span>`);
+        else if (syn < 0.96) lines.push(`<span class="syndown">crowded ×${syn.toFixed(2)}</span>`);
       }
-      /* synergy = placement bonus, kept distinct from feeding */
-      const syn = game._synergy(c);
-      if (syn > 1.04) lines.push(`<span class="synup">good neighbours ×${syn.toFixed(2)}${s.role === 'consumer' ? ' (more order once fed)' : ''}</span>`);
-      else if (syn < 0.96) lines.push(`<span class="syndown">crowded ×${syn.toFixed(2)}</span>`);
     } else {
       /* empty cell: if a plant tool is held, say plainly whether it can go here */
       if (tool && tool.type === 'plant') {
@@ -980,7 +991,7 @@
   function metabHTML() {
     const roles = {};
     for (const c of game.cells.values()) {
-      if (!c.pat) continue;
+      if (!c.pat || c.pat.t === 'flora') continue; /* flora live on the element economy, not the scalar sap one */
       const s = c.pat._s || game._sap(c);
       const r = roles[c.pat.t] || (roles[c.pat.t] = { n: 0, prod: 0, up: 0, name: C().PATTERNS[c.pat.t].name });
       r.n++; r.prod += s.prod; r.up += s.up;

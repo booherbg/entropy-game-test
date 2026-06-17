@@ -1624,7 +1624,7 @@
         pendingLegend: this.pendingLegend,
         legendsBought: this.legendsBought,
         legendDiscount: this.legendDiscount,
-        species: [...this.species.values()],
+        species: [...this.species.values()].sort((a, b) => a.id - b.id),
         nextSpecies: this.nextSpecies,
         surplusRun: this.surplusRun,
         stats: this.stats,
@@ -1642,7 +1642,7 @@
         case 'crys': o = { t: p.t, age: p.age }; break;
         case 'bloom': o = { t: p.t, age: p.age, lone: p.lone }; break;
         case 'heart': o = { t: p.t, age: p.age, born: p.born, links: [...(p.links || [])] }; break;
-        case 'flora': o = { t: p.t, age: p.age, sp: p.sp, est: p.est, starve: p.starve || 0 }; break;
+        case 'flora': o = { t: p.t, age: p.age, sp: p.sp, est: p.est, starve: p.starve || 0, fedOk: p.fedOk ? 1 : 0 }; break;
       }
       if (p.fresh) o.fresh = 1;
       return o;
