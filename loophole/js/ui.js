@@ -1014,7 +1014,18 @@
         <div>networks</div><div>${game.networks.length}${starve ? ' · ' + starve + ' starving' : ''}</div>
       </div>
       <div class="codexhead">by pattern</div>
-      <div class="statgrid metabgrid">${rows}</div>`;
+      <div class="statgrid metabgrid">${rows}</div>${elemBars()}`;
+  }
+  /* the element economy (long game) — what your garden over-produces is what life eats.
+     makes the birth toast's "risen from a light surplus" something you can actually SEE. */
+  function elemBars() {
+    if (!game || game.mode !== 'longgame') return '';
+    const E = game.elemProd || [0, 0, 0];
+    const names = ['light', 'stone', 'rot'], cols = ['#d4e878', '#78c8ec', '#ce7ad4'];
+    const max = Math.max(1, E[0], E[1], E[2]);
+    const bars = E.map((v, e) => `<div class="ebar"><span class="elabel" style="color:${cols[e]}">${names[e]}</span><span class="etrack"><span class="efill" style="width:${Math.round(v / max * 100)}%;background:${cols[e]}"></span></span><span class="eval">${v.toFixed(1)}</span></div>`).join('');
+    return `<div class="codexhead">the elements · what life eats</div><div class="ebars">${bars}</div>
+      <p class="evointro" style="margin-top:8px">flowers are summoned by what you <b>over-produce</b>: an excess of one element opens a niche for life that eats it. (moss makes light · crystals stone · ants rot.)</p>`;
   }
 
   /* friendly names for the hidden mod keys — so compounding reads in plain words */
@@ -1492,6 +1503,11 @@
       game.mode = 'longgame';
       for (let i = 0; i < 55 && !game.over; i++) { game.order += 12; game.endTurn(); }
       R.dirty(); updateHUD();
+    }
+    if (kind === 'ecometab') { /* the element economy panel in the long game */
+      game.mode = 'longgame';
+      for (let i = 0; i < 55 && !game.over; i++) { game.order += 12; game.endTurn(); }
+      updateHUD(); pushOverlay(gardenStateOverlay('metab'));
     }
     if (kind === 'longend') { game.mode = 'longgame'; game.turn = 100; onLongEnd(game.flourishScore(), game.flourishGrade(game.flourishScore())); }
     if (kind === 'kit') {

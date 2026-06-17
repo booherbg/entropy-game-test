@@ -61,6 +61,13 @@
   #sapbox { font-size: 15px; display: flex; align-items: baseline; gap: 5px; cursor: pointer; }
   #sapbox .glyph3 { color: #8fd66a; }
   .metabgrid div:nth-child(even) { text-align: right; }
+  /* the element economy bars (long game) */
+  .ebars { display: flex; flex-direction: column; gap: 6px; margin: 4px 0; }
+  .ebar { display: flex; align-items: center; gap: 9px; font-size: 12px; }
+  .elabel { width: 40px; text-align: right; }
+  .etrack { flex: 1; height: 9px; background: rgba(255,255,255,0.06); border-radius: 5px; overflow: hidden; }
+  .efill { display: block; height: 100%; border-radius: 5px; transition: width .4s ease; }
+  .eval { width: 34px; color: var(--muted); font-variant-numeric: tabular-nums; }
   #sapbox.surplus { color: #8fd66a; } #sapbox.surplus .glyph3 { color: #8fd66a; }
   #sapbox.deficit { color: var(--warn); } #sapbox.deficit .glyph3 { color: var(--warn); }
   #income { font-size: 11.5px; color: var(--moss); }
