@@ -452,9 +452,14 @@
       /* 5. speciation: a sustained, UNEXPLOITED surplus opens a niche and summons a flora */
       const liveCount = this._patternCells('flora').length;
       for (let e = 0; e < 3; e++) {
-        if (surplus[e] > THRESH && byCh[e].length === 0) this.surplusRun[e]++; else this.surplusRun[e] = 0;
+        /* a channel can hold up to 2 distinct species — but the 2nd needs a genuinely
+           larger surplus (THRESH × (1+already)). lets a flooded channel host diversity
+           without monoculture, and keeps the ceiling honest. */
+        const spHere = new Set(byCh[e].filter(c => c.pat).map(c => c.pat.sp)).size; /* some byCh cells were culled in step 3 */
+        const open = spHere < 2 && surplus[e] > THRESH * (1 + spHere);
+        if (open) this.surplusRun[e]++; else this.surplusRun[e] = 0;
         if (this.surplusRun[e] >= SUSTAIN && this.species.size < SP_CAP && liveCount < FLORA_CAP) {
-          this._speciate(e, ev); this.surplusRun[e] = 0;
+          this._speciate(e, surplus, ev); this.surplusRun[e] = 0;
         }
       }
       return floraIncome;
@@ -476,14 +481,21 @@
       tgt.pat = this._mkPat('flora'); tgt.pat.sp = sp.id;
       ev.push({ t: 'floraGrow', k: HEX.key(tgt.q, tgt.r), color: sp.color });
     }
-    _speciate(ch, ev) {
+    _speciate(ch, surplus, ev) {
       const id = this.nextSpecies++;
-      const bl = [0, 0, 0]; bl[ch] = 1;
-      bl[(ch + 1 + this.rng.i(2)) % 3] = 0.2 + this.rng.f() * 0.4; /* a trace of another element — the jitter */
+      /* the diet is the actual SHAPE of the surplus that opened the niche — a continuous
+         blend, so two niches never make quite the same flower (not a 3-way bucket). the
+         triggering channel leads; a seeded trace lets siblings of one channel still differ. */
+      const mag = (surplus[0] + surplus[1] + surplus[2]) || 1;
+      const bl = [surplus[0] / mag, surplus[1] / mag, surplus[2] / mag];
+      bl[ch] = Math.max(bl[ch], 0.5);
+      bl[(ch + 1 + this.rng.i(2)) % 3] += this.rng.f() * 0.18;
+      const s2 = bl[0] + bl[1] + bl[2]; bl[0] /= s2; bl[1] /= s2; bl[2] /= s2;
       const ex = (ch + 1 + this.rng.i(2)) % 3;
       const name = FLORA_PRE[ch][this.rng.i(FLORA_PRE[ch].length)] + FLORA_SUF[this.rng.i(FLORA_SUF.length)];
-      const center = ch === 0 ? 0.22 : ch === 2 ? 0.55 : 0.38; /* lumen→calm·light · humus→wild·decay */
-      const w = 0.30 + this.rng.f() * 0.08; /* tolerance — wide enough to root, settle, and spread */
+      /* the entropy band it loves follows its diet: light→calm, rot→wild — continuous from the blend */
+      const center = 0.22 * bl[0] + 0.38 * bl[1] + 0.55 * bl[2];
+      const w = 0.28 + this.rng.f() * 0.10; /* tolerance — wide enough to root, settle, and spread */
       const sp = {
         id, ch, ex, blend: bl, color: floraColor(bl), name,
         settle: 3 + this.rng.i(4), spread: 0.45 + this.rng.f() * 0.30,
