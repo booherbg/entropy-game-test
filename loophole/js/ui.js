@@ -16,7 +16,7 @@
   const KEY = 'loophole_v1';
   const defaultMeta = () => ({
     echoes: [], codex: [], runs: 0, wins: 0, best: null,
-    asc: 0, muted: false, values: false, hints: [], quotes: [], bestFlourish: null,
+    asc: 0, muted: false, values: false, hints: [], quotes: [], bestFlourish: null, flora: [],
   });
   let store = { v: 1, meta: defaultMeta(), run: null };
   try {
@@ -26,6 +26,7 @@
       if (got && got.v === 1) store = got;
       if (!store.meta) store.meta = defaultMeta();
       if (!store.meta.quotes) store.meta.quotes = []; /* v0.3: collectible voices */
+      if (!store.meta.flora) store.meta.flora = []; /* v0.4: the journal of life witnessed */
       /* a run snapshot from before v0.2 can't be read — the board changed shape. keep the murmurs. */
       if (store.run && store.run.v !== LP.SAVE_V) store.run = null;
     }
@@ -700,6 +701,14 @@
             AU.take(); buildRail(); flashRail(); meta.codex.push({ n: e.name, r: 'found' });
           }
           break;
+        /* the ecology stirs — life your world dreamed up from its own surpluses */
+        case 'species':
+          toast('a flower opens that no one planted — « <b style="color:' + e.color + '">' + e.name + '</b> », risen from a <b>' + e.diet + '</b> surplus. it eats what your garden makes in excess.', 'good', 7500);
+          AU.take();
+          if (!meta.flora.some(f => f.name === e.name)) { meta.flora.push({ name: e.name, color: e.color, ch: e.ch, born: game ? game.turn : 0 }); save(); }
+          break;
+        case 'extinct': toast('« <b style="color:' + e.color + '">' + e.name + '</b> » is gone — its niche closed. it is remembered in the soil.', '', 5500); break;
+        case 'cull': toast('you clear « ' + e.name + ' » — the ground opens again.', '', 3000); break;
         case 'dissolveWarn': toast('the garden thins — coherence below 22% (' + e.streak + '/3)', 'warn', 5200); break;
         case 'dissolved': onDissolved(); break;
         case 'longEnd': onLongEnd(e.score, e.grade); break;
@@ -951,10 +960,16 @@
       (voices.length
         ? `<div class="voicelist">${voices.map(i => `<div class="voice">“${QA[i].q}”<div class="murmurcite">— ${QA[i].by}</div></div>`).join('')}</div>`
         : `<div class="muted">real human words, gathered as you play. none yet — they surface at cascades, rites, and the slow turning of the seasons.</div>`);
+    const flora = meta.flora || [];
+    const floraHTML = `<div class="codexhead">life witnessed · ${flora.length}</div>` +
+      (flora.length
+        ? `<div class="codexlist">${flora.slice(0, 80).map(f => `<span class="endart" style="border-color:${f.color}99;color:${f.color}">❀ ${f.name}</span>`).join(' ')}</div>`
+        : `<div class="muted">flora your worlds dream up — summoned by what you leave in surplus, in the long game. none yet.</div>`);
     pushOverlay(panelOverlay(`
       <div class="paneltitle">murmurs</div>
       <div class="murmurlist">${items.join('')}</div>
       <div class="muted center">${meta.echoes.length < 24 ? 'the rest are still in the soil. they surface as you play.' : 'all of it, gathered. thank you for listening.'}</div>
+      ${floraHTML}
       ${voicesHTML}
       ${codex}`,
       { wide: true }));
@@ -1456,6 +1471,11 @@
     if (kind === 'voice') { meta.quotes = []; surfaceQuote(); }
     if (kind === 'won') { meta.asc = 2; game.asc = 1; game.stats.peakC = 0.91; pushOverlay(winOverlay(), { dismissible: false }); }
     if (kind === 'long') { game.mode = 'longgame'; game.turn = 100; updateHUD(); } /* HUD in long-game mode */
+    if (kind === 'eco') { /* let the ecology run so flora arise from the garden's surpluses */
+      game.mode = 'longgame';
+      for (let i = 0; i < 55 && !game.over; i++) { game.order += 12; game.endTurn(); }
+      R.dirty(); updateHUD();
+    }
     if (kind === 'longend') { game.mode = 'longgame'; game.turn = 100; onLongEnd(game.flourishScore(), game.flourishGrade(game.flourishScore())); }
     if (kind === 'kit') {
       /* a developed build: a few cultivars + relics so the kit + compounding fill out */

@@ -474,7 +474,30 @@
         case 'crys': this.drawCrystal(cx, s, k); break;
         case 'bloom': this.drawBloom(cx, s, k, c.pat.age); break;
         case 'heart': this.drawHeart(cx, s, k, c.pat.age); break;
+        case 'flora': this.drawFlora(cx, s, c.pat, this.game.species && this.game.species.get(c.pat.sp)); break;
       }
+      cx.restore();
+    }
+
+    /* an emergent flower — coloured by the species' diet (the element it eats).
+       established beds are full and bright; pioneers small and translucent. */
+    drawFlora(cx, s, p, sp) {
+      const col = (sp && sp.color) || '#9bd6a0';
+      const r = rngOf('flora' + (sp ? sp.id : 0));
+      const petals = 4 + r.i(4);
+      const est = p.est;
+      const size = s * (est ? 0.33 : 0.21) * (0.85 + Math.min(p.age || 0, 6) * 0.025);
+      cx.save();
+      cx.rotate(r.f() * TAU + (p.age || 0) * 0.025);
+      for (let i = 0; i < petals; i++) {
+        const a = TAU * i / petals;
+        cx.fillStyle = rgba(col, est ? 0.92 : 0.5);
+        cx.beginPath();
+        cx.ellipse(Math.cos(a) * size * 0.5, Math.sin(a) * size * 0.5, size * 0.4, size * 0.22, a, 0, TAU);
+        cx.fill();
+      }
+      cx.fillStyle = rgba('#ffffff', est ? 0.7 : 0.32);
+      cx.beginPath(); cx.arc(0, 0, size * 0.2, 0, TAU); cx.fill();
       cx.restore();
     }
 
