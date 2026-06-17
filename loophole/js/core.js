@@ -84,6 +84,28 @@
     },
   };
 
+  /* ───────── the ecology layer: elements, flora, emergence ─────────
+     resources are a 3-vector — lumen / mineral / humus (energy / structure /
+     decay). a producer emits a blend; an UNEATEN surplus is a niche; a niche
+     speciates a flora whose traits derive from it (fast natural selection).
+     deterministic (one rng stream), browser-light (small vectors), capped.
+     see docs/2026-06-17-loophole-emergence-engine.md + -foundations.md. */
+  const PROD_BLEND = { moss: [1, 0, 0], ant: [0, 0, 1], crys: [0, 1, 0] };
+  const ELEM_PRODUCER = ['moss', 'crys', 'ant'];      /* which pattern makes channel e */
+  const ELEM_RGB = [[212, 232, 120], [120, 200, 236], [206, 122, 212]]; /* the colour of each element */
+  const FLORA_PRE = [
+    ['sun', 'dawn', 'ember', 'gold', 'flare', 'lumen', 'glow', 'sol'],   /* lumen-eaters */
+    ['flint', 'slate', 'quartz', 'iron', 'bone', 'stone', 'frost', 'shale'], /* mineral-eaters */
+    ['peat', 'rot', 'mire', 'dusk', 'ash', 'umbra', 'fen', 'loam'],      /* humus-eaters */
+  ];
+  const FLORA_SUF = ['bloom', 'petal', 'crown', 'bell', 'wort', 'spire', 'thorn', 'veil', 'lace', 'fern', 'star', 'cup'];
+  function floraColor(bl) {
+    let r = 0, g = 0, b = 0; const s = (bl[0] + bl[1] + bl[2]) || 1;
+    for (let e = 0; e < 3; e++) { const w = bl[e] / s; r += ELEM_RGB[e][0] * w; g += ELEM_RGB[e][1] * w; b += ELEM_RGB[e][2] * w; }
+    const hx = n => ('0' + (Math.round(n) & 255).toString(16)).slice(-2);
+    return '#' + hx(r) + hx(g) + hx(b);
+  }
+
   /* ───────────────────────── game ───────────────────────── */
   class Game {
     /* opts: {ascension, echoCount, blank} */
@@ -116,6 +138,10 @@
       this.pendingLegend = null;   /* a legendary you may claim by spending insight */
       this.legendsBought = 0;      /* each purchase escalates the next legendary's price */
       this.legendDiscount = 0;     /* relic fragments foragers dig up, off the next legendary */
+      this.species = new Map();    /* id -> emergent flora species (summoned by surplus) */
+      this.nextSpecies = 1;
+      this.surplusRun = [0, 0, 0]; /* sustained per-channel surplus → opens a niche */
+      this.elemProd = [0, 0, 0];   /* last element production vector (display) */
       this.firedOcc = {};
       this.stormI = 0;
       this.stormQueue = [];
@@ -304,6 +330,9 @@
         case 'bloom': return { prod: 0, up: 0.45, out: (0.18 + 0.02 * Math.min(p.age || 0, 8)) * this.mod('bloomOut', 1) * this._synergy(c), role: 'consumer' };
         case 'heart': { const net = this.netOf.get(k); return { prod: 0, up: 4, out: (net ? net.cells.size : 1) / 5 * this.mod('heartIncome', 1), role: 'consumer' }; }
         case 'myc': return { prod: 0, up: 0.2, out: 0, role: 'grid' };
+        /* flora run on the ELEMENT economy (see _ecology), not the scalar sap one —
+           they're invisible to it so the base metabolism stays exactly as it was */
+        case 'flora': return { prod: 0, up: 0, out: 0, role: 'flora' };
       }
       return { prod: 0, up: 0, out: 0, role: 'grid' };
     }
@@ -355,6 +384,134 @@
         if (fed < 0.5 && s.up > 0) this._wilt(c, ev);
       }
       return income + (this._turnBonus || 0);
+    }
+
+    /* ── the ecology: surplus → niche → flora; the emergence layer ──
+       runs after the metabolism (needs _s.prod). returns a token order from fed
+       flora (kept tiny in v1 so the base economy is untouched). deterministic. */
+    _ecology(ev) {
+      /* the ecology lives in the long game — the base "garden" (awaken) stays pristine and
+         debuggable. emergence is what the long game is FOR. */
+      if (this.mode !== 'longgame') return 0;
+      const EAT = 0.6, YIELD = 0.06, EXCR = 0.4, THRESH = 1.2, SUSTAIN = 3,
+        SP_CAP = 10, FLORA_CAP = 60, SETTLE_MIN = 3;
+      /* 1. element production from producers (by blend) + last-turn flora excretion */
+      const prod = [0, 0, 0];
+      for (const c of this._patternCells()) {
+        const b = PROD_BLEND[c.pat.t];
+        if (b && c.pat._s && c.pat._s.prod > 0) for (let e = 0; e < 3; e++) prod[e] += b[e] * c.pat._s.prod;
+      }
+      let flora = this._patternCells('flora');
+      for (const c of flora) { const sp = this.species.get(c.pat.sp); if (sp && c.pat.fedOk) prod[sp.ex] += EXCR; }
+      this.elemProd = prod;
+
+      /* 2. feeding by carrying capacity, per channel (established & older survive first) */
+      const byCh = [[], [], []];
+      for (const c of flora) { const sp = this.species.get(c.pat.sp); if (sp) byCh[sp.ch].push(c); else this._killFlora(c); }
+      let floraIncome = 0;
+      const surplus = [0, 0, 0];
+      for (let e = 0; e < 3; e++) {
+        const cells = byCh[e];
+        const cap = Math.floor(prod[e] / EAT);
+        cells.sort((a, b) => (b.pat.est - a.pat.est) || (b.pat.age - a.pat.age) || (a.q - b.q) || (a.r - b.r));
+        cells.forEach((c, i) => { c.pat.fedOk = i < cap; if (c.pat.fedOk) floraIncome += YIELD; });
+        surplus[e] = Math.max(0, prod[e] - cells.length * EAT);
+      }
+
+      /* 3. step each flora: age, establish, starve, spread (succession — survivors root) */
+      const totalFlora = flora.length;
+      for (const c of flora) {
+        const sp = this.species.get(c.pat.sp); if (!sp) { this._killFlora(c); continue; }
+        c.pat.age++;
+        if (c.pat.age >= sp.settle) c.pat.est = 1;
+        const eOk = c.e >= sp.eLo && c.e <= sp.eHi;
+        if (c.pat.est) {
+          /* niche construction: an established bed shapes its ground toward what it needs
+             (Holland / Odling-Smee — the organism builds its own habitat), so a bed can
+             stabilise and spread into ground that was, at first, too wild or too tame for it */
+          const mid = (sp.eLo + sp.eHi) / 2, d = mid - c.e;
+          if (d) c.e = U.clamp(c.e + (d > 0 ? 1 : -1) * Math.min(0.035, Math.abs(d)), 0, 1);
+          const eOk2 = c.e >= sp.eLo && c.e <= sp.eHi;
+          if (!eOk2) { c.pat.starve = (c.pat.starve || 0) + 1; if (c.pat.starve >= 8) { this._killFlora(c); continue; } }
+          else c.pat.starve = 0;
+          if (c.pat.fedOk && totalFlora < FLORA_CAP && this.rng.chance(sp.spread)) this._floraSpread(c, sp, ev);
+        } else {
+          /* a pioneer lives or dies by the conditions that summoned it */
+          if (!c.pat.fedOk || !eOk) { c.pat.starve = (c.pat.starve || 0) + 1; if (c.pat.starve >= 2) { this._killFlora(c); continue; } }
+          else c.pat.starve = 0;
+        }
+      }
+
+      /* 4. extinction: a seeded species with no living cell is gone — to the journal */
+      const alive = new Set(this._patternCells('flora').map(c => c.pat.sp));
+      for (const id of [...this.species.keys()]) {
+        const sp = this.species.get(id);
+        if (sp.seeded && !alive.has(id)) { this.species.delete(id); ev.push({ t: 'extinct', name: sp.name, color: sp.color }); }
+      }
+
+      /* 5. speciation: a sustained, UNEXPLOITED surplus opens a niche and summons a flora */
+      const liveCount = this._patternCells('flora').length;
+      for (let e = 0; e < 3; e++) {
+        if (surplus[e] > THRESH && byCh[e].length === 0) this.surplusRun[e]++; else this.surplusRun[e] = 0;
+        if (this.surplusRun[e] >= SUSTAIN && this.species.size < SP_CAP && liveCount < FLORA_CAP) {
+          this._speciate(e, ev); this.surplusRun[e] = 0;
+        }
+      }
+      return floraIncome;
+    }
+    _killFlora(c) { c.pat = null; }
+    _floraSpread(c, sp, ev) {
+      /* niche saturation: a species fills its bed, then stops — leaving ground (and
+         surplus) for other species. this is what keeps the world diverse, not monoculture. */
+      let own = 0; for (const x of this.cells.values()) if (x.pat && x.pat.t === 'flora' && x.pat.sp === sp.id) own++;
+      if (own >= (sp.maxBed || 12)) return;
+      const opts = []; /* spread into a margin around the band — the new cell gets pulled in */
+      for (const nk of HEX.neighborsK(HEX.key(c.q, c.r))) {
+        const nc = this.cells.get(nk);
+        if (nc && !nc.pat && nc.e >= sp.eLo - 0.18 && nc.e <= sp.eHi + 0.18) opts.push(nc);
+      }
+      if (!opts.length) return;
+      opts.sort((a, b) => (a.q - b.q) || (a.r - b.r));
+      const tgt = opts[this.rng.i(opts.length)];
+      tgt.pat = this._mkPat('flora'); tgt.pat.sp = sp.id;
+      ev.push({ t: 'floraGrow', k: HEX.key(tgt.q, tgt.r), color: sp.color });
+    }
+    _speciate(ch, ev) {
+      const id = this.nextSpecies++;
+      const bl = [0, 0, 0]; bl[ch] = 1;
+      bl[(ch + 1 + this.rng.i(2)) % 3] = 0.2 + this.rng.f() * 0.4; /* a trace of another element — the jitter */
+      const ex = (ch + 1 + this.rng.i(2)) % 3;
+      const name = FLORA_PRE[ch][this.rng.i(FLORA_PRE[ch].length)] + FLORA_SUF[this.rng.i(FLORA_SUF.length)];
+      const center = ch === 0 ? 0.22 : ch === 2 ? 0.55 : 0.38; /* lumen→calm·light · humus→wild·decay */
+      const w = 0.30 + this.rng.f() * 0.08; /* tolerance — wide enough to root, settle, and spread */
+      const sp = {
+        id, ch, ex, blend: bl, color: floraColor(bl), name,
+        settle: 3 + this.rng.i(4), spread: 0.45 + this.rng.f() * 0.30,
+        maxBed: 8 + this.rng.i(10), /* the size its niche saturates at */
+        eLo: Math.max(0, center - w), eHi: Math.min(1, center + w),
+        born: this.turn, seeded: false,
+      };
+      this.species.set(id, sp);
+      const spot = this._floraSeedSpot(ch, sp);
+      if (spot) { spot.pat = this._mkPat('flora'); spot.pat.sp = id; sp.seeded = true; ev.push({ t: 'species', name: sp.name, color: sp.color, ch, diet: ['light', 'stone', 'rot'][ch] }); }
+      else this.species.delete(id); /* nowhere to root yet — stillborn */
+    }
+    _floraSeedSpot(ch, sp) {
+      const producer = ELEM_PRODUCER[ch];
+      const near = [], frontier = []; /* prefer beside the element's maker, else any inhabited edge */
+      for (const c of this.cells.values()) {
+        if (c.pat || c.e < sp.eLo || c.e > sp.eHi) continue;
+        let byProducer = false, byAny = false;
+        for (const nk of HEX.neighborsK(HEX.key(c.q, c.r))) {
+          const nc = this.cells.get(nk); if (!nc || !nc.pat) continue;
+          byAny = true; if (nc.pat.t === producer) { byProducer = true; break; }
+        }
+        if (byProducer) near.push(c); else if (byAny) frontier.push(c);
+      }
+      const pool = near.length ? near : frontier;
+      if (!pool.length) return null;
+      pool.sort((a, b) => (a.q - b.q) || (a.r - b.r));
+      return pool[this.rng.i(pool.length)];
     }
 
     _wilt(c, ev) {
@@ -493,6 +650,7 @@
         case 'crys': return { t, age: 0 };
         case 'bloom': return { t, age: 0, lone: 0 };
         case 'heart': return { t, age: 0, born: this.turn, links: [] };
+        case 'flora': return { t, age: 0, sp: 0, est: 0, starve: 0 };
       }
     }
 
@@ -524,6 +682,11 @@
       if (this.over) return { ok: false, why: 'the run has ended' };
       const c = this.cells.get(k);
       if (!c || !c.pat) return { ok: false, why: 'nothing to prune' };
+      if (c.pat.t === 'flora') { /* culling wild flora — the steward's verb, no refund */
+        const sp = this.species.get(c.pat.sp);
+        c.pat = null; this.stats.prunes++; this._recompute();
+        return { ok: true, events: [{ t: 'cull', k, name: sp ? sp.name : 'flora' }] };
+      }
       const base = this.plantCost(c.pat.t, k);
       const refund = c.pat.fresh ? base : Math.floor(base * this.mod('pruneRefund', 0.3));
       const pt = c.pat.t;
@@ -675,6 +838,7 @@
 
       /* ── the metabolism: sap flows through the grid; fed life pays order, starved life wilts ── */
       let income = this._metabolism(ev);
+      income += this._ecology(ev); /* emergent flora arise from the metabolism's surpluses */
       income += this._artifactIncome(ev);
       income *= this.mod('incomeAll', 1);
 
@@ -1460,6 +1624,9 @@
         pendingLegend: this.pendingLegend,
         legendsBought: this.legendsBought,
         legendDiscount: this.legendDiscount,
+        species: [...this.species.values()],
+        nextSpecies: this.nextSpecies,
+        surplusRun: this.surplusRun,
         stats: this.stats,
         series: this.series,
         cells,
@@ -1475,6 +1642,7 @@
         case 'crys': o = { t: p.t, age: p.age }; break;
         case 'bloom': o = { t: p.t, age: p.age, lone: p.lone }; break;
         case 'heart': o = { t: p.t, age: p.age, born: p.born, links: [...(p.links || [])] }; break;
+        case 'flora': o = { t: p.t, age: p.age, sp: p.sp, est: p.est, starve: p.starve || 0 }; break;
       }
       if (p.fresh) o.fresh = 1;
       return o;
@@ -1510,6 +1678,9 @@
       g.pendingLegend = o.pendingLegend || null;
       g.legendsBought = o.legendsBought || 0;
       g.legendDiscount = o.legendDiscount || 0;
+      g.species = new Map((o.species || []).map(s => [s.id, s]));
+      g.nextSpecies = o.nextSpecies || 1;
+      g.surplusRun = o.surplusRun || [0, 0, 0];
       g.stats = o.stats;
       g.series = o.series || [];
       for (const cd of o.cells) {

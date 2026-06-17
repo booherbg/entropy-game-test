@@ -64,7 +64,7 @@ function greedyTurn(g) {
   for (const id of EVO_PRIORITY) if (g.canEvolve(id).ok) { g.evolve(id); break; }
   if (g.pendingOffer) {
     /* buy the legendary when flush (keep a cultivar reserve), else take the best free card */
-    if (g.pendingLegend && g.insight >= g.pendingLegend.cost + 4) {
+    if (g.pendingLegend && g.insight >= g.legendCost() + 4) {
       g.takeLegend();
     } else {
       let best = 0, bestR = -1;
@@ -428,6 +428,40 @@ function main() {
       const m = med(winTurns);
       ok(m >= 30 && m <= 95, 'median win in 30–95 turns (humans run ~1.5× the bot)', m + '');
     }
+  }
+
+  /* emergence: the ecology engine summons persistent, diverse flora (longgame only).
+     this is the "measure the edge of chaos" dashboard — tune the engine against it. */
+  console.log('\n[emergence]');
+  {
+    const runEco = seed => {
+      const g = new Game(seed, { mode: 'longgame' });
+      let peak = 0; const elems = new Set();
+      while (g.over === false && g.turn < 90) {
+        if (g.stage === 6 && g.coalesceReady() && g.beginCoalescence().ok) break;
+        greedyTurn(g);
+        const flora = cellsOf(g).filter(c => c.pat && c.pat.t === 'flora');
+        peak = Math.max(peak, new Set(flora.map(c => c.pat.sp)).size);
+        for (const c of flora) { const sp = g.species.get(c.pat.sp); if (sp) elems.add(sp.ch); }
+      }
+      const live = new Set(cellsOf(g).filter(c => c.pat && c.pat.t === 'flora').map(c => c.pat.sp)).size;
+      return { summoned: g.nextSpecies - 1, peak, elems: elems.size, live };
+    };
+    const n = 6; let summon = 0, peak = 0, elems = 0, persisted = 0, anySummon = 0;
+    for (let i = 0; i < n; i++) {
+      const r = runEco('emerge-' + i);
+      summon += r.summoned; peak += r.peak; elems += r.elems;
+      if (r.summoned > 0) anySummon++; if (r.live >= 1) persisted++;
+    }
+    console.log(`    avg summoned=${(summon / n).toFixed(1)} · peak coexisting=${(peak / n).toFixed(1)} · element-kinds=${(elems / n).toFixed(1)}/3 · ${persisted}/${n} worlds end alive`);
+    ok(anySummon === n, 'every longgame summons flora from its surpluses', `${anySummon}/${n}`);
+    ok(peak / n >= 2, 'flora coexist — peak ≥2 species, not a monoculture', (peak / n).toFixed(1));
+    ok(persisted >= n - 1, 'flora persist to the end — Class-4, not churn-to-zero', `${persisted}/${n}`);
+    const a = runEco('emerge-det'), b = runEco('emerge-det');
+    ok(a.summoned === b.summoned && a.peak === b.peak, 'emergence is deterministic (same seed → same flora)');
+    const garden = new Game('emerge-garden');
+    while (garden.over === false && garden.turn < 50) { if (garden.stage === 6 && garden.coalesceReady() && garden.beginCoalescence().ok) break; greedyTurn(garden); }
+    ok(cellsOf(garden).filter(c => c.pat && c.pat.t === 'flora').length === 0 && garden.species.size === 0, 'base garden mode stays free of flora (ecology is longgame-only)');
   }
 
   console.log('\n' + (failures ? `${failures} FAILURE(S)` : 'ALL PASS'));
