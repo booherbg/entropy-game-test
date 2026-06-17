@@ -106,6 +106,10 @@
     echo() { this.bell(880, 1.8, 0.05); },
     offer() { this.blip(523, 0.18, 'sine', 0.05); setTimeout(() => this.blip(784, 0.4, 'sine', 0.05), 140); },
     take() { this.bell(659, 0.9, 0.05); },
+    /* a flower no one planted opens — a soft, rising unfurl */
+    bloom() { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => { this.bell(f, 1.3 - i * 0.12, 0.04); this.bell(f * 1.003, 1.3 - i * 0.12, 0.02); }, i * 135)); },
+    /* a species returns to the stream — a gentle descending sigh */
+    wither() { this.blip(392, 1.4, 'sine', 0.04, 196); setTimeout(() => this.blip(294, 1.6, 'sine', 0.03, 147), 160); },
     storm() { this.noise(1.1, 320, 0.12, true); this.blip(70, 0.5, 'sawtooth', 0.05, 40); },
     blight() { this.blip(150, 0.5, 'sawtooth', 0.05, 92); this.blip(151.5, 0.5, 'square', 0.03, 90); },
     cascade(n) {
@@ -715,11 +719,11 @@
         /* the ecology stirs — life your world dreamed up from its own surpluses */
         case 'species':
           toast('a flower opens that no one planted — « <b style="color:' + e.color + '">' + e.name + '</b> », risen from a <b>' + e.diet + '</b> surplus. it eats what your garden makes in excess.', 'good', 7500);
-          AU.take();
+          AU.bloom();
           { const fl = meta.flora || (meta.flora = []);
             if (!fl.some(f => f.name === e.name && f.color === e.color)) { fl.push({ name: e.name, color: e.color, ch: e.ch, born: game ? game.turn : 0 }); save(); } }
           break;
-        case 'extinct': toast('« <b style="color:' + e.color + '">' + e.name + '</b> » is gone — its niche closed. it is remembered in the soil.', '', 5500); break;
+        case 'extinct': toast('« <b style="color:' + e.color + '">' + e.name + '</b> » is gone — its niche closed. it is remembered in the soil.', '', 5500); AU.wither(); break;
         case 'cull': toast('you clear « ' + e.name + ' » — the ground opens again.', '', 3000); break;
         case 'dissolveWarn': toast('the garden thins — coherence below 22% (' + e.streak + '/3)', 'warn', 5200); break;
         case 'dissolved': onDissolved(); break;
