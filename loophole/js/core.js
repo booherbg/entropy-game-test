@@ -106,6 +106,14 @@
     return '#' + hx(r) + hx(g) + hx(b);
   }
 
+  /* ───────── megafauna: the next trophic level ─────────
+     a RICH MEADOW (many established flora) is itself a surplus — of LIFE. it summons a
+     grazing beast that roams the meadow eating flora, and lives only while the meadow feeds
+     it (a dissipative structure: it adapts to the surplus and depends on it). it grazes one
+     flower at a time (donor-controlled — no annihilation), the non-collapsing predator-prey
+     of the foundations doc. fauna are mobile agents (a separate list), not rooted patterns. */
+  const FAUNA_SUF = ['grazer', 'strider', 'aurochs', 'elk', 'roan', 'lumberer', 'browser', 'wallow', 'horn', 'pacer'];
+
   /* ───────────────────────── game ───────────────────────── */
   class Game {
     /* opts: {ascension, echoCount, blank} */
@@ -142,6 +150,10 @@
       this.nextSpecies = 1;
       this.surplusRun = [0, 0, 0]; /* sustained per-channel surplus → opens a niche */
       this.elemProd = [0, 0, 0];   /* last element production vector (display) */
+      this.fauna = [];             /* roaming megafauna agents { id, spId, q, r, age, hunger } */
+      this.faunaSpecies = new Map();
+      this.nextFauna = 1;
+      this.faunaRun = 0;           /* sustained meadow-richness → opens a fauna niche */
       this.firedOcc = {};
       this.stormI = 0;
       this.stormQueue = [];
@@ -542,6 +554,75 @@
       return top[this.rng.i(top.length)].c;
     }
 
+    /* ── megafauna: a rich meadow summons a beast that grazes it and depends on it ── */
+    _fauna(ev) {
+      if (this.mode !== 'longgame') return;
+      const FA_THRESH = 8, FA_SUSTAIN = 4, FA_SP_CAP = 4, FA_CAP = 5, STARVE = 14, BREED = 40, GRAZE_NEED = 4, REFUGE = 6;
+      const floraCount = this._patternCells('flora').length; /* a refuge: beasts won't graze the meadow below this — the prey is never eaten to nothing */
+      const estFlora = this._patternCells('flora').filter(c => c.pat.est);
+      /* 1. a rich, diverse meadow (much established flora, ≥2 species) is a surplus of LIFE */
+      const diversity = new Set(estFlora.map(c => c.pat.sp)).size;
+      if (estFlora.length >= FA_THRESH && diversity >= 2 && this.faunaSpecies.size < FA_SP_CAP && this.fauna.length < FA_CAP) {
+        this.faunaRun++;
+        if (this.faunaRun >= FA_SUSTAIN) { this._speciateFauna(estFlora, ev); this.faunaRun = 0; }
+      } else this.faunaRun = 0;
+      /* 2. each beast roams toward flora, grazes one a turn (donor-controlled — no annihilation),
+         and leaves droppings (humus); it starves if the meadow can no longer feed it */
+      for (const f of this.fauna) {
+        const sp = this.faunaSpecies.get(f.spId); if (!sp) { f.dead = 1; continue; }
+        f.age++; f.hunger++;
+        let best = null, bestD = 1e9;
+        for (const c of this._patternCells('flora')) {
+          const d = HEX.dist2(f.q, f.r, c.q, c.r) - (c.pat.sp === sp.diet ? 0.5 : 0);
+          if (d < bestD) { bestD = d; best = c; }
+        }
+        if (best && HEX.dist2(f.q, f.r, best.q, best.r) <= 1) {
+          /* at the meadow. it grazes only when HUNGRY — eats to satiety then rests — so the
+             meadow can keep up. one flower at a time (donor-controlled), no annihilation. */
+          if (f.hunger >= GRAZE_NEED && floraCount > REFUGE) {
+            this._killFlora(best); f.hunger = 0; f.fedRun = (f.fedRun || 0) + 1;
+            best.e = U.clamp(best.e + 0.05, 0, 1); /* droppings → humus, fertilising the cycle */
+            ev.push({ t: 'graze', k: HEX.key(best.q, best.r), color: sp.color });
+            if (f.fedRun >= BREED && this.fauna.length < FA_CAP) { this.fauna.push({ spId: f.spId, q: f.q, r: f.r, age: 0, hunger: 0, fedRun: 0 }); f.fedRun = 0; ev.push({ t: 'faunaBreed', k: HEX.key(f.q, f.r), color: sp.color }); }
+          }
+        } else if (best) { const s = this._stepToward(f.q, f.r, best.q, best.r); f.q = s.q; f.r = s.r; }
+        if (f.hunger > STARVE) f.dead = 1;
+      }
+      /* 3. the dead pass; a species with no beasts left goes extinct, to the journal */
+      if (this.fauna.some(f => f.dead)) this.fauna = this.fauna.filter(f => !f.dead);
+      const alive = new Set(this.fauna.map(f => f.spId));
+      for (const id of [...this.faunaSpecies.keys()]) {
+        const sp = this.faunaSpecies.get(id);
+        if (sp.seeded && !alive.has(id)) { this.faunaSpecies.delete(id); ev.push({ t: 'faunaGone', name: sp.name, color: sp.color }); }
+      }
+    }
+    _speciateFauna(estFlora, ev) {
+      const id = this.nextFauna++;
+      /* it specialises on the meadow's DOMINANT flower — its identity derives from what it eats */
+      const count = {};
+      for (const c of estFlora) count[c.pat.sp] = (count[c.pat.sp] || 0) + 1;
+      let dietSp = estFlora[0].pat.sp, mx = 0;
+      for (const s in count) if (count[s] > mx) { mx = count[s]; dietSp = +s; }
+      const floraSp = this.species.get(dietSp);
+      const ch = floraSp ? floraSp.ch : 0;
+      const name = FLORA_PRE[ch][this.rng.i(FLORA_PRE[ch].length)] + FAUNA_SUF[this.rng.i(FAUNA_SUF.length)];
+      const sp = { id, diet: dietSp, ch, color: floraSp ? floraSp.color : '#d8c0a8', name, born: this.turn, seeded: true };
+      this.faunaSpecies.set(id, sp);
+      const spot = estFlora.find(c => c.pat.sp === dietSp) || estFlora[0];
+      this.fauna.push({ spId: id, q: spot.q, r: spot.r, age: 0, hunger: 0, fedRun: 0 });
+      ev.push({ t: 'fauna', name, color: sp.color, k: HEX.key(spot.q, spot.r), eats: floraSp ? floraSp.name : 'wildflowers' });
+    }
+    _stepToward(q, r, tq, tr) {
+      let best = { q, r }, bestD = HEX.dist2(q, r, tq, tr);
+      for (const nk of HEX.neighborsK(HEX.key(q, r))) {
+        if (!this.cells.has(nk)) continue;
+        const [nq, nr] = HEX.parse(nk);
+        const d = HEX.dist2(nq, nr, tq, tr);
+        if (d < bestD) { bestD = d; best = { q: nq, r: nr }; }
+      }
+      return best;
+    }
+
     _wilt(c, ev) {
       const p = c.pat;
       if (p.t === 'frond') p.depth = Math.max(0, p.depth - 1);
@@ -867,6 +948,7 @@
       /* ── the metabolism: sap flows through the grid; fed life pays order, starved life wilts ── */
       let income = this._metabolism(ev);
       income += this._ecology(ev); /* emergent flora arise from the metabolism's surpluses */
+      this._fauna(ev);             /* and megafauna arise from a rich meadow, grazing it */
       income += this._artifactIncome(ev);
       income *= this.mod('incomeAll', 1);
 
@@ -1663,6 +1745,9 @@
         species: [...this.species.values()].sort((a, b) => a.id - b.id),
         nextSpecies: this.nextSpecies,
         surplusRun: this.surplusRun,
+        fauna: this.fauna,
+        faunaSpecies: [...this.faunaSpecies.values()].sort((a, b) => a.id - b.id),
+        nextFauna: this.nextFauna,
         stats: this.stats,
         series: this.series,
         cells,
@@ -1717,6 +1802,9 @@
       g.species = new Map((o.species || []).map(s => [s.id, s]));
       g.nextSpecies = o.nextSpecies || 1;
       g.surplusRun = o.surplusRun || [0, 0, 0];
+      g.fauna = o.fauna || [];
+      g.faunaSpecies = new Map((o.faunaSpecies || []).map(s => [s.id, s]));
+      g.nextFauna = o.nextFauna || 1;
       g.stats = o.stats;
       g.series = o.series || [];
       for (const cd of o.cells) {
