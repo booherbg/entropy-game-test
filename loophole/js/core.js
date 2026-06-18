@@ -435,6 +435,13 @@
              stabilise and spread into ground that was, at first, too wild or too tame for it */
           const mid = (sp.eLo + sp.eHi) / 2, d = mid - c.e;
           if (d) c.e = U.clamp(c.e + (d > 0 ? 1 : -1) * Math.min(0.035, Math.abs(d)), 0, 1);
+          /* it also EXTENDS the habitat — gently pulling its empty neighbours toward its band,
+             so the bed makes the ground around it livable and can spread into it (this is what
+             finally lets beds grow, instead of a lone flower stuck on its one calm cell) */
+          for (const nk of HEX.neighborsK(HEX.key(c.q, c.r))) {
+            const nc = this.cells.get(nk);
+            if (nc && !nc.pat) { const dd = mid - nc.e; if (dd) nc.e = U.clamp(nc.e + (dd > 0 ? 1 : -1) * Math.min(0.022, Math.abs(dd)), 0, 1); }
+          }
           const eOk2 = c.e >= sp.eLo && c.e <= sp.eHi;
           if (!eOk2) { c.pat.starve = (c.pat.starve || 0) + 1; if (c.pat.starve >= 8) { this._killFlora(c); continue; } }
           else c.pat.starve = 0;
@@ -517,17 +524,22 @@
       const near = [], frontier = []; /* prefer beside the element's maker, else any inhabited edge */
       for (const c of this.cells.values()) {
         if (c.pat || c.e < sp.eLo || c.e > sp.eHi) continue;
-        let byProducer = false, byAny = false;
+        let byProducer = false, byAny = false, room = 0;
         for (const nk of HEX.neighborsK(HEX.key(c.q, c.r))) {
-          const nc = this.cells.get(nk); if (!nc || !nc.pat) continue;
-          byAny = true; if (nc.pat.t === producer) { byProducer = true; break; }
+          const nc = this.cells.get(nk); if (!nc) continue;
+          if (!nc.pat) { room++; continue; }
+          byAny = true; if (nc.pat.t === producer) byProducer = true;
         }
-        if (byProducer) near.push(c); else if (byAny) frontier.push(c);
+        const cand = { c, room };
+        if (byProducer) near.push(cand); else if (byAny) frontier.push(cand);
       }
       const pool = near.length ? near : frontier;
       if (!pool.length) return null;
-      pool.sort((a, b) => (a.q - b.q) || (a.r - b.r));
-      return pool[this.rng.i(pool.length)];
+      /* prefer a spot with ROOM to grow — a flower boxed in by patterns can never become a
+         bed. (deterministic: roomiest first, then position.) */
+      pool.sort((a, b) => (b.room - a.room) || (a.c.q - b.c.q) || (a.c.r - b.c.r));
+      const top = pool.filter(x => x.room >= pool[0].room - 1);
+      return top[this.rng.i(top.length)].c;
     }
 
     _wilt(c, ev) {
@@ -1144,10 +1156,14 @@
     }
 
     _mossSpread(c, ev) {
+      /* an established flora bed HOLDS its ground — moss won't carpet the open cells around it
+         (allelopathy), so wildflower beds can finally spread instead of being out-competed.
+         only checked when life is afoot (longgame), so the base game is untouched. */
+      const guard = this.species.size > 0;
       const opts = [];
       for (const k of HEX.neighborsK(HEX.key(c.q, c.r))) {
         const cc = this.cells.get(k);
-        if (cc && !cc.pat && cc.e <= 0.6) opts.push(cc);
+        if (cc && !cc.pat && cc.e <= 0.6 && !(guard && this._nearFlora(k))) opts.push(cc);
       }
       if (!opts.length) return false;
       /* moss climbs toward the frontier — the wildest ground it can still survive — not back
@@ -1159,6 +1175,10 @@
       ev.push({ t: 'spread', from: HEX.key(c.q, c.r), to: HEX.key(tgt.q, tgt.r) });
       this._occasion('spread1', ev);
       return true;
+    }
+    _nearFlora(k) { /* is a flower (even a young one) holding this open cell against the moss? */
+      for (const nk of HEX.neighborsK(k)) { const nc = this.cells.get(nk); if (nc && nc.pat && nc.pat.t === 'flora') return true; }
+      return false;
     }
 
     _stepMoss(ev) {
