@@ -16,7 +16,7 @@
   const KEY = 'loophole_v1';
   const defaultMeta = () => ({
     echoes: [], codex: [], runs: 0, wins: 0, best: null,
-    asc: 0, muted: false, values: false, hints: [], quotes: [], bestFlourish: null, flora: [],
+    asc: 0, muted: false, values: false, hints: [], quotes: [], bestFlourish: null, flora: [], fauna: [],
   });
   let store = { v: 1, meta: defaultMeta(), run: null };
   try {
@@ -27,6 +27,7 @@
       if (!store.meta) store.meta = defaultMeta();
       if (!store.meta.quotes) store.meta.quotes = []; /* v0.3: collectible voices */
       if (!store.meta.flora) store.meta.flora = []; /* v0.4: the journal of life witnessed */
+      if (!store.meta.fauna) store.meta.fauna = []; /* v0.4: the beasts your meadows summoned */
       /* a run snapshot from before v0.2 can't be read — the board changed shape. keep the murmurs. */
       if (store.run && store.run.v !== LP.SAVE_V) store.run = null;
     }
@@ -110,6 +111,8 @@
     bloom() { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => { this.bell(f, 1.3 - i * 0.12, 0.04); this.bell(f * 1.003, 1.3 - i * 0.12, 0.02); }, i * 135)); },
     /* a species returns to the stream — a gentle descending sigh */
     wither() { this.blip(392, 1.4, 'sine', 0.04, 196); setTimeout(() => this.blip(294, 1.6, 'sine', 0.03, 147), 160); },
+    /* a beast walks into the world — a low, resonant call beneath a far shimmer */
+    beast() { [147, 110, 165].forEach((f, i) => setTimeout(() => { this.blip(f, 1.8, 'triangle', 0.06, f * 0.97); this.bell(f * 4, 1.1, 0.022); }, i * 200)); },
     storm() { this.noise(1.1, 320, 0.12, true); this.blip(70, 0.5, 'sawtooth', 0.05, 40); },
     blight() { this.blip(150, 0.5, 'sawtooth', 0.05, 92); this.blip(151.5, 0.5, 'square', 0.03, 90); },
     cascade(n) {
@@ -725,6 +728,14 @@
           break;
         case 'extinct': toast('« <b style="color:' + e.color + '">' + e.name + '</b> » is gone — its niche closed. it is remembered in the soil.', '', 5500); AU.wither(); break;
         case 'cull': toast('you clear « ' + e.name + ' » — the ground opens again.', '', 3000); break;
+        /* megafauna — a beast no one made, summoned by a meadow rich enough to feed it */
+        case 'fauna':
+          toast('a <b>beast</b> walks into the world — « <b style="color:' + e.color + '">' + e.name + '</b> », drawn by a meadow rich enough to feed it. it grazes the ' + e.eats + ' and lives only while the meadow does.', 'good', 8500);
+          AU.beast();
+          { const fl = meta.fauna || (meta.fauna = []);
+            if (!fl.some(b => b.name === e.name && b.color === e.color)) { fl.push({ name: e.name, color: e.color, born: game ? game.turn : 0 }); save(); } }
+          break;
+        case 'faunaGone': toast('the « <b style="color:' + e.color + '">' + e.name + '</b> » are gone — the meadow could no longer hold them. remembered.', '', 6000); AU.wither(); break;
         case 'dissolveWarn': toast('the garden thins — coherence below 22% (' + e.streak + '/3)', 'warn', 5200); break;
         case 'dissolved': onDissolved(); break;
         case 'longEnd': onLongEnd(e.score, e.grade); break;
@@ -982,11 +993,16 @@
         ? `<div class="muted" style="margin-bottom:7px">a flower wears its <b>diet</b> — <span style="color:#d4e878">chartreuse eats light</span> · <span style="color:#78c8ec">cyan eats stone</span> · <span style="color:#ce7ad4">violet eats rot</span> · blends between.</div>
            <div class="codexlist">${flora.slice(0, 80).map(f => `<span class="endart" style="border-color:${f.color}99;color:${f.color}" title="eats ${DIET[f.ch] || '?'}">❀ ${f.name}</span>`).join(' ')}</div>`
         : `<div class="muted">flora your worlds dream up — summoned by what you leave in surplus, in the long game. none yet. point at one to read what it eats; its colour is its diet.</div>`);
+    const fauna = meta.fauna || [];
+    const faunaHTML = fauna.length
+      ? `<div class="codexhead">beasts that grazed your meadows · ${fauna.length}</div><div class="codexlist">${fauna.slice(0, 60).map(b => `<span class="endart" style="border-color:${b.color}99;color:${b.color}">❦ ${b.name}</span>`).join(' ')}</div>`
+      : '';
     pushOverlay(panelOverlay(`
       <div class="paneltitle">murmurs</div>
       <div class="murmurlist">${items.join('')}</div>
       <div class="muted center">${meta.echoes.length < 24 ? 'the rest are still in the soil. they surface as you play.' : 'all of it, gathered. thank you for listening.'}</div>
       ${floraHTML}
+      ${faunaHTML}
       ${voicesHTML}
       ${codex}`,
       { wide: true }));
@@ -1506,6 +1522,14 @@
     if (kind === 'eco') { /* let the ecology run so flora arise from the garden's surpluses */
       game.mode = 'longgame';
       for (let i = 0; i < 55 && !game.over; i++) { game.order += 12; game.endTurn(); }
+      R.dirty(); updateHUD();
+    }
+    if (kind === 'fauna') { /* an OPEN meadow grown long enough that beasts arrive to graze it */
+      game.mode = 'longgame';
+      const hd = c => (Math.abs(c.q) + Math.abs(c.r) + Math.abs(c.q + c.r)) / 2;
+      [...game.cells.values()].filter(c => hd(c) <= 7).sort((c, d) => (c.q - d.q) || (c.r - d.r)).forEach((c, i) => { if (i % 9 === 0) c.pat = game._mkPat('moss'); else if (i % 9 === 3) c.pat = game._mkPat('ant'); else if (i % 17 === 5) c.pat = game._mkPat('crys'); });
+      game._recompute();
+      for (let i = 0; i < 95 && !game.over; i++) { game.order += 12; game.endTurn(); }
       R.dirty(); updateHUD();
     }
     if (kind === 'ecometab') { /* the element economy panel in the long game */

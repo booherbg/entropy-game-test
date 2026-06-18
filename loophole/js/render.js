@@ -280,6 +280,8 @@
       this._drawTrails(cx);
       /* patterns */
       for (const c of g.cells.values()) if (c.pat) this._drawPattern(cx, c);
+      /* megafauna roam over the meadow (a mobile overlay, drawn on top) */
+      if (g.fauna && g.fauna.length) for (const f of g.fauna) this._drawFauna(cx, f, g.faunaSpecies && g.faunaSpecies.get(f.spId));
       /* blight gnaws over everything */
       if (g.blight) for (const [k, b] of g.blight) { const c = g.cells.get(k); if (c) this._drawBlight(cx, c, b); }
       /* per-cell role dots: a glance tells you producer / fed / starving / idle */
@@ -510,6 +512,27 @@
       }
       cx.fillStyle = rgba('#ffffff', est ? 0.7 : 0.32);
       cx.beginPath(); cx.arc(0, 0, size * 0.2, 0, TAU); cx.fill();
+      cx.restore();
+    }
+
+    /* a grazing megafauna — a low, broad beast in its diet's colour, head dipped to the meadow.
+       larger than any flower and softly haloed, so the eye finds the life moving over the field. */
+    _drawFauna(cx, f, sp) {
+      const k = HEX.key(f.q, f.r), p = this.pos.get(k); if (!p) return;
+      const col = (sp && sp.color) || '#d8c0a8';
+      const s = this.s * 1.25, dir = (f.q + f.r) % 2 ? 1 : -1; /* megafauna are LARGE — bigger than any flower */
+      cx.save();
+      cx.translate(p.x, p.y); cx.scale(dir, 1);
+      const g = cx.createRadialGradient(0, 0, 0, 0, 0, s * 0.95);
+      g.addColorStop(0, rgba(col, 0.30)); g.addColorStop(1, rgba(col, 0));
+      cx.fillStyle = g; cx.beginPath(); cx.arc(0, 0, s * 0.95, 0, TAU); cx.fill();
+      cx.strokeStyle = rgba('#1a140e', 0.7); cx.lineWidth = s * 0.10; cx.lineCap = 'round';
+      for (const dx of [-0.28, -0.06, 0.18, 0.36]) { cx.beginPath(); cx.moveTo(s * dx, s * 0.16); cx.lineTo(s * dx, s * 0.46); cx.stroke(); } /* legs */
+      cx.fillStyle = rgba(col, 0.96);
+      cx.strokeStyle = rgba('#1a140e', 0.55); cx.lineWidth = s * 0.05;
+      cx.beginPath(); cx.ellipse(-s * 0.02, -s * 0.06, s * 0.52, s * 0.30, 0, 0, TAU); cx.fill(); cx.stroke(); /* body, outlined to stand out */
+      cx.beginPath(); cx.ellipse(s * 0.48, s * 0.18, s * 0.18, s * 0.15, 0.3, 0, TAU); cx.fill(); cx.stroke(); /* head, dipped to graze */
+      cx.fillStyle = rgba('#fff', 0.5); cx.beginPath(); cx.arc(s * 0.52, s * 0.13, s * 0.03, 0, TAU); cx.fill(); /* eye */
       cx.restore();
     }
 
