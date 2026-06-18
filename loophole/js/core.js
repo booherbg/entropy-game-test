@@ -557,7 +557,7 @@
     /* ── megafauna: a rich meadow summons a beast that grazes it and depends on it ── */
     _fauna(ev) {
       if (this.mode !== 'longgame') return;
-      const FA_THRESH = 8, FA_SUSTAIN = 4, FA_SP_CAP = 4, FA_CAP = 5, STARVE = 14, BREED = 40, GRAZE_NEED = 4, REFUGE = 6;
+      const FA_THRESH = 8, FA_SUSTAIN = 4, FA_SP_CAP = 4, FA_CAP = 8, STARVE = 14, BREED = 16, GRAZE_NEED = 4, REFUGE = 6;
       const floraCount = this._patternCells('flora').length; /* a refuge: beasts won't graze the meadow below this — the prey is never eaten to nothing */
       const estFlora = this._patternCells('flora').filter(c => c.pat.est);
       /* 1. a rich, diverse meadow (much established flora, ≥2 species) is a surplus of LIFE */
@@ -583,9 +583,22 @@
             this._killFlora(best); f.hunger = 0; f.fedRun = (f.fedRun || 0) + 1;
             best.e = U.clamp(best.e + 0.05, 0, 1); /* droppings → humus, fertilising the cycle */
             ev.push({ t: 'graze', k: HEX.key(best.q, best.r), color: sp.color });
-            if (f.fedRun >= BREED && this.fauna.length < FA_CAP) { this.fauna.push({ spId: f.spId, q: f.q, r: f.r, age: 0, hunger: 0, fedRun: 0 }); f.fedRun = 0; ev.push({ t: 'faunaBreed', k: HEX.key(f.q, f.r), color: sp.color }); }
+            if (f.fedRun >= BREED && this.fauna.length < FA_CAP) {
+              const bn = [...HEX.neighborsK(HEX.key(f.q, f.r))].filter(k => this.cells.has(k)).map(k => HEX.parse(k));
+              const bp = bn.length ? bn[this.rng.i(bn.length)] : [f.q, f.r]; /* the calf is born beside its parent, not on top of it */
+              this.fauna.push({ spId: f.spId, q: bp[0], r: bp[1], age: 0, hunger: 0, fedRun: 0 }); f.fedRun = 0; ev.push({ t: 'faunaBreed', k: HEX.key(f.q, f.r), color: sp.color });
+            }
           }
-        } else if (best) { const s = this._stepToward(f.q, f.r, best.q, best.r); f.q = s.q; f.r = s.r; }
+        } else if (best) {
+          /* herding (Reynolds): COHESION toward a blend of the nearest flora and the herd's
+             centre, plus SEPARATION — a beast won't pile onto a herdmate's cell — so a kind of
+             beast moves and grazes as a spread-out HERD, not a stack or scattered loners */
+          let hx = 0, hy = 0, hn = 0; const occ = new Set();
+          for (const o of this.fauna) if (o !== f && o.spId === f.spId) { hx += o.q; hy += o.r; hn++; occ.add(o.q + ',' + o.r); }
+          let tq = best.q, tr = best.r;
+          if (hn) { tq = best.q * 0.72 + (hx / hn) * 0.28; tr = best.r * 0.72 + (hy / hn) * 0.28; }
+          const s = this._stepToward(f.q, f.r, tq, tr, occ); f.q = s.q; f.r = s.r;
+        }
         if (f.hunger > STARVE) f.dead = 1;
       }
       /* 3. the dead pass; a species with no beasts left goes extinct, to the journal */
@@ -612,11 +625,12 @@
       this.fauna.push({ spId: id, q: spot.q, r: spot.r, age: 0, hunger: 0, fedRun: 0 });
       ev.push({ t: 'fauna', name, color: sp.color, k: HEX.key(spot.q, spot.r), eats: floraSp ? floraSp.name : 'wildflowers' });
     }
-    _stepToward(q, r, tq, tr) {
+    _stepToward(q, r, tq, tr, avoid) {
       let best = { q, r }, bestD = HEX.dist2(q, r, tq, tr);
       for (const nk of HEX.neighborsK(HEX.key(q, r))) {
         if (!this.cells.has(nk)) continue;
         const [nq, nr] = HEX.parse(nk);
+        if (avoid && avoid.has(nq + ',' + nr)) continue; /* separation: don't pile onto a herdmate */
         const d = HEX.dist2(nq, nr, tq, tr);
         if (d < bestD) { bestD = d; best = { q: nq, r: nr }; }
       }
