@@ -483,8 +483,13 @@
        established beds are full and bright; pioneers small and translucent. */
     drawFlora(cx, s, p, sp) {
       const col = (sp && sp.color) || '#9bd6a0';
+      const bl = (sp && sp.blend) || [1, 0, 0];
       const r = rngOf('flora' + (sp ? sp.id : 0));
-      const petals = 4 + r.i(4);
+      /* the SILHOUETTE reads the diet too: a light-eater is spare & star-pointed, a rot-eater
+         lush & many-petaled, a stone-eater somewhere between — form echoes colour echoes diet */
+      const petals = 4 + Math.round(bl[2] * 5 + bl[1] * 2) + r.i(2);
+      const plen = size => size * (0.46 - bl[2] * 0.10);  /* lumen → long pointed petals */
+      const pwid = size => size * (0.17 + bl[2] * 0.15);  /* humus → wide full petals */
       const est = p.est;
       const size = s * (est ? 0.36 : 0.22) * (0.85 + Math.min(p.age || 0, 6) * 0.025);
       cx.save();
@@ -500,7 +505,7 @@
         const a = TAU * i / petals;
         cx.fillStyle = rgba(col, est ? 0.92 : 0.5);
         cx.beginPath();
-        cx.ellipse(Math.cos(a) * size * 0.5, Math.sin(a) * size * 0.5, size * 0.4, size * 0.22, a, 0, TAU);
+        cx.ellipse(Math.cos(a) * size * 0.5, Math.sin(a) * size * 0.5, plen(size), pwid(size), a, 0, TAU);
         cx.fill();
       }
       cx.fillStyle = rgba('#ffffff', est ? 0.7 : 0.32);
