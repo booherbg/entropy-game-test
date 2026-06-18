@@ -892,8 +892,8 @@
        moment of waking — coherence held, scale, diversity, blossoms, network, disorder
        eaten. the same things the macro/ecology layer will one day reward at scale. */
     flourishScore() {
-      let live = 0; const kinds = new Set();
-      for (const c of this.cells.values()) if (c.pat) { live++; kinds.add(c.pat.t); }
+      let live = 0; const kinds = new Set(), floraSp = new Set();
+      for (const c of this.cells.values()) if (c.pat) { live++; kinds.add(c.pat.t); if (c.pat.t === 'flora') floraSp.add(c.pat.sp); }
       const s = this.stats;
       return Math.max(0, Math.round(
         this.coherence() * 300 +
@@ -902,7 +902,9 @@
         (s.blooms || 0) * 3 +
         (s.netBest || 0) * 2 +
         (s.eaten || 0) * 2 +
-        (this.stage - 1) * 50));
+        (this.stage - 1) * 50 +
+        floraSp.size * 25 +                               /* the diversity of emergent flora */
+        this.fauna.length * 30 + this.faunaSpecies.size * 40)); /* megafauna — the pinnacle of a flourishing world */
     }
     flourishGrade(score) {
       if (score >= 2800) return 'a flourishing world';
@@ -912,8 +914,8 @@
       return 'a fragile beginning';
     }
     flourishBreakdown() {
-      let live = 0; const kinds = new Set();
-      for (const c of this.cells.values()) if (c.pat) { live++; kinds.add(c.pat.t); }
+      let live = 0; const kinds = new Set(), floraSp = new Set();
+      for (const c of this.cells.values()) if (c.pat) { live++; kinds.add(c.pat.t); if (c.pat.t === 'flora') floraSp.add(c.pat.sp); }
       const s = this.stats;
       return [
         ['coherence held', Math.round(this.coherence() * 300)],
@@ -923,6 +925,8 @@
         ['widest network', (s.netBest || 0) * 2],
         ['disorder devoured', Math.round((s.eaten || 0) * 2)],
         ['epochs reached', (this.stage - 1) * 50],
+        ['emergent flora', floraSp.size * 25],
+        ['megafauna sustained', this.fauna.length * 30 + this.faunaSpecies.size * 40],
       ];
     }
 
