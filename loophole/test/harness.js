@@ -483,6 +483,30 @@ function main() {
     console.log(`    open garden: peak coexisting=${(sPeak / sn).toFixed(1)} · biggest bed=${(sBed / sn).toFixed(0)} cells`);
     ok(sPeak / sn >= 3, 'open gardens grow diverse flora (peak ≥3 species)', (sPeak / sn).toFixed(1));
     ok(sBed / sn >= 4, 'beds spread into real meadows in open ground (avg biggest ≥4 cells)', (sBed / sn).toFixed(0));
+
+    /* MEGAFAUNA: a rich meadow summons grazing beasts, and the predator-prey does NOT collapse —
+       beasts AND flora both persist (the donor-control + satiety + prey-refuge tuning). this guards
+       the hardest-won property: my first cut was textbook Lotka-Volterra and crashed to zero. */
+    const faunaEco = seed => {
+      const g = new Game(seed, { mode: 'longgame' });
+      const hd = c => (Math.abs(c.q) + Math.abs(c.r) + Math.abs(c.q + c.r)) / 2;
+      cellsOf(g).filter(c => hd(c) <= 7).sort((c, d) => (c.q - d.q) || (c.r - d.r)).forEach((c, i) => { if (i % 9 === 0) c.pat = g._mkPat('moss'); else if (i % 9 === 3) c.pat = g._mkPat('ant'); else if (i % 17 === 5) c.pat = g._mkPat('crys'); });
+      g._recompute();
+      let herd = 0;
+      for (let t = 0; t < 100 && g.over === false; t++) { g.order += 12; g.endTurn(); herd = Math.max(herd, g.fauna.length); }
+      return { summoned: g.nextFauna - 1, herd, live: g.fauna.length, flora: cellsOf(g).filter(c => c.pat && c.pat.t === 'flora').length };
+    };
+    const fn = 4; let fHerd = 0, fLive = 0, fFlora = 0, fAny = 0;
+    for (let i = 0; i < fn; i++) { const r = faunaEco('fauna-' + i); fHerd += r.herd; fLive += r.live; fFlora += r.flora; if (r.summoned > 0) fAny++; }
+    console.log(`    megafauna: peak herd=${(fHerd / fn).toFixed(1)} · live@end=${(fLive / fn).toFixed(1)} · flora@end=${(fFlora / fn).toFixed(1)}`);
+    ok(fAny >= fn - 1, 'a rich meadow summons megafauna', `${fAny}/${fn}`);
+    ok(fLive / fn >= 1, 'beasts persist — predator-prey does not collapse to zero', (fLive / fn).toFixed(1));
+    ok(fFlora / fn >= 4, 'the meadow survives the grazing (prey refuge holds)', (fFlora / fn).toFixed(1));
+    const da = faunaEco('fauna-det'), db = faunaEco('fauna-det');
+    ok(da.summoned === db.summoned && da.live === db.live, 'megafauna are deterministic (same seed → same beasts)');
+    const fgarden = new Game('fauna-garden');
+    while (fgarden.over === false && fgarden.turn < 50) { if (fgarden.stage === 6 && fgarden.coalesceReady() && fgarden.beginCoalescence().ok) break; greedyTurn(fgarden); }
+    ok(fgarden.fauna.length === 0 && fgarden.faunaSpecies.size === 0, 'base garden mode stays free of megafauna');
   }
 
   console.log('\n' + (failures ? `${failures} FAILURE(S)` : 'ALL PASS'));
