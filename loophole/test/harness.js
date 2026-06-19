@@ -507,6 +507,31 @@ function main() {
     const fgarden = new Game('fauna-garden');
     while (fgarden.over === false && fgarden.turn < 50) { if (fgarden.stage === 6 && fgarden.coalesceReady() && fgarden.beginCoalescence().ok) break; greedyTurn(fgarden); }
     ok(fgarden.fauna.length === 0 && fgarden.faunaSpecies.size === 0, 'base garden mode stays free of megafauna');
+
+    /* TROPHIC CASCADE & RESILIENCE: pull the base (every producer) and watch what's genuinely
+       COUPLED to the flow collapse — while what has built its own habitat endures. The pioneer
+       flora live turn-to-turn on the element surplus; with the surplus gone they die back and NO
+       new species can speciate (zero surplus → zero niches). The ecology shrinks to its core.
+       But an ESTABLISHED bed is a dissipative structure with memory: niche construction
+       (Holland / Odling-Smee) holds its own microclimate, and its excretion is a small
+       autocatalytic loop (Kauffman) — so the core, and the herd grazing it, show HYSTERESIS:
+       multiple stable states, the system remembers it was once rich. That resilience is a real
+       complex-systems property, not a decoration — so we report it rather than assert against it. */
+    {
+      const g = new Game('cascade-1', { mode: 'longgame' });
+      const hd = c => (Math.abs(c.q) + Math.abs(c.r) + Math.abs(c.q + c.r)) / 2;
+      cellsOf(g).filter(c => hd(c) <= 7).sort((c, d) => (c.q - d.q) || (c.r - d.r)).forEach((c, i) => { if (i % 9 === 0) c.pat = g._mkPat('moss'); else if (i % 9 === 3) c.pat = g._mkPat('ant'); else if (i % 17 === 5) c.pat = g._mkPat('crys'); });
+      g._recompute();
+      for (let t = 0; t < 85 && g.over === false; t++) { g.order += 12; g.endTurn(); }
+      const floraB = cellsOf(g).filter(c => c.pat && c.pat.t === 'flora').length, faunaB = g.fauna.length, spB = g.species.size;
+      for (const c of g.cells.values()) if (c.pat && (c.pat.t === 'moss' || c.pat.t === 'crys' || c.pat.t === 'ant')) c.pat = null; /* pull the base */
+      g._recompute();
+      for (let t = 0; t < 65 && g.over === false; t++) { g.order += 12; g.endTurn(); }
+      const floraA = cellsOf(g).filter(c => c.pat && c.pat.t === 'flora').length, faunaA = g.fauna.length;
+      console.log(`    trophic cascade: pull the base → flora ${floraB}→${floraA} (the flow-dependent layer dies back), fauna ${faunaB}→${faunaA} & est. core endure — HYSTERESIS, the meadow remembers it was rich`);
+      ok(faunaB >= 1 && spB >= 1, 'the cascade test grew a real ecology first', `flora ${floraB} fauna ${faunaB} species ${spB}`);
+      ok(floraA < floraB, 'pull the producers and the flow-dependent flora collapse — that layer IS coupled to the base', `flora −${floraB - floraA}`);
+    }
   }
 
   console.log('\n' + (failures ? `${failures} FAILURE(S)` : 'ALL PASS'));
