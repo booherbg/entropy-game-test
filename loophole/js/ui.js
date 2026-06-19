@@ -961,6 +961,7 @@
         <p><b>don’t hoard.</b> order above a soft cap radiates away as heat — but some of that heat condenses into <b>✸ insight</b>. spend insight in <b>« cultivate »</b> on cultivars and extra <b>hands</b> that plant 2–3 at once.</p>
         <p><b>rot</b> spreads from the frontier and gnaws your patterns. tend it to wound it, foragers devour it, crystal auras corrode it — or wall it off and starve it. clearing it pays insight.</p>
         <p>reach a stage’s coherence target and a golden choice appears: <b>let the world widen</b>. new ground arrives wild, pressure rises, a new pattern unlocks. you choose when — but a stalled garden invites the dark. if coherence stays under 22% for three turns, the stream takes the garden back.</p>
+        <p><b>the long game.</b> choose it on the new-garden screen and there is no single waking — you tend a world toward turn 100, scored on how <i>alive</i> it becomes. and life you never planted begins to <b>arise on its own</b>: when your garden over-produces an element — light, stone, or rot (the coloured bars in the metabolism panel) — a <b>flower</b> is summoned that eats the excess, wearing its diet as its colour. survivors <b>establish into beds</b>, so leave them <b>open ground</b> to spread into. and when a meadow grows rich and varied enough, a grazing <b>beast</b> walks in to feed on it — and lives only while the meadow does. point at anything to read what it is; the murmurs keep a journal of every species your worlds have dreamed up.</p>
         ${pats}
         <div class="helppat"><b>soils</b><br><span class="muted">${soils}</span></div>
         <p class="muted">tend (T) · prune (X, refunds) · space ends the turn · right-click clears your hand · 1–7 select patterns · artifacts live on the right — some want clicking.</p>
@@ -1415,7 +1416,7 @@
   }
   function modeLine(m) {
     return m === 'longgame'
-      ? 'the long game — no single waking. cultivate the richest, most lasting world you can; scored at turn 100 on coherence, scale, diversity, life. (where the deeper game will grow.)'
+      ? 'the long game — no single waking. tend a world toward turn 100 and watch life you never planted arise from it: flowers summoned by your surpluses, beds, and beasts that graze them. leave open ground for it to spread. scored on how alive it becomes.'
       : 'the garden — tend a world toward a single awakening. the base game.';
   }
 
