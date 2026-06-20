@@ -133,7 +133,15 @@
      event — only a few unions hold at once. WIDEN: the emergent tolerance — the compound's entropy
      band is wider than either parent's (lichen colonising bare rock). REEF: a compound constructs
      habitat harder than an ordinary bed — coral building the reef that shelters the others. */
-  const MERGE = { YOUTH: 20, BOND: 14, SP_CAP: 3, WIDEN: 0.12, REEF: 0.042 };
+  const MERGE = { YOUTH: 20, YOUTH_FEAR: 8, BOND: 14, SP_CAP: 3, FEAR_CAP: 2, WIDEN: 0.12, REEF: 0.042 };
+  /* PREDATION — the top-down counterpart to the bottom-up summoning chain. An abundance of GRAZERS (a
+     herd) summons an APEX: a keystone culler that hunts the herd. The same hard-won NON-COLLAPSE
+     discipline as grazing, one trophic level up — donor-controlled (one kill per satiety), refuge-bounded
+     (never the last of the herd; the prey persists), dissipative (it starves without prey). It keeps the
+     herd in check, so the web does not settle into a dead fixed point — predator & prey cycle (the
+     lynx-hare oscillation, bounded). These are sharp, dark, hunting names — never prey names. */
+  const FAUNA_PRED_SUF = ['stalker', 'culler', 'reaver', 'shrike', 'lurker', 'prowler', 'harrier', 'raptor'];
+  const PRED = { THRESH: 3, SUSTAIN: 4, NEED: 6, REFUGE: 2, CAP: 3, STARVE: 18, BREED: 14 };
 
   /* ───────────────────────── game ───────────────────────── */
   class Game {
@@ -175,6 +183,7 @@
       this.faunaSpecies = new Map();
       this.nextFauna = 1;
       this.faunaRun = 0;           /* sustained meadow-richness → opens a fauna niche */
+      this.predRun = 0;            /* sustained grazer-herd abundance → opens an apex (predator) niche */
       this.firedOcc = {};
       this.stormI = 0;
       this.stormQueue = [];
@@ -592,11 +601,21 @@
         this.faunaRun++;
         if (this.faunaRun >= FA_SUSTAIN) { this._speciateFauna(estFlora, ev); this.faunaRun = 0; }
       } else this.faunaRun = 0;
+      /* 1b. an APEX is summoned by an abundance of GRAZERS (its prey base) — the top of the web needs a
+         herd beneath it, exactly as the herd needed a meadow. it specialises on the dominant grazer. */
+      const grazers = this.fauna.filter(f => { const s = this.faunaSpecies.get(f.spId); return s && s.role === 'grazer'; });
+      const hasPred = [...this.faunaSpecies.values()].some(s => s.role === 'predator');
+      if (grazers.length >= PRED.THRESH && !hasPred) {
+        this.predRun++;
+        if (this.predRun >= PRED.SUSTAIN) { this._speciatePredator(grazers, ev); this.predRun = 0; }
+      } else this.predRun = 0;
       /* 2. each beast roams toward flora, grazes one a turn (donor-controlled — no annihilation),
          and leaves droppings (humus); it starves if the meadow can no longer feed it */
       for (const f of this.fauna) {
         const sp = this.faunaSpecies.get(f.spId); if (!sp) { f.dead = 1; continue; }
+        if (f.dead) continue; /* may have been culled by a predator earlier this same turn */
         f.age++; f.hunger++;
+        if (sp.role === 'predator') { this._hunt(f, sp, ev); if (f.hunger > PRED.STARVE) f.dead = 1; continue; } /* the apex hunts the herd, not the meadow */
         let best = null, bestD = 1e9;
         for (const c of this._patternCells('flora')) {
           const d = HEX.dist2(f.q, f.r, c.q, c.r) - (c.pat.sp === sp.diet ? (sp.role === 'grazer' ? 6 : 0.5) : 0) - (sp.role === 'pollinator' && c.pat.fedOk ? 0.6 : 0); /* a grazer LOCKS onto its own diet — a specialist, the prelude to symbiosis; a pollinator just seeks nectar (a FED flower) */
@@ -626,14 +645,17 @@
             /* a GRAZER: eats only when HUNGRY — to satiety then rests — so the meadow can keep up.
                one flower at a time (donor-controlled), never below the prey REFUGE. no annihilation. */
             const onDiet = best.pat.sp === sp.diet && best.pat.est; /* a specialist has LOCKED onto an established flower of its OWN co-evolved kind */
-            if (onDiet && f.age >= MERGE.YOUTH) {
-              /* SYMBIOGENESIS — the bond is COHABITATION, not predation, and only after a grazing
-                 YOUTH (a consumer must first live as a consumer; symbiosis is the advanced achievement,
-                 not the starting move — Margulis). then each turn a specialist lives beside its producer,
-                 the bond deepens (the symbiont is housed, not eaten). long enough, and the last act of
-                 grazing becomes the first act of UNION — it lies down and becomes a compound (a coral).
-                 combat → network. one-way: the beast is spent, a KIND remains. */
-              f.bond = (f.bond || 0) + 1;
+            const threat = this._threat(); /* is an apex stalking the herd? then FEAR drives the union */
+            if (onDiet && f.age >= (threat ? MERGE.YOUTH_FEAR : MERGE.YOUTH)) {
+              /* SYMBIOGENESIS — the bond is COHABITATION, not predation, and (in peace) only after a
+                 grazing YOUTH (symbiosis is the advanced achievement, not the starting move — Margulis).
+                 each turn a specialist lives beside its producer, the bond deepens (the symbiont is housed,
+                 not eaten); long enough, and the last act of grazing becomes the first act of UNION.
+                 but under PREDATION PRESSURE the grazer FLEES into union — it skips most of the youth and
+                 bonds twice as fast, and the meadow tolerates more unions (a coral is immune to the
+                 culler). combat DRIVES cooperation: the apex hunts its prey into the very form that
+                 escapes it, and so engineers its own obsolescence. Margulis, taken all the way. */
+              f.bond = (f.bond || 0) + (threat ? 2 : 1);
               if (best.pat.fedOk) f.hunger = Math.max(0, f.hunger - 2); /* the nascent symbiosis feeds it — but only off a PRODUCING partner (the symbiont photosynthesises): a proto-coral lives off the partner it houses, so it need not hunt to bond and does not eat the very flower it is becoming. on a dead base the partner cannot produce, so the bond no longer shields it from starvation — the union, too, is coupled to the base. */
               if (this._shouldMerge(f, sp)) { this._symbiogenesis(f, sp, best, ev); continue; }
             }
@@ -716,6 +738,58 @@
       }
       ev.push({ t: 'fauna', name, role, color: sp.color, k: HEX.key(spot.q, spot.r), eats: floraSp ? floraSp.name : 'wildflowers' });
     }
+    _speciatePredator(grazers, ev) {
+      const id = this.nextFauna++;
+      /* it specialises on the meadow's DOMINANT grazer — its identity derives from its prey */
+      const count = {};
+      for (const g of grazers) count[g.spId] = (count[g.spId] || 0) + 1;
+      let dietSp = grazers[0].spId, mx = 0;
+      for (const s in count) if (count[s] > mx) { mx = count[s]; dietSp = +s; }
+      const preySp = this.faunaSpecies.get(dietSp);
+      const ch = preySp ? preySp.ch : 0;
+      const name = FLORA_PRE[ch][this.rng.i(FLORA_PRE[ch].length)] + FAUNA_PRED_SUF[this.rng.i(FAUNA_PRED_SUF.length)];
+      /* a predatory red — distinct from any prey's diet-colour, so the apex reads as danger */
+      const sp = { id, diet: dietSp, ch, role: 'predator', color: '#c2503f', name, born: this.turn, seeded: true };
+      this.faunaSpecies.set(id, sp);
+      const spot = grazers[0];
+      this.fauna.push({ spId: id, q: spot.q, r: spot.r, age: 0, hunger: 0, fedRun: 0 });
+      ev.push({ t: 'fauna', name, role: 'predator', color: sp.color, k: HEX.key(spot.q, spot.r), eats: preySp ? preySp.name : 'the herd' });
+    }
+    /* ── the apex hunts the herd: donor-controlled + refuge-bounded + dissipative (non-collapse) ── */
+    _hunt(f, sp, ev) {
+      let prey = null, bestD = 1e9, grazerN = 0, predN = 0;
+      for (const o of this.fauna) {
+        if (o.dead) continue;
+        const osp = this.faunaSpecies.get(o.spId); if (!osp) continue;
+        if (osp.role === 'predator') { predN++; continue; }
+        if (osp.role !== 'grazer') continue; /* the apex hunts the HERD — not the airy pollinators, not the calcified corals */
+        grazerN++;
+        const d = HEX.dist2(f.q, f.r, o.q, o.r) - (o.spId === sp.diet ? 4 : 0); /* prefers its own prey species, but will take any grazer */
+        if (d < bestD) { bestD = d; prey = o; }
+      }
+      if (!prey) return; /* no prey in reach → it goes hungry, and starves if the herd is gone (dissipative) */
+      if (HEX.dist2(f.q, f.r, prey.q, prey.r) <= 1) {
+        /* a KILL — only when hungry (one per satiety, donor-controlled), and never the last of the herd
+           (refuge-bounded: the prey is regulated, never annihilated). a carcass fertilises the ground. */
+        if (f.hunger >= PRED.NEED && grazerN > PRED.REFUGE) {
+          prey.dead = 1; f.hunger = 0; f.fedRun = (f.fedRun || 0) + 1;
+          const cell = this.cells.get(HEX.key(prey.q, prey.r)); if (cell) cell.e = U.clamp(cell.e + 0.06, 0, 1); /* the carcass effect — a kill is a biogeochemical hotspot (Bump et al.) */
+          ev.push({ t: 'predate', k: HEX.key(prey.q, prey.r), color: sp.color });
+          if (f.fedRun >= PRED.BREED && predN < PRED.CAP) {
+            const bn = [...HEX.neighborsK(HEX.key(f.q, f.r))].filter(k => this.cells.has(k)).map(k => HEX.parse(k));
+            const bp = bn.length ? bn[this.rng.i(bn.length)] : [f.q, f.r];
+            this.fauna.push({ spId: f.spId, q: bp[0], r: bp[1], age: 0, hunger: 0, fedRun: 0 }); f.fedRun = 0; ev.push({ t: 'faunaBreed', k: HEX.key(f.q, f.r), color: sp.color });
+          }
+        }
+      } else {
+        /* stalk toward the nearest grazer, with light PACK cohesion (apex hunt loosely together) */
+        let hx = 0, hy = 0, hn = 0; const occ = new Set();
+        for (const o of this.fauna) { const osp = this.faunaSpecies.get(o.spId); if (o !== f && osp && osp.role === 'predator') { hx += o.q; hy += o.r; hn++; occ.add(o.q + ',' + o.r); } }
+        let tq = prey.q, tr = prey.r;
+        if (hn) { tq = prey.q * 0.8 + (hx / hn) * 0.2; tr = prey.r * 0.8 + (hy / hn) * 0.2; }
+        const s = this._stepToward(f.q, f.r, tq, tr, occ); f.q = s.q; f.r = s.r;
+      }
+    }
     _stepToward(q, r, tq, tr, avoid) {
       let best = { q, r }, bestD = HEX.dist2(q, r, tq, tr);
       for (const nk of HEX.neighborsK(HEX.key(q, r))) {
@@ -729,9 +803,11 @@
     }
 
     _compoundCount() { let n = 0; for (const s of this.species.values()) if (s.compound) n++; return n; }
-    /* is this grazer ready to become one with its diet? a long, fed bond + maturity + a free union slot */
+    _threat() { for (const s of this.faunaSpecies.values()) if (s.role === 'predator') return true; return false; } /* an apex stalks the herd */
+    /* is this grazer ready to become one with its diet? a long bond + a free union slot — and predation
+       pressure raises the ceiling on unions (the threatened meadow tolerates more escapes into coral) */
     _shouldMerge(f, sp) {
-      return sp.role === 'grazer' && (f.bond || 0) >= MERGE.BOND && this._compoundCount() < MERGE.SP_CAP;
+      return sp.role === 'grazer' && (f.bond || 0) >= MERGE.BOND && this._compoundCount() < MERGE.SP_CAP + (this._threat() ? MERGE.FEAR_CAP : 0);
     }
     /* ── symbiogenesis: a grazer and its established diet flora MERGE into a compound KIND ──
        Margulis's union, made literal. the producer's identity leads (the symbiont that does the

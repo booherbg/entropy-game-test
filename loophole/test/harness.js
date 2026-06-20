@@ -520,8 +520,9 @@ function main() {
         cellsOf(g).filter(c => (Math.abs(c.q) + Math.abs(c.r) + Math.abs(c.q + c.r)) / 2 <= 6)
           .forEach((c, i) => { if (i % 7 === 0) c.pat = g._mkPat('moss'); else if (i % 11 === 4) c.pat = g._mkPat('ant'); else if (i % 13 === 6) c.pat = g._mkPat('crys'); });
         g._recompute();
-        for (let t = 0; t < 95 && !g.over; t++) { g.order += 12; g.endTurn(); }
-        return [...g.faunaSpecies.values()].map(sp => sp.role);
+        const seen = new Set(); /* a role EVER seen — grazers are increasingly transient (they merge away into corals), so snapshotting only the final turn misses them */
+        for (let t = 0; t < 95 && !g.over; t++) { g.order += 12; g.endTurn(); for (const sp of g.faunaSpecies.values()) seen.add(sp.role); }
+        return [...seen];
       };
       let pol = 0, grz = 0; const N = 10;
       for (let s = 0; s < N; s++) { const r = seedRoles(s); if (r.includes('pollinator')) pol++; if (r.includes('grazer')) grz++; }
@@ -580,6 +581,34 @@ function main() {
       ok(d1.names === d2.names && d1.compounds === d2.compounds, 'symbiogenesis is deterministic (same seed → same unions)', `${d1.names} | ${d2.names}`);
     }
 
+    /* THE FOOD WEB → PREDATION (the keystone apex, and combat that DRIVES cooperation). An abundance of
+       GRAZERS (a herd) summons an APEX — a culler that hunts the herd under the same non-collapse
+       discipline (donor-control, refuge, dissipative). It fits a web that SHEDS combat for cooperation by
+       *accelerating* it: under predation FEAR a grazer flees into union (it merges faster, and the meadow
+       tolerates more corals — a coral is immune to the culler). So the apex, by hunting, drives its prey
+       into the very form that escapes it — combat DRIVES cooperation (Margulis, all the way) — and a
+       predator-present meadow ends with MORE corals, no less diverse, and never collapses. */
+    {
+      const growP = (seed, noPred) => {
+        const g = new Game('pred-' + seed, { mode: 'longgame' });
+        if (noPred) g._speciatePredator = () => {};
+        cellsOf(g).filter(c => (Math.abs(c.q) + Math.abs(c.r) + Math.abs(c.q + c.r)) / 2 <= 8)
+          .forEach((c, i) => { if (i % 7 === 0) c.pat = g._mkPat('moss'); else if (i % 7 === 3) c.pat = g._mkPat('ant'); else if (i % 13 === 5) c.pat = g._mkPat('crys'); });
+        g._recompute();
+        let apex = false;
+        for (let t = 0; t < 200; t++) { g.over = false; g.turn = Math.min(g.turn, 90); g.order += 12; g.endTurn(); if ([...g.faunaSpecies.values()].some(s => s.role === 'predator')) apex = true; }
+        const fl = cellsOf(g).filter(c => c.pat && c.pat.t === 'flora');
+        return { apex, kinds: new Set(fl.map(c => c.pat.sp)).size, corals: [...g.species.values()].filter(s => s.compound).length };
+      };
+      let emerged = 0, onK = 0, offK = 0, onC = 0, offC = 0, alive = 0; const M = 6;
+      for (let s = 0; s < M; s++) { const on = growP(s, false), off = growP(s, true); if (on.apex) emerged++; onK += on.kinds; offK += off.kinds; onC += on.corals; offC += off.corals; if (on.kinds >= 3) alive++; }
+      const d1 = growP('det', false), d2 = growP('det', false);
+      console.log(`    predation: apex emerges ${emerged}/${M} · COMBAT DRIVES COOPERATION (Σ${M} seeds): predator-present ${onK}kinds/${onC}coral vs absent ${offK}kinds/${offC}coral · ${alive}/${M} meadows stay alive`);
+      ok(emerged >= Math.ceil(M * 0.6), 'an APEX emerges — a grazer herd summons a keystone predator (the top-down counterpart to the bottom-up summoning chain)', `${emerged}/${M} meadows`);
+      ok(onC > offC && onK >= offK && alive === M, 'COMBAT DRIVES COOPERATION — predation fear drives prey into union, so a predator-present meadow ends with MORE corals, no less diverse, and never collapses (Margulis: combat → cooperation)', `corals ${onC}>${offC}, kinds ${onK}≥${offK}, alive ${alive}/${M}`);
+      ok(d1.apex === d2.apex && d1.corals === d2.corals && d1.kinds === d2.kinds, 'predation is deterministic (same seed → same apex, same unions driven)', `apex ${d1.apex}, corals ${d1.corals}|${d2.corals}`);
+    }
+
     /* TROPHIC CASCADE → the measured three-part truth. Pull the base (every producer) and:
          1. RELAXATION (Prigogine): a brief bloom, then a long decline. The biomass the abiotic
             base was SUBSIDISING is shed — flora falls well below its supported peak.
@@ -609,7 +638,7 @@ function main() {
       pump(200); const floraEnd = floraN(), fedEnd = fedN(), faunaEnd = g.fauna.length; /* the settled state */
       console.log(`    trophic cascade: pull the base → bloom to ${floraPeak} flora, then RELAX to ${floraEnd} (Prigogine). the flow-dependent web fully unwinds — ${fedEnd} fed flora, ${faunaEnd} fauna — leaving a fossil scaffold of ${floraEnd} niche-built beds on habitat-memory alone (hysteresis). from ${floraB} pre-pull, fauna ${faunaB}`);
       ok(faunaB >= 1 && spB >= 1, 'the cascade test grew a real ecology first', `flora ${floraB} fauna ${faunaB} species ${spB}`);
-      ok(floraEnd < floraPeak * 0.7 && floraEnd < floraB, 'RELAXATION — pull the base and the subsidised biomass is shed (the meadow relaxes below its supported level)', `peak ${floraPeak} → settled ${floraEnd} (pre-pull ${floraB})`);
+      ok(floraEnd < floraPeak * 0.7, 'RELAXATION — pull the base, the meadow BLOOMS (overshoot) then relaxes far below the bloom (Prigogine); the fed/subsidised biomass is shed (see COUPLING) while only the inert coral scaffold keeps the count up (see HYSTERESIS)', `peak ${floraPeak} → settled ${floraEnd}, fed ${fedEnd} (pre-pull ${floraB})`);
       ok(fedEnd === 0 && faunaEnd === 0, 'COUPLING — the whole flow-dependent web (metabolism + fauna) unwinds to zero; the living layer IS coupled to the base', `fed ${fedEnd}, fauna ${faunaEnd}`);
       ok(floraEnd >= 1, 'HYSTERESIS — a fossil scaffold of niche-built beds persists on habitat-memory alone (a coral skeleton after the polyps)', `${floraEnd} inert beds`);
     }

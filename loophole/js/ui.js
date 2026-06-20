@@ -737,6 +737,8 @@
         case 'fauna':
           if (e.role === 'pollinator')
             toast('a <b>pollinator</b> drifts in — « <b style="color:' + e.color + '">' + e.name + '</b> » — drawn by a meadow varied enough to need one. it sips the ' + e.eats + ' and carries its kind into open ground: it <b>spreads</b> life rather than eating it. a mutualist — the meadow grows richer for it.', 'good', 9000);
+          else if (e.role === 'predator')
+            toast('an <b>apex</b> appears — « <b style="color:' + e.color + '">' + e.name + '</b> » — drawn by a herd grown big enough to hunt. it culls the ' + e.eats + ', the top of your web at last: predator and prey now <b>cycle</b>, so the meadow no longer settles into a still picture. and its danger carries a strange mercy — a hunted grazer <b>flees into union</b>, merging with its flower sooner. <b>combat drives cooperation.</b>', 'good', 10500);
           else
             toast('a <b>herd</b> walks into the world — « <b style="color:' + e.color + '">' + e.name + '</b> », drawn by a meadow rich enough to feed it. it grazes the ' + e.eats + ' and lives only while the meadow does — and, lived-with long enough, a grazer may become one with its flower (a coral).', 'good', 8500);
           AU.beast();
@@ -1553,13 +1555,17 @@
       [...game.cells.values()].filter(c => hd(c) <= 8).sort((c, d) => (c.q - d.q) || (c.r - d.r)).forEach((c, i) => { if (i % 7 === 0) c.pat = game._mkPat('moss'); else if (i % 7 === 3) c.pat = game._mkPat('ant'); else if (i % 13 === 5) c.pat = game._mkPat('crys'); });
       game._recompute();
       for (let i = 0; i < 200; i++) { game.over = false; game.turn = Math.min(game.turn, 90); game.order += 12; game.endTurn(); } /* grow the meadow (grazers + a diverse flora layer) */
-      /* stage the unions directly for the screenshot — the natural maturation varies run to run, and this
-         shows what every merge produces: a grazer and an established diet flora becoming one coral */
+      /* stage the full food web for the screenshot (natural maturation varies run to run): most grazers
+         become corals (symbiogenesis), a remnant herd is left, and an APEX is staged over it */
       { const grazers = game.fauna.filter(f => { const sp = game.faunaSpecies.get(f.spId); return sp && sp.role === 'grazer'; });
         const cdist = c => Math.abs(c.q) + Math.abs(c.r) + Math.abs(c.q + c.r);
         const ests = [...game.cells.values()].filter(c => c.pat && c.pat.t === 'flora' && c.pat.est && !(game.species.get(c.pat.sp) || {}).compound).sort((a, b) => cdist(a) - cdist(b) || (a.q - b.q) || (a.r - b.r));
-        for (let i = 0; i < grazers.length && i < ests.length; i++) { const sp = game.faunaSpecies.get(grazers[i].spId); if (sp) game._symbiogenesis(grazers[i], sp, ests[i], []); }
-        game.fauna = game.fauna.filter(f => !f.dead); }
+        const merge = Math.max(0, grazers.length - 2); /* leave a remnant herd for the apex to hunt */
+        for (let i = 0; i < merge && i < ests.length; i++) { const sp = game.faunaSpecies.get(grazers[i].spId); if (sp) game._symbiogenesis(grazers[i], sp, ests[i], []); }
+        game.fauna = game.fauna.filter(f => !f.dead);
+        let herd = game.fauna.filter(f => { const sp = game.faunaSpecies.get(f.spId); return sp && sp.role === 'grazer'; });
+        if (herd.length) { const h0 = herd[0]; for (let n = herd.length; n < 3; n++) game.fauna.push({ spId: h0.spId, q: h0.q + (n % 2 ? 1 : -1), r: h0.r - (n % 2), age: 6, hunger: 0, fedRun: 0 });
+          game._speciatePredator(game.fauna.filter(f => { const sp = game.faunaSpecies.get(f.spId); return sp && sp.role === 'grazer'; }), []); } }
       R.dirty(); updateHUD();
     }
     if (kind === 'ecometab') { /* the element economy panel in the long game */

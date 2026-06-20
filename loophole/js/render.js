@@ -553,6 +553,7 @@
       const k = HEX.key(f.q, f.r), p = this.pos.get(k); if (!p) return;
       const col = (sp && sp.color) || '#d8c0a8';
       if (sp && sp.role === 'pollinator') return this._drawPollinator(cx, p, f, col); /* a mutualist reads airy & luminous — the opposite of a heavy grazer */
+      if (sp && sp.role === 'predator') return this._drawPredator(cx, p, f, col); /* an apex reads lean & sharp & watchful — a red menace, not a placid grazer */
       const s = this.s * 1.25, dir = (f.q + f.r) % 2 ? 1 : -1; /* megafauna are LARGE — bigger than any flower */
       cx.save();
       cx.translate(p.x, p.y); cx.scale(dir, 1);
@@ -566,6 +567,27 @@
       cx.beginPath(); cx.ellipse(-s * 0.02, -s * 0.06, s * 0.52, s * 0.30, 0, 0, TAU); cx.fill(); cx.stroke(); /* body, outlined to stand out */
       cx.beginPath(); cx.ellipse(s * 0.48, s * 0.18, s * 0.18, s * 0.15, 0.3, 0, TAU); cx.fill(); cx.stroke(); /* head, dipped to graze */
       cx.fillStyle = rgba('#fff', 0.5); cx.beginPath(); cx.arc(s * 0.52, s * 0.13, s * 0.03, 0, TAU); cx.fill(); /* eye */
+      cx.restore();
+    }
+
+    /* a CULLER — the apex. lean and low and taut where the grazer is broad and placid; its head is
+       RAISED and watchful (the grazer's is dipped), a sharp muzzle and a bright slit eye, in a
+       predatory red. it reads as danger moving over the meadow. */
+    _drawPredator(cx, p, f, col) {
+      const s = this.s * 1.15, dir = (f.q + f.r) % 2 ? 1 : -1;
+      cx.save();
+      cx.translate(p.x, p.y); cx.scale(dir, 1);
+      const g = cx.createRadialGradient(0, 0, 0, 0, 0, s * 0.9);
+      g.addColorStop(0, rgba(col, 0.34)); g.addColorStop(1, rgba(col, 0));
+      cx.fillStyle = g; cx.beginPath(); cx.arc(0, 0, s * 0.9, 0, TAU); cx.fill();
+      cx.strokeStyle = rgba('#2a0f0a', 0.7); cx.lineWidth = s * 0.08; cx.lineCap = 'round';
+      for (const dx of [-0.30, -0.10, 0.16, 0.34]) { cx.beginPath(); cx.moveTo(s * dx, s * 0.14); cx.lineTo(s * dx, s * 0.40); cx.stroke(); } /* lean legs, poised */
+      cx.fillStyle = rgba(col, 0.97); cx.strokeStyle = rgba('#2a0f0a', 0.6); cx.lineWidth = s * 0.05;
+      cx.beginPath(); cx.ellipse(-s * 0.04, -s * 0.04, s * 0.50, s * 0.20, 0, 0, TAU); cx.fill(); cx.stroke(); /* sleek, low body */
+      cx.beginPath(); cx.moveTo(s * 0.40, -s * 0.12); cx.lineTo(s * 0.76, -s * 0.03); cx.lineTo(s * 0.40, s * 0.07); cx.closePath(); cx.fill(); cx.stroke(); /* a sharp muzzle, raised and forward */
+      cx.fillStyle = rgba('#ffe08a', 0.95); cx.beginPath(); cx.arc(s * 0.52, -s * 0.03, s * 0.05, 0, TAU); cx.fill(); /* a bright eye */
+      cx.fillStyle = rgba('#2a0f0a', 0.95); cx.beginPath(); cx.ellipse(s * 0.535, -s * 0.03, s * 0.012, s * 0.035, 0, 0, TAU); cx.fill(); /* a vertical slit pupil */
+      cx.strokeStyle = rgba(col, 0.9); cx.lineWidth = s * 0.06; cx.lineCap = 'round'; cx.beginPath(); cx.moveTo(-s * 0.50, -s * 0.03); cx.lineTo(-s * 0.76, -s * 0.16); cx.stroke(); /* a low, taut tail */
       cx.restore();
     }
 
@@ -1202,6 +1224,7 @@
           case 'graze': if (e.k) this.burst(e.k, e.color, 3, 0.55); break;
           case 'pollinate': if (e.k) { this.burst(e.k, e.color, 4, 0.5); this.ring(e.k, e.color, 0.5); } break; /* a bright airy puff — life carried, not taken */
           case 'faunaBreed': if (e.k) this.burst(e.k, e.color, 5, 0.8); break;
+          case 'predate': if (e.k) { this.burst(e.k, e.color, 8, 1.1); this.ring(e.k, e.color, 0.6); } break; /* a KILL — a sharp red spatter and a quick ring */
           case 'merge': if (e.k) { this.burst(e.k, e.color, 22, 1.5); this.ring(e.k, e.color, 1.3); this.ring(e.k, '#efe6d2', 0.85); } break; /* the UNION — two become one: a bright convergent bloom and a calcified ring (the reef forming) */
           case 'cull': if (e.k) this.burst(e.k, PAL.greyDark, 6, 0.9); break;
           case 'demon': this.ring(e.k, PAL.gold, 0.9); this.burst(e.k, PAL.gold, 6, 1); break;
