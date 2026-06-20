@@ -307,6 +307,11 @@
     { q: 'anyone who is not shocked by quantum theory has not understood it.', by: 'niels bohr' },
     { q: 'consciousness is never experienced in the plural, only in the singular.', by: 'erwin schrödinger, what is life? (1944)' },
     { q: 'the irreversibility of time is the mechanism that brings order out of chaos.', by: 'ilya prigogine, order out of chaos (1984)' },
+    { q: 'an organism’s astonishing gift of concentrating a stream of order on itself, and thus escaping the decay into atomic chaos — of drinking orderliness from a suitable environment.', by: 'erwin schrödinger, what is life? (1944)' },
+    { q: 'life exists on earth as another means of dissipating the solar induced gradient, and as such, is a manifestation of the restated second law.', by: 'eric schneider & james kay, “order from disorder” (1995)' },
+    { q: 'the early stages in the emergence of life are no more surprising, no more accidental, than water flowing downhill.', by: 'morowitz, smith & trefil, “the origin of life,” american scientist (2009)' },
+    { q: 'natural selection tends to make the energy flux through the system a maximum, so far as compatible with the constraints to which the system is subject.', by: 'alfred lotka, “contribution to the energetics of evolution,” pnas (1922)' },
+    { q: 'you start with a random clump of atoms, and if you shine light on it for long enough, it should not be so surprising that you get a plant.', by: 'jeremy england, in quanta magazine (2014)' },
   ];
 
   /* ───────────────────────── hints (first-time toasts) ───────────────────────── */
