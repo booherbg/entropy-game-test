@@ -73,8 +73,20 @@ the player as the **element bars** in the metabolism panel ("the elements · wha
 The megafauna chain becomes a **web**, leading (per Margulis) with cooperation, not combat.
 - **Mutualism — the pollinator** (`_fauna` role branch; shipped `ece74ac`): a rich AND varied meadow
   (≥3 flora species) summons, by succession after a grazer, a **pollinator** — it sips nectar from a FED
-  flower (never kills) and carries that flower's kind into open ground (`_floraSpread`). Positive-sum,
-  measured: a pollinated meadow ends richer in flora than the same world grazed (harness).
+  flower (never kills) and carries that flower's kind into open ground (`_floraSpread`). It was once
+  cleanly positive-sum (17 flora vs a grazed 5) — but see *the dissolution* below: once grazers became
+  gentle mergers, that gap closed.
+- **The herd & the coupling** (`214ff68`): a grazer now arrives as a small **herd**, not a lone vestige,
+  so symbiogenesis is present within a turn-100 game and a real herbivore base exists. The load exposed
+  two coupling cheats, now fixed faithfully: fauna are summoned only by a FED (producing) meadow (a dead
+  fossil scaffold no longer births them), and a cohabiting grazer self-feeds only off a PRODUCING partner
+  (so the union is base-coupled too). Pull the base → the soft web unwinds to ZERO while the **corals
+  persist as the fossil scaffold** (grazers don't graze calcified reef — "a coral skeleton after the
+  polyps" made literal). The refuge now decrements live so a herd can't overshoot it on a stale count.
+- **The dissolution** (`214ff68`): the **combat/cooperation dichotomy dissolved**. An all-grazer meadow
+  now ends as rich as an all-pollinator one AND grows corals (combat → union) the pollinated one can't —
+  "networking beats combat" is no longer true because combat itself became generative (Margulis's actual
+  point). The harness asserts the matured web is **all net-positive, even the grazer ending in union**.
 - **Symbiogenesis — the coral** (`_shouldMerge` / `_symbiogenesis`, core; `FAUNA_MERGE_SUF`, `MERGE`
   consts): Margulis's *actual* radical claim — major novelty comes from MERGER, not competition (the
   eukaryotic cell is a union; mitochondria/chloroplasts once free-living). A grazer that has (1) lived a
