@@ -112,10 +112,11 @@
     frondMax: 6,  /* mandelbrot — clouds are not spheres */
     find1: 7,     /* lewis thomas — four ants begin to look like an idea */
     net6: 9,      /* margulis — life took over by networking */
-    death1: 11,   /* wiener — patterns that perpetuate themselves */
-    c70: 12,      /* watts — a wave the whole ocean is doing */
-    pulse1: 16,   /* hofstadter — little miracles of self-reference */
-    net20: 17,    /* sagan — a way for the cosmos to know itself */
+    merge1: 10,   /* margulis — symbiosis generates novelty (the first union) */
+    death1: 12,   /* wiener — patterns that perpetuate themselves */
+    c70: 13,      /* watts — a wave the whole ocean is doing */
+    pulse1: 17,   /* hofstadter — little miracles of self-reference */
+    net20: 18,    /* sagan — a way for the cosmos to know itself */
   };
 
   /* ───────────────────────── evolution tree ─────────────────────────
@@ -243,6 +244,7 @@
     'a solitary ant, afield, cannot be considered to have much of anything on his mind. four ants together, or ten, encircling a dead moth on a path, begin to look more like an idea.\n— lewis thomas, the lives of a cell (1974)',
     'at each level of complexity, entirely new properties appear. psychology is not applied biology, nor is biology applied chemistry. more is different.\n— philip w. anderson, science (1972)',
     'life did not take over the globe by combat, but by networking.\n— lynn margulis & dorion sagan, microcosmos (1986)',
+    'at the base of the creativity of all large familiar forms of life, symbiosis generates novelty.\n— lynn margulis, symbiotic planet (1998)',
     'if you are a poet, you will see clearly that there is a cloud floating in this sheet of paper. without a cloud there will be no rain; without rain the trees cannot grow.\n— thich nhat hanh, the heart of understanding (1988)',
     'we are but whirlpools in a river of ever-flowing water. we are not stuff that abides, but patterns that perpetuate themselves.\n— norbert wiener, the human use of human beings (1950)',
     /* III — the non-dual turn: self, no-self, the eddy */

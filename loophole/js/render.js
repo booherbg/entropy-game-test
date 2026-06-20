@@ -484,6 +484,7 @@
     /* an emergent flower — coloured by the species' diet (the element it eats).
        established beds are full and bright; pioneers small and translucent. */
     drawFlora(cx, s, p, sp) {
+      if (sp && sp.compound) return this._drawCompound(cx, s, p, sp); /* a coral reads as a different KIND — calcified, branching, reef-building */
       const col = (sp && sp.color) || '#9bd6a0';
       const bl = (sp && sp.blend) || [1, 0, 0];
       const r = rngOf('flora' + (sp ? sp.id : 0));
@@ -512,6 +513,37 @@
       }
       cx.fillStyle = rgba('#ffffff', est ? 0.7 : 0.32);
       cx.beginPath(); cx.arc(0, 0, size * 0.2, 0, TAU); cx.fill();
+      cx.restore();
+    }
+
+    /* a CORAL — the compound born of symbiogenesis. it reads as a different KIND than a flower:
+       a calcified, branching colony (a polypary) with soft polyps in the symbiont's colour, on a
+       cream skeleton. an animal that lay down and became a garden; the reef that shelters the meadow. */
+    _drawCompound(cx, s, p, sp) {
+      const col = (sp && sp.color) || '#cbb89a';
+      const r = rngOf('coral' + (sp ? sp.id : 0));
+      const size = s * 0.78 * (0.9 + Math.min(p.age || 0, 8) * 0.02); /* corals are notably larger than flowers — reef-building, so the eye finds the union */
+      cx.save();
+      /* a stony, calcified halo — the reef it builds, sheltering its neighbours */
+      const g = cx.createRadialGradient(0, 0, 0, 0, 0, size * 2.0);
+      g.addColorStop(0, rgba(col, 0.28)); g.addColorStop(0.55, rgba('#efe6d2', 0.12)); g.addColorStop(1, rgba(col, 0));
+      cx.fillStyle = g; cx.beginPath(); cx.arc(0, 0, size * 2.0, 0, TAU); cx.fill();
+      /* the calcified base — a solid stony mound (the skeleton it lays down, a coral skeleton even in life) */
+      cx.fillStyle = rgba('#f2e9d4', 0.9);
+      cx.beginPath(); cx.ellipse(0, size * 0.26, size * 0.82, size * 0.48, 0, 0, TAU); cx.fill();
+      cx.fillStyle = rgba('#cdbf9f', 0.5); cx.beginPath(); cx.ellipse(0, size * 0.40, size * 0.64, size * 0.24, 0, 0, TAU); cx.fill(); /* a shadowed underside, so the mound reads as stony */
+      /* fat rounded LOBES fanning up from the base (not thin fronds), each crowned by a round polyp
+         in the symbiont's colour with a luminous mouth (the algae within, making the colony its food) */
+      const branches = 4 + r.i(3);
+      for (let i = 0; i < branches; i++) {
+        const a = -Math.PI / 2 + (i - (branches - 1) / 2) * 0.54;
+        const len = size * (0.56 + r.f() * 0.26);
+        const bx = Math.cos(a) * len, by = Math.sin(a) * len + size * 0.06;
+        cx.strokeStyle = rgba(col, 0.85); cx.lineWidth = size * 0.22; cx.lineCap = 'round';
+        cx.beginPath(); cx.moveTo(0, size * 0.16); cx.lineTo(bx, by); cx.stroke();
+        cx.fillStyle = rgba(col, 0.98); cx.beginPath(); cx.arc(bx, by, size * 0.20, 0, TAU); cx.fill(); /* a fat round polyp */
+        cx.fillStyle = rgba('#fff', 0.62); cx.beginPath(); cx.arc(bx, by, size * 0.075, 0, TAU); cx.fill(); /* its luminous mouth — self-feeding */
+      }
       cx.restore();
     }
 
@@ -1170,6 +1202,7 @@
           case 'graze': if (e.k) this.burst(e.k, e.color, 3, 0.55); break;
           case 'pollinate': if (e.k) { this.burst(e.k, e.color, 4, 0.5); this.ring(e.k, e.color, 0.5); } break; /* a bright airy puff — life carried, not taken */
           case 'faunaBreed': if (e.k) this.burst(e.k, e.color, 5, 0.8); break;
+          case 'merge': if (e.k) { this.burst(e.k, e.color, 22, 1.5); this.ring(e.k, e.color, 1.3); this.ring(e.k, '#efe6d2', 0.85); } break; /* the UNION — two become one: a bright convergent bloom and a calcified ring (the reef forming) */
           case 'cull': if (e.k) this.burst(e.k, PAL.greyDark, 6, 0.9); break;
           case 'demon': this.ring(e.k, PAL.gold, 0.9); this.burst(e.k, PAL.gold, 6, 1); break;
           case 'hand': for (const k of e.cells) this.ring(k, PAL.dew, 0.5); break;

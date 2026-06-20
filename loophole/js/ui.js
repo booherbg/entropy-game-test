@@ -618,7 +618,12 @@
       if (p.t === 'flora') {
         /* an emergent flower — read like a haiku of fact: what it eats, what it leaves, where it thrives */
         const sp = game.species && game.species.get(p.sp), D = ['light', 'stone', 'rot'];
-        if (sp) {
+        if (sp && sp.compound) {
+          /* a coral — read its nature: a union, self-feeding, hardier than either parent */
+          lines.push(`<b style="color:${sp.color}">❖ ${sp.name}</b> · a <b>coral</b> — a compound being`);
+          lines.push(`<span class="muted">the union of « ${sp.parents ? sp.parents.beast : 'a beast'} » and « ${sp.parents ? sp.parents.flora : 'a flower'} » — symbiogenesis. it feeds itself and builds reef.</span>`);
+          lines.push(`<span class="muted">eats <b>${D[sp.ch]}</b>, leaves <b>${D[sp.ex]}</b> · hardy — thrives at ${Math.round(sp.eLo * 100)}–${Math.round(sp.eHi * 100)}% entropy, wider than either parent could bear.</span>`);
+        } else if (sp) {
           lines.push(`<b style="color:${sp.color}">❀ ${sp.name}</b> · ${p.est ? 'an established bed' : 'a young pioneer'}`);
           lines.push(`<span class="muted">eats <b>${D[sp.ch]}</b>, leaves <b>${D[sp.ex]}</b> · ${p.fedOk ? 'fed' : 'lean'} · age ${p.age}</span>`);
           lines.push(`<span class="muted">thrives at ${Math.round(sp.eLo * 100)}–${Math.round(sp.eHi * 100)}% entropy — a flower your world dreamed up. prune to cull it.</span>`);
@@ -739,6 +744,12 @@
             if (!fl.some(b => b.name === e.name && b.color === e.color)) { fl.push({ name: e.name, color: e.color, born: game ? game.turn : 0 }); save(); } }
           break;
         case 'faunaGone': toast('the « <b style="color:' + e.color + '">' + e.name + '</b> » are gone — the meadow could no longer hold them. remembered.', '', 6000); AU.wither(); break;
+        case 'merge':
+          toast('the food web does something it has never done — « <b style="color:' + e.color + '">' + e.beast + '</b> » does not eat the « <b style="color:' + e.color + '">' + e.flora + '</b> » it has lived beside so long; it <b>becomes one</b> with it. a new KIND is born — « <b style="color:' + e.color + '">' + e.name + '</b> », a <b>coral</b>: an animal that lay down and became a garden, feeding itself and building reef for the others. <b>symbiogenesis</b> — the union Margulis foresaw, the rarest thing your world can do.', 'good', 12000);
+          (AU.merge || AU.beast)();
+          { const fl = meta.flora || (meta.flora = []);
+            if (!fl.some(f => f.name === e.name)) { fl.push({ name: e.name, color: e.color, ch: e.ch, compound: 1, born: game ? game.turn : 0 }); save(); } }
+          break;
         case 'dissolveWarn': toast('the garden thins — coherence below 22% (' + e.streak + '/3)', 'warn', 5200); break;
         case 'dissolved': onDissolved(); break;
         case 'longEnd': onLongEnd(e.score, e.grade); break;
@@ -1338,7 +1349,7 @@
       document.body.classList.remove('cinema');
       /* the confession must precede the landing, even on a first-garden win */
       if (!meta.echoes.includes(18)) { meta.echoes.push(18); save(); pushOverlay(echoOverlay(18)); }
-      pushOverlay(echoOverlay(23));
+      pushOverlay(echoOverlay(24));
       pushOverlay(winOverlay(), { dismissible: false });
     });
   }
@@ -1534,6 +1545,21 @@
       [...game.cells.values()].filter(c => hd(c) <= 7).sort((c, d) => (c.q - d.q) || (c.r - d.r)).forEach((c, i) => { if (i % 9 === 0) c.pat = game._mkPat('moss'); else if (i % 9 === 3) c.pat = game._mkPat('ant'); else if (i % 17 === 5) c.pat = game._mkPat('crys'); });
       game._recompute();
       for (let i = 0; i < 95 && !game.over; i++) { game.order += 12; game.endTurn(); }
+      R.dirty(); updateHUD();
+    }
+    if (kind === 'coral') { /* SYMBIOGENESIS staged — grazers merge with their diet flora into corals (compound kinds) */
+      game.mode = 'longgame';
+      const hd = c => (Math.abs(c.q) + Math.abs(c.r) + Math.abs(c.q + c.r)) / 2;
+      [...game.cells.values()].filter(c => hd(c) <= 8).sort((c, d) => (c.q - d.q) || (c.r - d.r)).forEach((c, i) => { if (i % 7 === 0) c.pat = game._mkPat('moss'); else if (i % 7 === 3) c.pat = game._mkPat('ant'); else if (i % 13 === 5) c.pat = game._mkPat('crys'); });
+      game._recompute();
+      for (let i = 0; i < 200; i++) { game.over = false; game.turn = Math.min(game.turn, 90); game.order += 12; game.endTurn(); } /* grow the meadow (grazers + a diverse flora layer) */
+      /* stage the unions directly for the screenshot — the natural maturation varies run to run, and this
+         shows what every merge produces: a grazer and an established diet flora becoming one coral */
+      { const grazers = game.fauna.filter(f => { const sp = game.faunaSpecies.get(f.spId); return sp && sp.role === 'grazer'; });
+        const cdist = c => Math.abs(c.q) + Math.abs(c.r) + Math.abs(c.q + c.r);
+        const ests = [...game.cells.values()].filter(c => c.pat && c.pat.t === 'flora' && c.pat.est && !(game.species.get(c.pat.sp) || {}).compound).sort((a, b) => cdist(a) - cdist(b) || (a.q - b.q) || (a.r - b.r));
+        for (let i = 0; i < grazers.length && i < ests.length; i++) { const sp = game.faunaSpecies.get(grazers[i].spId); if (sp) game._symbiogenesis(grazers[i], sp, ests[i], []); }
+        game.fauna = game.fauna.filter(f => !f.dead); }
       R.dirty(); updateHUD();
     }
     if (kind === 'ecometab') { /* the element economy panel in the long game */

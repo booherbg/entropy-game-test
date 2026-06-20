@@ -302,7 +302,7 @@ function main() {
 
   /* content sanity */
   console.log('\n[content]');
-  ok(C.ECHOES.length === 24, 'there are 24 echoes');
+  ok(C.ECHOES.length === 25, 'there are 25 echoes');
   ok(Object.keys(C.LEGENDARIES).length >= 20, '≥20 legendaries', Object.keys(C.LEGENDARIES).length + '');
   let built = 0;
   for (const id of Object.keys(C.LEGENDARIES)) {
@@ -338,14 +338,14 @@ function main() {
   console.log('\n[echoes]');
   {
     let owned = [], runs = 0;
-    while (owned.length < 23 && runs < 10) {
+    while (owned.length < 24 && runs < 10) {
       const g = new Game('echo' + runs, { echoes: owned });
       for (let i = 0; i < 40; i++) g._occasion('occ' + i, null);
       owned = [...g.echoOwned].sort((a, b) => a - b);
       runs++;
     }
-    ok(owned.length === 23, 'all 23 murmurs reachable across runs', `got ${owned.length} in ${runs} runs`);
-    ok(owned.every((v, i) => v === i), 'murmurs 0..22 all owned exactly once');
+    ok(owned.length === 24, 'all 24 murmurs reachable across runs', `got ${owned.length} in ${runs} runs`);
+    ok(owned.every((v, i) => v === i), 'murmurs 0..23 all owned exactly once');
     const g = new Game('echo-cap', { echoes: [] });
     for (let i = 0; i < 40; i++) g._occasion('occ' + i, null);
     ok(g.echoesThisRun === g.echoCap(), 'per-run echo cap respected', g.echoesThisRun + '/' + g.echoCap());
@@ -539,6 +539,39 @@ function main() {
       console.log(`    food web: roles by succession — grazers ${grz}/${N}, pollinators ${pol}/${N} · positive-sum: pollinated meadow ${polFlora} flora vs grazed ${grzFlora}`);
       ok(grz >= N - 1 && pol >= Math.ceil(N / 2), 'both roles emerge — a consumer first, a mutualist as the varied meadow earns it', `grazers ${grz}/${N}, pollinators ${pol}/${N}`);
       ok(polFlora > grzFlora, 'mutualism is POSITIVE-SUM — networking out-produces combat (Margulis)', `pollinated ${polFlora} > grazed ${grzFlora} flora`);
+    }
+
+    /* THE FOOD WEB → SYMBIOGENESIS (Margulis's actual radical claim: major novelty comes from MERGER,
+       not competition — the eukaryotic cell is a union, its mitochondria & chloroplasts once free-living).
+       A grazer that has lived a youth as a specialist beside its OWN diet flora, then cohabited with it
+       long enough, does not eat it — it MERGES into a compound KIND (a coral): sessile, self-feeding,
+       reef-building, hardier than either parent. Claims: (1) a compound EMERGES by succession in a mature
+       meadow, deterministically; (2) the union is GENERATIVE / positive-sum — a meadow that lets its grazers
+       merge ends MORE DIVERSE (more distinct kinds coexisting) than the same world grazed: the merger
+       *creates* novel persisting kinds. This is Paine's keystone measured the way Paine measured it —
+       on species RICHNESS, not total biomass (the flora COUNT is null, carrying-capacity-bound; the
+       discovery is that the signal lives in diversity, not in the count). */
+    {
+      const grow = (seed, turns, disableMerge) => {
+        const g = new Game('sym-' + seed, { mode: 'longgame' });
+        if (disableMerge) g._shouldMerge = () => false;
+        cellsOf(g).filter(c => (Math.abs(c.q) + Math.abs(c.r) + Math.abs(c.q + c.r)) / 2 <= 8)
+          .forEach((c, i) => { if (i % 7 === 0) c.pat = g._mkPat('moss'); else if (i % 7 === 3) c.pat = g._mkPat('ant'); else if (i % 13 === 5) c.pat = g._mkPat('crys'); });
+        g._recompute();
+        for (let t = 0; t < turns; t++) { g.over = false; g.turn = Math.min(g.turn, 90); g.order += 12; g.endTurn(); }
+        const fl = cellsOf(g).filter(c => c.pat && c.pat.t === 'flora');
+        const comp = [...g.species.values()].filter(s => s.compound);
+        return { compounds: comp.length, names: comp.map(s => s.name).sort().join(','), flora: fl.length, kinds: new Set(fl.map(c => c.pat.sp)).size };
+      };
+      let emerged = 0; const M = 6;
+      for (let s = 0; s < M; s++) if (grow(s, 180, false).compounds > 0) emerged++;
+      let on = 0, off = 0, onF = 0, offF = 0; const K = 6; /* keystone A/B over seeds, measured on DIVERSITY (Paine) — and flora COUNT to show it is the null variable */
+      for (let s = 0; s < K; s++) { const a = grow('ks' + s, 200, false), b = grow('ks' + s, 200, true); on += a.kinds; off += b.kinds; onF += a.flora; offF += b.flora; }
+      const d1 = grow('det', 180, false), d2 = grow('det', 180, false);
+      console.log(`    symbiogenesis: compounds emerge in ${emerged}/${M} meadows · GENERATIVE (Σ${K} seeds): merged ${on} kinds vs grazed ${off} (Δ${on - off}) — while flora COUNT is null (${onF} vs ${offF}) · e.g. ${grow('det', 180, false).names || '(none)'}`);
+      ok(emerged >= Math.ceil(M * 0.6), 'a compound KIND emerges — a grazer and its diet flora merge into a coral (Margulis symbiogenesis)', `${emerged}/${M} meadows`);
+      ok(on > off, 'symbiogenesis is GENERATIVE — the union ends a meadow MORE DIVERSE in kinds (Paine measured on richness, not biomass; the count is carrying-capacity-bound)', `merged ${on} kinds > grazed ${off}`);
+      ok(d1.names === d2.names && d1.compounds === d2.compounds, 'symbiogenesis is deterministic (same seed → same unions)', `${d1.names} | ${d2.names}`);
     }
 
     /* TROPHIC CASCADE → the measured three-part truth. Pull the base (every producer) and:

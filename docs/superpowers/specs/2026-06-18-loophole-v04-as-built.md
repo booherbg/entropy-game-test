@@ -69,13 +69,50 @@ the player as the **element bars** in the metabolism panel ("the elements · wha
   `murmursOverlay`; `defaultMeta` + migration guards; `?shot=eco|ecometab|fauna`.
 - **test/harness.js:** the `[emergence]` section — dense + open-garden + megafauna dashboards & guards.
 
-## 6. Open items (next)
-- **Predation / parasitism BETWEEN fauna** — the foundations doc's tag-primitive unification (the same
-  tag-matched-exchange, different sign): a spider binds to prey, a parasite to a herd. This is the H3
-  strategic call (generalise onto tags vs keep the surplus-summoning style). Biggest next lever.
-- **Fauna visibility at full-board zoom** — beasts read modestly on a large board; fine zoomed in.
-- **Base-economy `c.e` quantization** breaks save→load→endTurn determinism in ALL modes (pre-existing;
-  the harness roundtrip check can't see it). Base owner's call.
+## 6. The food web — Margulis-first (mutualism, then merger)
+The megafauna chain becomes a **web**, leading (per Margulis) with cooperation, not combat.
+- **Mutualism — the pollinator** (`_fauna` role branch; shipped `ece74ac`): a rich AND varied meadow
+  (≥3 flora species) summons, by succession after a grazer, a **pollinator** — it sips nectar from a FED
+  flower (never kills) and carries that flower's kind into open ground (`_floraSpread`). Positive-sum,
+  measured: a pollinated meadow ends richer in flora than the same world grazed (harness).
+- **Symbiogenesis — the coral** (`_shouldMerge` / `_symbiogenesis`, core; `FAUNA_MERGE_SUF`, `MERGE`
+  consts): Margulis's *actual* radical claim — major novelty comes from MERGER, not competition (the
+  eukaryotic cell is a union; mitochondria/chloroplasts once free-living). A grazer that has (1) lived a
+  grazing **youth** (`age ≥ MERGE.YOUTH`), then (2) **cohabited** as a specialist beside its OWN diet
+  flora long enough (`bond ≥ MERGE.BOND`) does not graze it again — it **merges** into a **compound KIND**:
+  a sessile, self-feeding, reef-building **coral** (`FLORA_PRE × {coral,reef,zoophyte,chimera,meld,commons,
+  polypary,symbiont}` → goldcoral, miremeld, ashpolypary). Key faithfulness moves the build *discovered*:
+  the bond is **cohabitation, not predation** (a generalist never forms the exclusive pairing symbiosis
+  needs); a bonding grazer **houses its partner, never eats it** (forages around it); and a proto-coral
+  **self-feeds off the nascent union** (hunger decays while bonding) — without that it would eat its
+  partner to extinction and stall one bond short. The compound is a flora species `compound:true` with
+  emergent capabilities over either parent: a **wider entropy band** (lichen tolerance) and a **stronger
+  reef** (`MERGE.REEF` niche construction). One-way (a ratchet); the consumer niche refills (a new grazer
+  grows), so unions recur up to `MERGE.SP_CAP`.
+  - **Measured (harness `[emergence]`):** compounds emerge 6/6 meadows · deterministic · round-trip through
+    save/load. **GENERATIVE / keystone** — a meadow that lets its grazers merge ends MORE DIVERSE (Σ6 seeds:
+    41 kinds vs 33, **+24%**) while total flora COUNT is null (95 vs 95, carrying-capacity-bound). *Discovery:*
+    the keystone signal lives in **diversity, not biomass** — which is exactly how Robert Paine measured the
+    keystone effect (the 1966 *Pisaster* removal: richness collapsed, biomass didn't). Margulis-as-mechanism,
+    Paine-as-measurement.
+- **Witnessability:** `_drawCompound` (a calcified branching coral — cream skeleton + fat polyps in the
+  symbiont's colour, distinct from any flower); the `merge` FX (a convergent bloom + a calcified ring); the
+  arrival **toast** ("…becomes one with it… symbiogenesis — the union Margulis foresaw"); the coral
+  **cellTip** (its two parents · self-feeding · hardy band); the merge **murmur** (Margulis, *Symbiotic
+  Planet* 1998 — "at the base of the creativity of all large familiar forms of life, symbiosis generates
+  novelty", landed on the first union); `?shot=coral`.
+
+## 7. Open items (next)
+- **Predation BETWEEN fauna** — a culler/keystone predator that thins a herd and (Paine/Yellowstone)
+  thereby *releases* the meadow: the top-down trophic cascade to mirror the bottom-up one. Was next in
+  the arc; deferred to lead Margulis-first with the merger. Donor-controlled, refuge-bounded.
+- **Coral / fauna visibility at full-board zoom** — corals (like beasts) read small on a large board;
+  fine zoomed in. The render path is verified (the dispatch runs), the legibility is the open item.
+- **node↔browser ecology divergence** (found while staging `?shot=coral`): the long game **auto-widens**
+  the board in the browser (radius 4→5, 61→91 cells) but not in a bare node grow loop, so the *same seed*
+  yields different meadows headlessly vs in-page. Determinism holds *within* node (the harness proves it);
+  this is a board-radius/setup-path difference, not a stray RNG. Worth a closer look (the widen-trigger path).
+- **Base-economy `c.e` quantization** breaks save→load→endTurn determinism in ALL modes (pre-existing).
 - **Excretion food-web** is ~tuned but the deeper autocatalytic loops want more channels / tag richness.
 
 *Design intent: `…-emergence-engine.md`, `…-emergence-foundations.md`, `…-ecology-northstar.md`.

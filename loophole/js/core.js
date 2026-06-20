@@ -118,6 +118,22 @@
      "life did not take over the globe by combat, but by networking." the food web's positive-sum
      half — these are airy, light names, never the heavy grazer ones. */
   const FAUNA_POLLEN_SUF = ['drifter', 'sipper', 'flitter', 'mote', 'wisp', 'dancer', 'hummer', 'flutter'];
+  /* SYMBIOGENESIS (Margulis's actual radical claim): a grazer and the flora it has grazed-and-fed
+     long enough do not stay two — they MERGE. the eukaryotic cell is the fossil of such a union: a
+     host that took in a free-living bacterium and never let go (mitochondria ← α-proteobacteria;
+     chloroplasts ← cyanobacteria). here the combat becomes the network — the consumer internalises
+     its producer and lies down as a sessile self-feeder: a CORAL (a cnidarian polyp wedded to its
+     zooxanthellae), a zoöphyte, an "animal-plant." a compound KIND with a capability neither parent
+     had — it makes its own food, so it stops depleting the meadow, and it BUILDS habitat (reef).
+     "life did not take over the globe by combat, but by networking" — taken to its conclusion.
+     these are union names — never the heavy grazer's, never the airy pollinator's. */
+  const FAUNA_MERGE_SUF = ['coral', 'reef', 'zoophyte', 'chimera', 'meld', 'commons', 'polypary', 'symbiont'];
+  /* the union's terms. BOND: diet-grazes of its OWN kind before a grazer is ready to merge (a long
+     relationship, not a chance meeting). AGE: it must be mature. SP_CAP: a compound is a rare, sacred
+     event — only a few unions hold at once. WIDEN: the emergent tolerance — the compound's entropy
+     band is wider than either parent's (lichen colonising bare rock). REEF: a compound constructs
+     habitat harder than an ordinary bed — coral building the reef that shelters the others. */
+  const MERGE = { YOUTH: 20, BOND: 14, SP_CAP: 3, WIDEN: 0.12, REEF: 0.042 };
 
   /* ───────────────────────── game ───────────────────────── */
   class Game {
@@ -455,9 +471,10 @@
           /* it also EXTENDS the habitat — gently pulling its empty neighbours toward its band,
              so the bed makes the ground around it livable and can spread into it (this is what
              finally lets beds grow, instead of a lone flower stuck on its one calm cell) */
+          const ext = sp.compound ? MERGE.REEF : 0.022; /* a compound builds REEF — it terraforms a habitable patch harder than an ordinary bed */
           for (const nk of HEX.neighborsK(HEX.key(c.q, c.r))) {
             const nc = this.cells.get(nk);
-            if (nc && !nc.pat) { const dd = mid - nc.e; if (dd) nc.e = U.clamp(nc.e + (dd > 0 ? 1 : -1) * Math.min(0.022, Math.abs(dd)), 0, 1); }
+            if (nc && !nc.pat) { const dd = mid - nc.e; if (dd) nc.e = U.clamp(nc.e + (dd > 0 ? 1 : -1) * Math.min(ext, Math.abs(dd)), 0, 1); }
           }
           const eOk2 = c.e >= sp.eLo && c.e <= sp.eHi;
           if (!eOk2) { c.pat.starve = (c.pat.starve || 0) + 1; if (c.pat.starve >= 8) { this._killFlora(c); continue; } }
@@ -562,7 +579,7 @@
     /* ── megafauna: a rich meadow summons a beast that grazes it and depends on it ── */
     _fauna(ev) {
       if (this.mode !== 'longgame') return;
-      const FA_THRESH = 8, FA_SUSTAIN = 4, FA_SP_CAP = 4, FA_CAP = 8, STARVE = 14, BREED = 16, GRAZE_NEED = 4, REFUGE = 6, FLORA_CAP = 60, POLLEN = 0.5;
+      const FA_THRESH = 8, FA_SUSTAIN = 4, FA_SP_CAP = 4, FA_CAP = 8, STARVE = 14, BREED = 16, GRAZE_NEED = 4, REFUGE = 6, FLORA_CAP = 60, POLLEN = 0.5, DIET_REFUGE = 2;
       const floraCount = this._patternCells('flora').length; /* a refuge: beasts won't graze the meadow below this — the prey is never eaten to nothing */
       const estFlora = this._patternCells('flora').filter(c => c.pat.est);
       /* 1. a rich, diverse meadow (much established flora, ≥2 species) is a surplus of LIFE */
@@ -578,7 +595,7 @@
         f.age++; f.hunger++;
         let best = null, bestD = 1e9;
         for (const c of this._patternCells('flora')) {
-          const d = HEX.dist2(f.q, f.r, c.q, c.r) - (c.pat.sp === sp.diet ? 0.5 : 0) - (sp.role === 'pollinator' && c.pat.fedOk ? 0.6 : 0); /* a pollinator seeks nectar — a FED flower */
+          const d = HEX.dist2(f.q, f.r, c.q, c.r) - (c.pat.sp === sp.diet ? (sp.role === 'grazer' ? 6 : 0.5) : 0) - (sp.role === 'pollinator' && c.pat.fedOk ? 0.6 : 0); /* a grazer LOCKS onto its own diet — a specialist, the prelude to symbiosis; a pollinator just seeks nectar (a FED flower) */
           if (d < bestD) { bestD = d; best = c; }
         }
         if (best && HEX.dist2(f.q, f.r, best.q, best.r) <= 1) {
@@ -604,14 +621,40 @@
           } else {
             /* a GRAZER: eats only when HUNGRY — to satiety then rests — so the meadow can keep up.
                one flower at a time (donor-controlled), never below the prey REFUGE. no annihilation. */
+            const onDiet = best.pat.sp === sp.diet && best.pat.est; /* a specialist has LOCKED onto an established flower of its OWN co-evolved kind */
+            if (onDiet && f.age >= MERGE.YOUTH) {
+              /* SYMBIOGENESIS — the bond is COHABITATION, not predation, and only after a grazing
+                 YOUTH (a consumer must first live as a consumer; symbiosis is the advanced achievement,
+                 not the starting move — Margulis). then each turn a specialist lives beside its producer,
+                 the bond deepens (the symbiont is housed, not eaten). long enough, and the last act of
+                 grazing becomes the first act of UNION — it lies down and becomes a compound (a coral).
+                 combat → network. one-way: the beast is spent, a KIND remains. */
+              f.bond = (f.bond || 0) + 1;
+              f.hunger = Math.max(0, f.hunger - 2); /* the nascent symbiosis already feeds it — a proto-coral increasingly lives off the partner it houses, so it need not hunt to bond, cannot starve mid-union, and does not eat the very flower it is becoming one with */
+              if (this._shouldMerge(f, sp)) { this._symbiogenesis(f, sp, best, ev); continue; }
+            }
             if (f.hunger >= GRAZE_NEED && floraCount > REFUGE) {
-              this._killFlora(best); f.hunger = 0; f.fedRun = (f.fedRun || 0) + 1;
-              best.e = U.clamp(best.e + 0.05, 0, 1); /* droppings → humus, fertilising the cycle */
-              ev.push({ t: 'graze', k: HEX.key(best.q, best.r), color: sp.color });
-              if (f.fedRun >= BREED && this.fauna.length < FA_CAP) {
-                const bn = [...HEX.neighborsK(HEX.key(f.q, f.r))].filter(k => this.cells.has(k)).map(k => HEX.parse(k));
-                const bp = bn.length ? bn[this.rng.i(bn.length)] : [f.q, f.r]; /* the calf is born beside its parent, not on top of it */
-                this.fauna.push({ spId: f.spId, q: bp[0], r: bp[1], age: 0, hunger: 0, fedRun: 0 }); f.fedRun = 0; ev.push({ t: 'faunaBreed', k: HEX.key(f.q, f.r), color: sp.color });
+              /* it forages a NEIGHBOURING flower — but never its own diet partner (the symbiont it is
+                 coming to house). only if nothing else is in reach, and only above a refuge, does it
+                 take its own kind — so the partnership it is bonding to is never eaten to nothing. */
+              let food = null;
+              for (const nk of HEX.neighborsK(HEX.key(f.q, f.r))) {
+                const nc = this.cells.get(nk);
+                if (nc && nc.pat && nc.pat.t === 'flora' && nc.pat.sp !== sp.diet) { food = nc; break; }
+              }
+              if (!food && best.pat.sp === sp.diet && HEX.dist2(f.q, f.r, best.q, best.r) <= 1) {
+                let dietEst = 0; for (const x of this.cells.values()) if (x.pat && x.pat.t === 'flora' && x.pat.sp === sp.diet && x.pat.est) dietEst++;
+                if (dietEst > DIET_REFUGE) food = best; /* a last resort, and never below the partner's refuge */
+              }
+              if (food) {
+                this._killFlora(food); f.hunger = 0; f.fedRun = (f.fedRun || 0) + 1;
+                food.e = U.clamp(food.e + 0.05, 0, 1); /* droppings → humus, fertilising the cycle */
+                ev.push({ t: 'graze', k: HEX.key(food.q, food.r), color: sp.color });
+                if (f.fedRun >= BREED && this.fauna.length < FA_CAP) {
+                  const bn = [...HEX.neighborsK(HEX.key(f.q, f.r))].filter(k => this.cells.has(k)).map(k => HEX.parse(k));
+                  const bp = bn.length ? bn[this.rng.i(bn.length)] : [f.q, f.r]; /* the calf is born beside its parent, not on top of it */
+                  this.fauna.push({ spId: f.spId, q: bp[0], r: bp[1], age: 0, hunger: 0, fedRun: 0 }); f.fedRun = 0; ev.push({ t: 'faunaBreed', k: HEX.key(f.q, f.r), color: sp.color });
+                }
               }
             }
           }
@@ -648,9 +691,12 @@
          but a pollinator NETWORK is the mark of a mature, varied meadow (Margulis: networking is
          the advanced achievement, not the starting move). so the first beast is always a grazer,
          and a mutualist arrives only once the meadow is both diverse (≥3 species) AND already has
-         a grazing layer — the variety it tends is something the meadow had to earn. */
+         a grazing layer — the variety it tends is something the meadow had to earn. the CONSUMER
+         NICHE never stays empty: when a grazer merges away into a coral (symbiogenesis), the web
+         grows a new grazer to refill the base — so the union can happen again. */
       const div = new Set(estFlora.map(c => c.pat.sp)).size;
-      const role = (div >= 3 && this.faunaSpecies.size >= 1) ? 'pollinator' : 'grazer';
+      const hasGrazer = [...this.faunaSpecies.values()].some(s => s.role === 'grazer');
+      const role = (div >= 3 && hasGrazer) ? 'pollinator' : 'grazer';
       const suf = role === 'pollinator' ? FAUNA_POLLEN_SUF : FAUNA_SUF;
       const name = FLORA_PRE[ch][this.rng.i(FLORA_PRE[ch].length)] + suf[this.rng.i(suf.length)];
       const sp = { id, diet: dietSp, ch, role, color: floraSp ? floraSp.color : '#d8c0a8', name, born: this.turn, seeded: true };
@@ -669,6 +715,41 @@
         if (d < bestD) { bestD = d; best = { q: nq, r: nr }; }
       }
       return best;
+    }
+
+    _compoundCount() { let n = 0; for (const s of this.species.values()) if (s.compound) n++; return n; }
+    /* is this grazer ready to become one with its diet? a long, fed bond + maturity + a free union slot */
+    _shouldMerge(f, sp) {
+      return sp.role === 'grazer' && (f.bond || 0) >= MERGE.BOND && this._compoundCount() < MERGE.SP_CAP;
+    }
+    /* ── symbiogenesis: a grazer and its established diet flora MERGE into a compound KIND ──
+       Margulis's union, made literal. the producer's identity leads (the symbiont that does the
+       photosynthesis), WIDENED into a hardier, habitat-building self-feeder — a coral. the beast
+       is spent into it; a new species roots where the flower stood, born mature. its emergent
+       capabilities (over either parent): a wider entropy band, and a stronger reef. deterministic —
+       every trait is drawn from the one seeded rng stream. */
+    _symbiogenesis(f, sp, best, ev) {
+      const floraSp = this.species.get(best.pat.sp) || this.species.get(sp.diet);
+      const ch = floraSp ? floraSp.ch : sp.ch;
+      const id = this.nextSpecies++;
+      const center = floraSp ? (floraSp.eLo + floraSp.eHi) / 2 : 0.4;
+      const w = (floraSp ? (floraSp.eHi - floraSp.eLo) / 2 : 0.3) + MERGE.WIDEN; /* tolerance wider than either parent */
+      const cmp = {
+        id, ch, ex: floraSp ? floraSp.ex : (ch + 1) % 3,
+        blend: floraSp ? floraSp.blend.slice() : [0.34, 0.33, 0.33],
+        color: floraSp ? floraSp.color : sp.color,
+        name: FLORA_PRE[ch][this.rng.i(FLORA_PRE[ch].length)] + FAUNA_MERGE_SUF[this.rng.i(FAUNA_MERGE_SUF.length)],
+        settle: 2, spread: 0.30 + this.rng.f() * 0.18, maxBed: 12 + this.rng.i(10),
+        eLo: Math.max(0, center - w), eHi: Math.min(1, center + w),
+        born: this.turn, seeded: true, compound: true,
+        parents: { flora: floraSp ? floraSp.name : 'a wildflower', beast: sp.name },
+      };
+      this.species.set(id, cmp);
+      /* the union roots where the flower stood — born established (a mature relationship, not a pioneer) */
+      best.pat = this._mkPat('flora'); best.pat.sp = id; best.pat.est = 1; best.pat.age = cmp.settle; best.pat.fedOk = 1; best.pat.fresh = 1;
+      f.dead = 1; /* the beast is spent into the union — the herd may carry on, but this one is now coral */
+      ev.push({ t: 'merge', k: HEX.key(best.q, best.r), color: cmp.color, name: cmp.name, ch: cmp.ch, flora: cmp.parents.flora, beast: cmp.parents.beast });
+      this._occasion('merge1', ev); /* the first union of a run lands Margulis's own line — symbiosis generates novelty */
     }
 
     _wilt(c, ev) {
@@ -1715,7 +1796,7 @@
        within its movement, so the words arrive when the play earns them */
     echoCap() { return Math.round(this.mod('echoCap', 6)); }
     _nextEchoIdx() {
-      for (let i = 0; i < 23; i++) if (!this.echoOwned.has(i)) return i; /* 23 belongs to the awakening */
+      for (let i = 0; i < 24; i++) if (!this.echoOwned.has(i)) return i; /* 24 belongs to the awakening */
       return null;
     }
     _occasion(name, ev) {
@@ -1726,7 +1807,7 @@
       if (next == null) return;
       let idx = next;
       const pref = this.C.ECHO_PREF[name];
-      const band = n => n < 6 ? 0 : n < 12 ? 1 : n < 18 ? 2 : 3;
+      const band = n => n < 6 ? 0 : n < 13 ? 1 : n < 19 ? 2 : 3;
       if (pref != null && !this.echoOwned.has(pref) && band(pref) === band(next)) idx = pref;
       this.echoOwned.add(idx);
       this.echoesThisRun++;

@@ -93,9 +93,15 @@ Morowitz (the thermodynamics of the origin of life) · Donella Meadows (leverage
 
 **The food web** (chosen 2026-06-19). Turn the food *chain* into a *web*, Margulis-first:
 1. **mutualism** — a pollinator beast that *spreads* flora as it visits (positive-sum; networking).
-2. **predation** — a culler that keeps a herd from overgrazing (donor-controlled, refuge-bounded).
-3. **symbiogenesis** — two species that co-occur and exchange long enough **merge** into a novel
-   compound species. The never-been-done feature. Margulis's actual radical claim, made playable.
+   ✅ shipped (`ece74ac`), proven positive-sum.
+2. **symbiogenesis** — a grazer and the diet flora it has *cohabited* long enough **merge** into a novel
+   compound species (a **coral**): the never-been-done feature, Margulis's actual radical claim, made
+   playable. ✅ shipped (2026-06-20). Generative/keystone proven on **diversity** (Paine's own variable —
+   +24% kinds, biomass null), deterministic, round-trips. *(Led ahead of predation by Blaine's call: the
+   arc is Margulis-FIRST, and the merger IS Margulis's claim — leading with it is more faithful than the
+   orderly bottom-up march. The bond is cohabitation-not-predation; the proto-coral self-feeds off the union.)*
+3. **predation** — a **keystone** culler that thins a herd and thereby *releases* the meadow
+   (Paine 1966 / Yellowstone wolves: the top-down cascade mirroring the bottom-up one). Donor-controlled,
+   refuge-bounded. The remaining step — now it can also regulate the new compound layer.
 
-*Source of truth for what shipped: `2026-06-18-loophole-v04-as-built.md`. Memory: `loophole-roadmap`,
-`loophole-prime-directive`.*
+*Source of truth for what shipped: `2026-06-18-loophole-v04-as-built.md`. Memory: `loophole-prime-directive`.*
