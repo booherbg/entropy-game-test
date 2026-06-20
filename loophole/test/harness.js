@@ -508,15 +508,52 @@ function main() {
     while (fgarden.over === false && fgarden.turn < 50) { if (fgarden.stage === 6 && fgarden.coalesceReady() && fgarden.beginCoalescence().ok) break; greedyTurn(fgarden); }
     ok(fgarden.fauna.length === 0 && fgarden.faunaSpecies.size === 0, 'base garden mode stays free of megafauna');
 
-    /* TROPHIC CASCADE & RESILIENCE: pull the base (every producer) and watch what's genuinely
-       COUPLED to the flow collapse — while what has built its own habitat endures. The pioneer
-       flora live turn-to-turn on the element surplus; with the surplus gone they die back and NO
-       new species can speciate (zero surplus → zero niches). The ecology shrinks to its core.
-       But an ESTABLISHED bed is a dissipative structure with memory: niche construction
-       (Holland / Odling-Smee) holds its own microclimate, and its excretion is a small
-       autocatalytic loop (Kauffman) — so the core, and the herd grazing it, show HYSTERESIS:
-       multiple stable states, the system remembers it was once rich. That resilience is a real
-       complex-systems property, not a decoration — so we report it rather than assert against it. */
+    /* THE FOOD WEB → MUTUALISM (Margulis: "life took over by networking, not combat"). A meadow
+       that grows both rich AND varied summons not only grazers (consumers) but POLLINATORS — a
+       mutualist that sips nectar without killing and carries a flower's kind into open ground.
+       Two claims: (1) both roles emerge by succession (consumer first, mutualist as the mature
+       meadow's reward); (2) the mutualism is POSITIVE-SUM — a pollinated meadow ends richer in
+       flora than the same world grazed, networking out-producing combat. */
+    {
+      const seedRoles = s => {
+        const g = new Game('web-' + s, { mode: 'longgame' });
+        cellsOf(g).filter(c => (Math.abs(c.q) + Math.abs(c.r) + Math.abs(c.q + c.r)) / 2 <= 6)
+          .forEach((c, i) => { if (i % 7 === 0) c.pat = g._mkPat('moss'); else if (i % 11 === 4) c.pat = g._mkPat('ant'); else if (i % 13 === 6) c.pat = g._mkPat('crys'); });
+        g._recompute();
+        for (let t = 0; t < 95 && !g.over; t++) { g.order += 12; g.endTurn(); }
+        return [...g.faunaSpecies.values()].map(sp => sp.role);
+      };
+      let pol = 0, grz = 0; const N = 10;
+      for (let s = 0; s < N; s++) { const r = seedRoles(s); if (r.includes('pollinator')) pol++; if (r.includes('grazer')) grz++; }
+      const mutual = forceRole => {
+        const g = new Game('web-mutual', { mode: 'longgame' });
+        cellsOf(g).filter(c => (Math.abs(c.q) + Math.abs(c.r) + Math.abs(c.q + c.r)) / 2 <= 6)
+          .forEach((c, i) => { if (i % 7 === 0) c.pat = g._mkPat('moss'); else if (i % 11 === 4) c.pat = g._mkPat('ant'); else if (i % 13 === 6) c.pat = g._mkPat('crys'); });
+        g._recompute();
+        const orig = g._speciateFauna.bind(g);
+        g._speciateFauna = (est, ev) => { orig(est, ev); for (const sp of g.faunaSpecies.values()) sp.role = forceRole; };
+        for (let t = 0; t < 120; t++) { g.over = false; g.turn = Math.min(g.turn, 90); g.order += 12; g.endTurn(); }
+        return cellsOf(g).filter(c => c.pat && c.pat.t === 'flora').length;
+      };
+      const polFlora = mutual('pollinator'), grzFlora = mutual('grazer');
+      console.log(`    food web: roles by succession — grazers ${grz}/${N}, pollinators ${pol}/${N} · positive-sum: pollinated meadow ${polFlora} flora vs grazed ${grzFlora}`);
+      ok(grz >= N - 1 && pol >= Math.ceil(N / 2), 'both roles emerge — a consumer first, a mutualist as the varied meadow earns it', `grazers ${grz}/${N}, pollinators ${pol}/${N}`);
+      ok(polFlora > grzFlora, 'mutualism is POSITIVE-SUM — networking out-produces combat (Margulis)', `pollinated ${polFlora} > grazed ${grzFlora} flora`);
+    }
+
+    /* TROPHIC CASCADE → the measured three-part truth. Pull the base (every producer) and:
+         1. RELAXATION (Prigogine): a brief bloom, then a long decline. The biomass the abiotic
+            base was SUBSIDISING is shed — flora falls well below its supported peak.
+         2. COUPLING: the entire FLOW-DEPENDENT web unwinds. With no production there is no food
+            and no nectar, so every FED flora and every beast (grazer and pollinator alike) dies
+            off — metabolism and fauna both reach ZERO. The living layer is genuinely coupled to
+            the base; it is not decoration.
+         3. HYSTERESIS: yet it does not all vanish. A small FOSSIL SCAFFOLD of established beds
+            persists on niche-construction MEMORY alone (Holland/Odling-Smee) — held above zero
+            for 175+ turns in the long probe (see _closure_probe.js) — like a coral skeleton after
+            the polyps. Habitat the life built, outliving the life. (An earlier all-pollinator
+            regime showed false autocatalytic closure; realistic grazer-first succession unwinds it.)
+       We must run PAST the long-game turn-100 end to watch this, so the probe neutralises it. */
     {
       const g = new Game('cascade-1', { mode: 'longgame' });
       const hd = c => (Math.abs(c.q) + Math.abs(c.r) + Math.abs(c.q + c.r)) / 2;
@@ -524,13 +561,18 @@ function main() {
       g._recompute();
       for (let t = 0; t < 85 && g.over === false; t++) { g.order += 12; g.endTurn(); }
       const floraB = cellsOf(g).filter(c => c.pat && c.pat.t === 'flora').length, faunaB = g.fauna.length, spB = g.species.size;
+      const floraN = () => cellsOf(g).filter(c => c.pat && c.pat.t === 'flora').length;
+      const fedN = () => cellsOf(g).filter(c => c.pat && c.pat.t === 'flora' && c.pat.fedOk).length;
+      const pump = n => { for (let t = 0; t < n; t++) { g.over = false; g.turn = Math.min(g.turn, 90); g.order += 12; g.endTurn(); } }; /* run past the turn-100 end to see the true long-run trend */
       for (const c of g.cells.values()) if (c.pat && (c.pat.t === 'moss' || c.pat.t === 'crys' || c.pat.t === 'ant')) c.pat = null; /* pull the base */
       g._recompute();
-      for (let t = 0; t < 65 && g.over === false; t++) { g.order += 12; g.endTurn(); }
-      const floraA = cellsOf(g).filter(c => c.pat && c.pat.t === 'flora').length, faunaA = g.fauna.length;
-      console.log(`    trophic cascade: pull the base → flora ${floraB}→${floraA} (the flow-dependent layer dies back), fauna ${faunaB}→${faunaA} & est. core endure — HYSTERESIS, the meadow remembers it was rich`);
+      pump(25); const floraPeak = floraN(); /* the overshoot bloom */
+      pump(200); const floraEnd = floraN(), fedEnd = fedN(), faunaEnd = g.fauna.length; /* the settled state */
+      console.log(`    trophic cascade: pull the base → bloom to ${floraPeak} flora, then RELAX to ${floraEnd} (Prigogine). the flow-dependent web fully unwinds — ${fedEnd} fed flora, ${faunaEnd} fauna — leaving a fossil scaffold of ${floraEnd} niche-built beds on habitat-memory alone (hysteresis). from ${floraB} pre-pull, fauna ${faunaB}`);
       ok(faunaB >= 1 && spB >= 1, 'the cascade test grew a real ecology first', `flora ${floraB} fauna ${faunaB} species ${spB}`);
-      ok(floraA < floraB, 'pull the producers and the flow-dependent flora collapse — that layer IS coupled to the base', `flora −${floraB - floraA}`);
+      ok(floraEnd < floraPeak * 0.7 && floraEnd < floraB, 'RELAXATION — pull the base and the subsidised biomass is shed (the meadow relaxes below its supported level)', `peak ${floraPeak} → settled ${floraEnd} (pre-pull ${floraB})`);
+      ok(fedEnd === 0 && faunaEnd === 0, 'COUPLING — the whole flow-dependent web (metabolism + fauna) unwinds to zero; the living layer IS coupled to the base', `fed ${fedEnd}, fauna ${faunaEnd}`);
+      ok(floraEnd >= 1, 'HYSTERESIS — a fossil scaffold of niche-built beds persists on habitat-memory alone (a coral skeleton after the polyps)', `${floraEnd} inert beds`);
     }
   }
 

@@ -113,6 +113,11 @@
      flower at a time (donor-controlled — no annihilation), the non-collapsing predator-prey
      of the foundations doc. fauna are mobile agents (a separate list), not rooted patterns. */
   const FAUNA_SUF = ['grazer', 'strider', 'aurochs', 'elk', 'roan', 'lumberer', 'browser', 'wallow', 'horn', 'pacer'];
+  /* a meadow rich AND varied enough summons not a consumer but a MUTUALIST — a pollinator that
+     feeds on nectar and, in the same visit, carries a flower's kind into open ground. Margulis:
+     "life did not take over the globe by combat, but by networking." the food web's positive-sum
+     half — these are airy, light names, never the heavy grazer ones. */
+  const FAUNA_POLLEN_SUF = ['drifter', 'sipper', 'flitter', 'mote', 'wisp', 'dancer', 'hummer', 'flutter'];
 
   /* ───────────────────────── game ───────────────────────── */
   class Game {
@@ -557,7 +562,7 @@
     /* ── megafauna: a rich meadow summons a beast that grazes it and depends on it ── */
     _fauna(ev) {
       if (this.mode !== 'longgame') return;
-      const FA_THRESH = 8, FA_SUSTAIN = 4, FA_SP_CAP = 4, FA_CAP = 8, STARVE = 14, BREED = 16, GRAZE_NEED = 4, REFUGE = 6;
+      const FA_THRESH = 8, FA_SUSTAIN = 4, FA_SP_CAP = 4, FA_CAP = 8, STARVE = 14, BREED = 16, GRAZE_NEED = 4, REFUGE = 6, FLORA_CAP = 60, POLLEN = 0.5;
       const floraCount = this._patternCells('flora').length; /* a refuge: beasts won't graze the meadow below this — the prey is never eaten to nothing */
       const estFlora = this._patternCells('flora').filter(c => c.pat.est);
       /* 1. a rich, diverse meadow (much established flora, ≥2 species) is a surplus of LIFE */
@@ -573,20 +578,41 @@
         f.age++; f.hunger++;
         let best = null, bestD = 1e9;
         for (const c of this._patternCells('flora')) {
-          const d = HEX.dist2(f.q, f.r, c.q, c.r) - (c.pat.sp === sp.diet ? 0.5 : 0);
+          const d = HEX.dist2(f.q, f.r, c.q, c.r) - (c.pat.sp === sp.diet ? 0.5 : 0) - (sp.role === 'pollinator' && c.pat.fedOk ? 0.6 : 0); /* a pollinator seeks nectar — a FED flower */
           if (d < bestD) { bestD = d; best = c; }
         }
         if (best && HEX.dist2(f.q, f.r, best.q, best.r) <= 1) {
-          /* at the meadow. it grazes only when HUNGRY — eats to satiety then rests — so the
-             meadow can keep up. one flower at a time (donor-controlled), no annihilation. */
-          if (f.hunger >= GRAZE_NEED && floraCount > REFUGE) {
-            this._killFlora(best); f.hunger = 0; f.fedRun = (f.fedRun || 0) + 1;
-            best.e = U.clamp(best.e + 0.05, 0, 1); /* droppings → humus, fertilising the cycle */
-            ev.push({ t: 'graze', k: HEX.key(best.q, best.r), color: sp.color });
-            if (f.fedRun >= BREED && this.fauna.length < FA_CAP) {
-              const bn = [...HEX.neighborsK(HEX.key(f.q, f.r))].filter(k => this.cells.has(k)).map(k => HEX.parse(k));
-              const bp = bn.length ? bn[this.rng.i(bn.length)] : [f.q, f.r]; /* the calf is born beside its parent, not on top of it */
-              this.fauna.push({ spId: f.spId, q: bp[0], r: bp[1], age: 0, hunger: 0, fedRun: 0 }); f.fedRun = 0; ev.push({ t: 'faunaBreed', k: HEX.key(f.q, f.r), color: sp.color });
+          if (sp.role === 'pollinator') {
+            /* a MUTUALIST (Margulis: "life took over by networking, not combat"): it sips nectar —
+               NEVER kills the flower — and in the same visit carries that flower's kind into open
+               ground. positive-sum: the meadow it feeds on grows BECAUSE of it. no prey refuge —
+               there is no prey. but NECTAR IS A PRODUCT OF PRIMARY PRODUCTION: only a FED flower
+               makes it, so the mutualism is a powerful buffer yet still, at the last, tied to the
+               base — pull every producer and the web unwinds with a long lag, not never. */
+            if (f.hunger >= GRAZE_NEED && best.pat.fedOk) {
+              f.hunger = 0; f.fedRun = (f.fedRun || 0) + 1;
+              best.e = U.clamp(best.e + 0.03, 0, 1); /* a lighter touch than a grazer's droppings */
+              const fsp = this.species.get(best.pat.sp);
+              if (fsp && floraCount < FLORA_CAP && this.rng.chance(POLLEN)) this._floraSpread(best, fsp, ev); /* pollination → a new flower of the kind it visited */
+              ev.push({ t: 'pollinate', k: HEX.key(best.q, best.r), color: sp.color });
+              if (f.fedRun >= BREED && this.fauna.length < FA_CAP) {
+                const bn = [...HEX.neighborsK(HEX.key(f.q, f.r))].filter(k => this.cells.has(k)).map(k => HEX.parse(k));
+                const bp = bn.length ? bn[this.rng.i(bn.length)] : [f.q, f.r];
+                this.fauna.push({ spId: f.spId, q: bp[0], r: bp[1], age: 0, hunger: 0, fedRun: 0 }); f.fedRun = 0; ev.push({ t: 'faunaBreed', k: HEX.key(f.q, f.r), color: sp.color });
+              }
+            }
+          } else {
+            /* a GRAZER: eats only when HUNGRY — to satiety then rests — so the meadow can keep up.
+               one flower at a time (donor-controlled), never below the prey REFUGE. no annihilation. */
+            if (f.hunger >= GRAZE_NEED && floraCount > REFUGE) {
+              this._killFlora(best); f.hunger = 0; f.fedRun = (f.fedRun || 0) + 1;
+              best.e = U.clamp(best.e + 0.05, 0, 1); /* droppings → humus, fertilising the cycle */
+              ev.push({ t: 'graze', k: HEX.key(best.q, best.r), color: sp.color });
+              if (f.fedRun >= BREED && this.fauna.length < FA_CAP) {
+                const bn = [...HEX.neighborsK(HEX.key(f.q, f.r))].filter(k => this.cells.has(k)).map(k => HEX.parse(k));
+                const bp = bn.length ? bn[this.rng.i(bn.length)] : [f.q, f.r]; /* the calf is born beside its parent, not on top of it */
+                this.fauna.push({ spId: f.spId, q: bp[0], r: bp[1], age: 0, hunger: 0, fedRun: 0 }); f.fedRun = 0; ev.push({ t: 'faunaBreed', k: HEX.key(f.q, f.r), color: sp.color });
+              }
             }
           }
         } else if (best) {
@@ -618,12 +644,20 @@
       for (const s in count) if (count[s] > mx) { mx = count[s]; dietSp = +s; }
       const floraSp = this.species.get(dietSp);
       const ch = floraSp ? floraSp.ch : 0;
-      const name = FLORA_PRE[ch][this.rng.i(FLORA_PRE[ch].length)] + FAUNA_SUF[this.rng.i(FAUNA_SUF.length)];
-      const sp = { id, diet: dietSp, ch, color: floraSp ? floraSp.color : '#d8c0a8', name, born: this.turn, seeded: true };
+      /* the ROLE follows ecological SUCCESSION: a CONSUMER (grazer) finds the easy biomass first,
+         but a pollinator NETWORK is the mark of a mature, varied meadow (Margulis: networking is
+         the advanced achievement, not the starting move). so the first beast is always a grazer,
+         and a mutualist arrives only once the meadow is both diverse (≥3 species) AND already has
+         a grazing layer — the variety it tends is something the meadow had to earn. */
+      const div = new Set(estFlora.map(c => c.pat.sp)).size;
+      const role = (div >= 3 && this.faunaSpecies.size >= 1) ? 'pollinator' : 'grazer';
+      const suf = role === 'pollinator' ? FAUNA_POLLEN_SUF : FAUNA_SUF;
+      const name = FLORA_PRE[ch][this.rng.i(FLORA_PRE[ch].length)] + suf[this.rng.i(suf.length)];
+      const sp = { id, diet: dietSp, ch, role, color: floraSp ? floraSp.color : '#d8c0a8', name, born: this.turn, seeded: true };
       this.faunaSpecies.set(id, sp);
       const spot = estFlora.find(c => c.pat.sp === dietSp) || estFlora[0];
       this.fauna.push({ spId: id, q: spot.q, r: spot.r, age: 0, hunger: 0, fedRun: 0 });
-      ev.push({ t: 'fauna', name, color: sp.color, k: HEX.key(spot.q, spot.r), eats: floraSp ? floraSp.name : 'wildflowers' });
+      ev.push({ t: 'fauna', name, role, color: sp.color, k: HEX.key(spot.q, spot.r), eats: floraSp ? floraSp.name : 'wildflowers' });
     }
     _stepToward(q, r, tq, tr, avoid) {
       let best = { q, r }, bestD = HEX.dist2(q, r, tq, tr);

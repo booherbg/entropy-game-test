@@ -520,6 +520,7 @@
     _drawFauna(cx, f, sp) {
       const k = HEX.key(f.q, f.r), p = this.pos.get(k); if (!p) return;
       const col = (sp && sp.color) || '#d8c0a8';
+      if (sp && sp.role === 'pollinator') return this._drawPollinator(cx, p, f, col); /* a mutualist reads airy & luminous — the opposite of a heavy grazer */
       const s = this.s * 1.25, dir = (f.q + f.r) % 2 ? 1 : -1; /* megafauna are LARGE — bigger than any flower */
       cx.save();
       cx.translate(p.x, p.y); cx.scale(dir, 1);
@@ -533,6 +534,27 @@
       cx.beginPath(); cx.ellipse(-s * 0.02, -s * 0.06, s * 0.52, s * 0.30, 0, 0, TAU); cx.fill(); cx.stroke(); /* body, outlined to stand out */
       cx.beginPath(); cx.ellipse(s * 0.48, s * 0.18, s * 0.18, s * 0.15, 0.3, 0, TAU); cx.fill(); cx.stroke(); /* head, dipped to graze */
       cx.fillStyle = rgba('#fff', 0.5); cx.beginPath(); cx.arc(s * 0.52, s * 0.13, s * 0.03, 0, TAU); cx.fill(); /* eye */
+      cx.restore();
+    }
+
+    /* a pollinator — a small luminous mote that hovers ABOVE the meadow on shimmering wings, in
+       its diet's colour. light where the grazer is heavy; it spreads life rather than eating it. */
+    _drawPollinator(cx, p, f, col) {
+      const s = this.s * 0.9;
+      const ph = (((f.q * 5 + f.r * 3 + f.age * 2) % 16) / 16) * TAU; /* deterministic flutter phase from position+age (no RNG) */
+      cx.save();
+      cx.translate(p.x, p.y - s * 0.24); /* it floats, lifted off the ground */
+      const g = cx.createRadialGradient(0, 0, 0, 0, 0, s * 0.8);
+      g.addColorStop(0, rgba(col, 0.5)); g.addColorStop(0.5, rgba(col, 0.16)); g.addColorStop(1, rgba(col, 0));
+      cx.fillStyle = g; cx.beginPath(); cx.arc(0, 0, s * 0.8, 0, TAU); cx.fill(); /* luminous halo */
+      cx.fillStyle = rgba(col, 0.5); /* four shimmering wing-petals, fanned by the flutter phase */
+      for (let i = 0; i < 4; i++) {
+        cx.save(); cx.rotate((i / 4) * TAU + (i % 2 ? 0.22 : -0.22) + Math.sin(ph) * 0.12);
+        cx.beginPath(); cx.ellipse(s * 0.24, 0, s * 0.22, s * 0.10, 0, 0, TAU); cx.fill();
+        cx.restore();
+      }
+      cx.fillStyle = rgba('#fff', 0.85); cx.beginPath(); cx.arc(0, 0, s * 0.11, 0, TAU); cx.fill(); /* bright core */
+      cx.fillStyle = rgba(col, 0.95); cx.beginPath(); cx.arc(0, 0, s * 0.075, 0, TAU); cx.fill();
       cx.restore();
     }
 
@@ -1146,6 +1168,7 @@
           /* megafauna: a grand burst when a beast arrives, a little puff where it grazes/breeds */
           case 'fauna': if (e.k) { this.burst(e.k, e.color, 16, 2.1); this.ring(e.k, e.color, 0.9); } break;
           case 'graze': if (e.k) this.burst(e.k, e.color, 3, 0.55); break;
+          case 'pollinate': if (e.k) { this.burst(e.k, e.color, 4, 0.5); this.ring(e.k, e.color, 0.5); } break; /* a bright airy puff — life carried, not taken */
           case 'faunaBreed': if (e.k) this.burst(e.k, e.color, 5, 0.8); break;
           case 'cull': if (e.k) this.burst(e.k, PAL.greyDark, 6, 0.9); break;
           case 'demon': this.ring(e.k, PAL.gold, 0.9); this.burst(e.k, PAL.gold, 6, 1); break;
