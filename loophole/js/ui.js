@@ -1359,6 +1359,7 @@
         <div class="statgrid">${rows}</div>
         ${statsHTML(g)}
         <p class="endnote oneclose">${closing}</p>
+        <p class="endnote oneclose">“nature abhors a gradient.” <span class="muted small">— eric schneider &amp; dorion sagan, into the cool (2005)</span></p>
         <div class="endbtns">
           <button id="e-again">grow another</button>
           <button id="e-title" class="ghostbtn">title</button>

@@ -144,6 +144,18 @@ The megafauna chain becomes a **web**, leading (per Margulis) with cooperation, 
   (corals) ×70** and **the meadow became one +600** are now the top-rewarded components, and a meadow that
   reaches oneness earns the summit grade **"a world that became one"** (above "a flourishing world").
   Measured: a cooperative meadow scores ~+1000 over the same world combative; ✦2677 vs ✦1450. `?shot=longend`.
+- **The closing thought** (`onLongEnd`): the long game ended on a scoreboard with no reflection (the garden
+  game closes with "it woke…"). Now it closes with the **thermodynamic capstone** — the loophole resolved.
+  In real non-equilibrium thermodynamics (Schneider & Kay's airborne thermal data: old-growth forest 24.7°C
+  degrading ~90% of solar input vs a clearcut at 51.8°C/~65%), a living world runs the gradient DOWN faster
+  than the bare rock it rose from — so the order never defied the second law; the order was disorder's own
+  quickest path. "There is no outside" resolves. The closing prose scales to whether the meadow became one,
+  callbacks the anthology's Heraclitus, and is anchored by a verified line: *"nature abhors a gradient"* —
+  Schneider & Sagan, *Into the Cool* (2005). (The strong MEP "law" is contested; the prose states the solid
+  empirical observation, not the law. Research brief verified the science + the quote against primary sources.)
+- **The long game's murmur cap** (`echoCap`): raised to 14 (garden stays 6) — a 100-turn run earns far more
+  murmurs than the garden sprint, and the cap of 6 was spent by turn 15, so the food-web murmurs never fired.
+  Now ~11–12 surface across the run; the Margulis "symbiosis generates novelty" line lands on the first union.
 
 ## 7. Open items (next)
 - **Coral / fauna visibility at full-board zoom** — corals (like beasts) read small on a large board;
