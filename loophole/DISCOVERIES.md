@@ -7,6 +7,24 @@ Method & telos: `docs/superpowers/specs/2026-06-19-loophole-prime-directive.md`.
 
 ---
 
+## 2026-06-20 · the meadow is a grazing mosaic — but a miniature one (a direction tested & closed)
+
+Chasing emergence, I probed whether the food web self-organizes *spatially*. The grazers roam as
+flocked herds over a regrowing resource — the textbook setup for grazing waves, patchiness, Turing
+mosaics (tiger-bush vegetation bands, Belousov-Zhabotinsky spirals). It does, faintly: flora cluster
+into beds at **~2× random density** (a clear, stable patch structure), and the roaming herds
+seek-and-deplete those patches, then drift on — a faithful grazing mosaic.
+
+But it stays **miniature**: ~13 flora at ~20% cover, 1–2 grazers, on a 61-cell board. The ecology is
+deliberately "kept tiny so the base economy is untouched," and that lightness is exactly what denies
+it the density for *dramatic* spatial pattern. No traveling waves, no Turing spots — too sparse, by
+design.
+
+So: a tempting feature direction — surface or amplify spatial patterns — **tested and closed by
+measurement**. The lightness is not a gap to fill; it's the constraint that keeps the base garden's
+24/24 intact, and the meadow's richness lives in its *narrative* (succession, union, oneness), not its
+density. Recorded so the loop doesn't re-chase it. (Negative results are results.)
+
 ## 2026-06-20 · the game was always proving its own ending (the seep IS the thesis)
 
 I went down a rabbit hole — Rayleigh-Bénard convection, order that snaps into being at a critical
