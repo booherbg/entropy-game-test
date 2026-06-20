@@ -184,6 +184,7 @@
       this.nextFauna = 1;
       this.faunaRun = 0;           /* sustained meadow-richness → opens a fauna niche */
       this.predRun = 0;            /* sustained grazer-herd abundance → opens an apex (predator) niche */
+      this.onenessRun = 0;         /* sustained cooperative-climax → the meadow is recognised as ONE */
       this.firedOcc = {};
       this.stormI = 0;
       this.stormQueue = [];
@@ -704,6 +705,22 @@
         if (sp.seeded && !alive.has(id)) { this.faunaSpecies.delete(id); ev.push({ t: 'faunaGone', name: sp.name, color: sp.color }); }
       }
     }
+    /* ── the meadow becomes ONE: the long game's quiet awakening ──
+       when the food web has argued itself to a COOPERATIVE CLIMAX — a real community of unions (corals,
+       the mergers), the combative consumers (grazers + apex) all but gone, richly diverse and sustained —
+       the whole is recognised as a single living thing: a Gaian holobiont, Margulis's literal subject.
+       this is where the ecology arc meets the consciousness arc — the long game's counterpart to the
+       garden's awakening. fires once per run (firedOcc). */
+    _oneness(ev) {
+      if (this.mode !== 'longgame' || this.firedOcc['oneness']) return;
+      const flora = this._patternCells('flora');
+      let corals = 0; for (const c of flora) { const s = this.species.get(c.pat.sp); if (s && s.compound) corals++; }
+      let combat = 0; for (const f of this.fauna) { const s = this.faunaSpecies.get(f.spId); if (s && (s.role === 'grazer' || s.role === 'predator')) combat++; }
+      const kinds = new Set(flora.map(c => c.pat.sp)).size;
+      if (corals >= 6 && combat <= 2 && kinds >= 6) { /* a deep union-community, combat all but gone, diverse */
+        if (++this.onenessRun >= 3) { this.firedOcc['oneness'] = true; ev.push({ t: 'oneness', corals, kinds }); }
+      } else this.onenessRun = 0;
+    }
     _speciateFauna(estFlora, ev) {
       const id = this.nextFauna++;
       /* it specialises on the meadow's DOMINANT flower — its identity derives from what it eats */
@@ -1169,6 +1186,7 @@
       let income = this._metabolism(ev);
       income += this._ecology(ev); /* emergent flora arise from the metabolism's surpluses */
       this._fauna(ev);             /* and megafauna arise from a rich meadow, grazing it */
+      this._oneness(ev);           /* and the whole web, at its cooperative climax, is recognised as ONE */
       income += this._artifactIncome(ev);
       income *= this.mod('incomeAll', 1);
 

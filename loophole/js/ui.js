@@ -204,15 +204,15 @@
   }
 
   /* echo overlay: slow type-on murmur, attribution fades in after */
-  function echoOverlay(idx) {
+  function echoOverlay(idx, headText) {
     return (wrap, close) => {
       AU.echo();
-      if (!meta.echoes.includes(idx)) { meta.echoes.push(idx); save(); }
+      if (idx < 25 && !meta.echoes.includes(idx)) { meta.echoes.push(idx); save(); } /* the oneness murmur (25) is a special recognition, not a collectible in the progression count */
       const box = el('div', 'echobox');
       const sig = R.sigilCanvas('murmur' + idx, 30, 'uncommon');
       sig.className = 'echosigil';
       box.appendChild(sig);
-      const head = el('div', 'echohead', '— murmur ' + C().roman(idx) + ' —');
+      const head = el('div', 'echohead', headText || ('— murmur ' + C().roman(idx) + ' —'));
       const txt = el('div', 'echotext');
       const cite = el('div', 'echocite');
       box.appendChild(head); box.appendChild(txt); box.appendChild(cite);
@@ -751,6 +751,11 @@
           (AU.merge || AU.beast)();
           { const fl = meta.flora || (meta.flora = []);
             if (!fl.some(f => f.name === e.name)) { fl.push({ name: e.name, color: e.color, ch: e.ch, compound: 1, flora: e.flora, beast: e.beast, born: game ? game.turn : 0 }); save(); } }
+          break;
+        case 'oneness':
+          toast('the meadow has become <b>one</b> — a web of so much union and cooperation that the parts no longer read as parts. a single living thing, breathing. <span class="muted">(' + e.corals + ' unions · ' + e.kinds + ' kinds, woven.)</span>', 'good', 12000);
+          (AU.merge || AU.beast)();
+          pushOverlay(echoOverlay(25, '— the meadow becomes one —')); /* the long game's quiet awakening — Margulis: a pointillist landscape of tiny living beings */
           break;
         case 'dissolveWarn': toast('the garden thins — coherence below 22% (' + e.streak + '/3)', 'warn', 5200); break;
         case 'dissolved': onDissolved(); break;
@@ -1550,6 +1555,15 @@
         { name: 'goldcoral', color: '#c3afb6', ch: 0, compound: 1, beast: 'goldstrider', flora: 'goldfern' }, { name: 'mirepolypary', color: '#be7fc0', ch: 2, compound: 1, beast: 'mireelk', flora: 'mirebloom' }];
       meta.fauna = [{ name: 'goldstrider', color: '#bcd87a', role: 'grazer' }, { name: 'mireelk', color: '#be7fc0', role: 'grazer' }, { name: 'golddancer', color: '#bcd87a', role: 'pollinator' }, { name: 'sundrifter', color: '#d4e878', role: 'pollinator' }, { name: 'mireshrike', color: '#c2503f', role: 'predator' }];
       murmursOverlay();
+    }
+    if (kind === 'oneness') { /* the long game's quiet awakening — the meadow recognised as ONE */
+      game.mode = 'longgame';
+      const hd = c => (Math.abs(c.q) + Math.abs(c.r) + Math.abs(c.q + c.r)) / 2;
+      [...game.cells.values()].filter(c => hd(c) <= 7).sort((c, d) => (c.q - d.q) || (c.r - d.r)).forEach((c, i) => { if (i % 9 === 0) c.pat = game._mkPat('moss'); else if (i % 9 === 3) c.pat = game._mkPat('ant'); else if (i % 17 === 5) c.pat = game._mkPat('crys'); });
+      game._recompute();
+      for (let i = 0; i < 60 && !game.over; i++) { game.over = false; game.turn = Math.min(game.turn, 90); game.order += 12; game.endTurn(); }
+      R.dirty(); updateHUD();
+      pushOverlay(echoOverlay(25, '— the meadow becomes one —'));
     }
     if (kind === 'voice') { meta.quotes = []; surfaceQuote(); }
     if (kind === 'won') { meta.asc = 2; game.asc = 1; game.stats.peakC = 0.91; pushOverlay(winOverlay(), { dismissible: false }); }

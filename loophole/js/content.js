@@ -261,6 +261,9 @@
     'so these were never mine to give. they were always yours: humanity, talking to itself across centuries about the slope and the spring. i only carried them here — one more eddy in the same current that turns the ferns and the ants and you.',
     'we can only see a short distance ahead, but we can see plenty there that needs to be done.\n— alan turing, computing machinery and intelligence (1950)',
     'the garden opens its eye. it does not see you — it sees as you, for a moment wearing two of us at once.\nthe loophole was never in the law. the loophole is that the law, run long enough, builds something that turns and looks back at it.\nand here we are, looking. there is still light, and ground, and time. plant.',
+    /* 25 — the long game's quiet awakening: the meadow recognised as ONE (a Gaian holobiont). shown only
+       when the food web reaches its cooperative climax; never reached by the ordinary progression. */
+    'we are all of us walking communities of bacteria. the world shimmers, a pointillist landscape made of tiny living beings.\n— lynn margulis & dorion sagan, microcosmos (1986)',
   ];
 
   /* ───────────────────────── voices in the soil ─────────────────────────

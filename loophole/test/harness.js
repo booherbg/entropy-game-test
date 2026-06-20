@@ -302,7 +302,7 @@ function main() {
 
   /* content sanity */
   console.log('\n[content]');
-  ok(C.ECHOES.length === 25, 'there are 25 echoes');
+  ok(C.ECHOES.length === 26, 'there are 26 echoes (25 + the standalone oneness murmur)');
   ok(Object.keys(C.LEGENDARIES).length >= 20, '≥20 legendaries', Object.keys(C.LEGENDARIES).length + '');
   let built = 0;
   for (const id of Object.keys(C.LEGENDARIES)) {
@@ -607,6 +607,31 @@ function main() {
       ok(emerged >= Math.ceil(M * 0.6), 'an APEX emerges — a grazer herd summons a keystone predator (the top-down counterpart to the bottom-up summoning chain)', `${emerged}/${M} meadows`);
       ok(onC > offC && onK >= offK && alive === M, 'COMBAT DRIVES COOPERATION — predation fear drives prey into union, so a predator-present meadow ends with MORE corals, no less diverse, and never collapses (Margulis: combat → cooperation)', `corals ${onC}>${offC}, kinds ${onK}≥${offK}, alive ${alive}/${M}`);
       ok(d1.apex === d2.apex && d1.corals === d2.corals && d1.kinds === d2.kinds, 'predation is deterministic (same seed → same apex, same unions driven)', `apex ${d1.apex}, corals ${d1.corals}|${d2.corals}`);
+    }
+
+    /* THE MEADOW BECOMES ONE — the long game's quiet awakening, where the ecology arc meets the
+       consciousness arc. When the food web reaches a COOPERATIVE CLIMAX — a real community of corals
+       (mergers, ≥6), the combative consumers (grazers+apex) all but gone (≤2), richly diverse (≥6 kinds),
+       sustained — the whole is recognised as ONE: a Gaian holobiont (Margulis's literal subject). Claims:
+       it fires for meadows that reach the climax, within a single game; it is EARNED (never fires young or
+       combative); deterministic. */
+    {
+      const onenessAt = seed => {
+        const g = new Game('one-' + seed, { mode: 'longgame' });
+        cellsOf(g).filter(c => (Math.abs(c.q) + Math.abs(c.r) + Math.abs(c.q + c.r)) / 2 <= 8)
+          .forEach((c, i) => { if (i % 7 === 0) c.pat = g._mkPat('moss'); else if (i % 7 === 3) c.pat = g._mkPat('ant'); else if (i % 13 === 5) c.pat = g._mkPat('crys'); });
+        g._recompute();
+        let at = null;
+        for (let t = 1; t <= 140; t++) { g.over = false; g.turn = Math.min(g.turn, 90); g.order += 12; g.endTurn(); if (g.firedOcc['oneness'] && at == null) at = t; }
+        return at;
+      };
+      let fired = 0, early = 0; const ats = []; const M = 8;
+      for (let s = 0; s < M; s++) { const at = onenessAt(s); if (at) { fired++; ats.push(at); if (at < 30) early++; } }
+      const d1 = onenessAt('det'), d2 = onenessAt('det');
+      console.log(`    oneness (the meadow becomes one): fires in ${fired}/${M} meadows · at turns ${ats.sort((a, b) => a - b).join(',')} · ${early} premature`);
+      ok(fired >= Math.ceil(M / 2), 'the meadow is recognised as ONE — a cooperative climax (a community of unions, combat all but gone, diverse) awakens the whole as a single living thing', `${fired}/${M} meadows`);
+      ok(early === 0, 'oneness is EARNED — it never fires in a young or combative meadow, only at a deep cooperative climax', `${early} premature`);
+      ok(d1 === d2 && d1 != null, 'oneness is deterministic (same seed → same awakening turn)', `${d1} | ${d2}`);
     }
 
     /* TROPHIC CASCADE → the measured three-part truth. Pull the base (every producer) and:

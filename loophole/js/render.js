@@ -1226,6 +1226,7 @@
           case 'faunaBreed': if (e.k) this.burst(e.k, e.color, 5, 0.8); break;
           case 'predate': if (e.k) { this.burst(e.k, e.color, 8, 1.1); this.ring(e.k, e.color, 0.6); } break; /* a KILL — a sharp red spatter and a quick ring */
           case 'merge': if (e.k) { this.burst(e.k, e.color, 22, 1.5); this.ring(e.k, e.color, 1.3); this.ring(e.k, '#efe6d2', 0.85); } break; /* the UNION — two become one: a bright convergent bloom and a calcified ring (the reef forming) */
+          case 'oneness': for (const rr of [0.35, 0.65, 1.0]) this.pulses.push({ x: this.ox, y: this.oy, r: this.s * (this.game.radius || 6) * rr, v: 2.2, a: 0.5, w: 3, col: PAL.gold }); break; /* the meadow becomes ONE — a slow, soft, whole-board breath from the centre */
           case 'cull': if (e.k) this.burst(e.k, PAL.greyDark, 6, 0.9); break;
           case 'demon': this.ring(e.k, PAL.gold, 0.9); this.burst(e.k, PAL.gold, 6, 1); break;
           case 'hand': for (const k of e.cells) this.ring(k, PAL.dew, 0.5); break;
