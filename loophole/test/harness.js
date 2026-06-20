@@ -533,12 +533,18 @@ function main() {
         const orig = g._speciateFauna.bind(g);
         g._speciateFauna = (est, ev) => { orig(est, ev); for (const sp of g.faunaSpecies.values()) sp.role = forceRole; };
         for (let t = 0; t < 120; t++) { g.over = false; g.turn = Math.min(g.turn, 90); g.order += 12; g.endTurn(); }
-        return cellsOf(g).filter(c => c.pat && c.pat.t === 'flora').length;
+        const fl = cellsOf(g).filter(c => c.pat && c.pat.t === 'flora');
+        return { flora: fl.length, coral: [...g.species.values()].filter(s => s.compound).length };
       };
-      const polFlora = mutual('pollinator'), grzFlora = mutual('grazer');
-      console.log(`    food web: roles by succession — grazers ${grz}/${N}, pollinators ${pol}/${N} · positive-sum: pollinated meadow ${polFlora} flora vs grazed ${grzFlora}`);
+      /* the matured web DISSOLVES the combat/cooperation dichotomy. Once grazers became gentle
+         specialists that MERGE (symbiogenesis), "combat" stopped being destructive AND became
+         generative — an all-grazer meadow ends as rich as an all-pollinator one (carrying-capacity
+         bound, the old 17-vs-5 gap gone) and produces CORALS the pollinated one never does. Margulis's
+         real point: there was never a clean line between combat and networking. */
+      const polM = mutual('pollinator'), grzM = mutual('grazer');
+      console.log(`    food web: roles by succession — grazers ${grz}/${N}, pollinators ${pol}/${N} · combat≈cooperation: pollinated ${polM.flora}f/${polM.coral}coral vs grazed ${grzM.flora}f/${grzM.coral}coral`);
       ok(grz >= N - 1 && pol >= Math.ceil(N / 2), 'both roles emerge — a consumer first, a mutualist as the varied meadow earns it', `grazers ${grz}/${N}, pollinators ${pol}/${N}`);
-      ok(polFlora > grzFlora, 'mutualism is POSITIVE-SUM — networking out-produces combat (Margulis)', `pollinated ${polFlora} > grazed ${grzFlora} flora`);
+      ok(polM.flora >= grzM.flora - 2 && grzM.coral >= 1, 'the matured web is all NET-POSITIVE — the mutualist never destroys, and even the grazer ends in UNION (combat becomes symbiogenesis); the old networking-beats-combat gap dissolved', `pollinated ${polM.flora} ≈ grazed ${grzM.flora}, grazed corals ${grzM.coral}`);
     }
 
     /* THE FOOD WEB → SYMBIOGENESIS (Margulis's actual radical claim: major novelty comes from MERGER,

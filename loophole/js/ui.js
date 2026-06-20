@@ -738,7 +738,7 @@
           if (e.role === 'pollinator')
             toast('a <b>pollinator</b> drifts in — « <b style="color:' + e.color + '">' + e.name + '</b> » — drawn by a meadow varied enough to need one. it sips the ' + e.eats + ' and carries its kind into open ground: it <b>spreads</b> life rather than eating it. a mutualist — the meadow grows richer for it.', 'good', 9000);
           else
-            toast('a <b>beast</b> walks into the world — « <b style="color:' + e.color + '">' + e.name + '</b> », drawn by a meadow rich enough to feed it. it grazes the ' + e.eats + ' and lives only while the meadow does.', 'good', 8500);
+            toast('a <b>herd</b> walks into the world — « <b style="color:' + e.color + '">' + e.name + '</b> », drawn by a meadow rich enough to feed it. it grazes the ' + e.eats + ' and lives only while the meadow does — and, lived-with long enough, a grazer may become one with its flower (a coral).', 'good', 8500);
           AU.beast();
           { const fl = meta.fauna || (meta.fauna = []);
             if (!fl.some(b => b.name === e.name && b.color === e.color)) { fl.push({ name: e.name, color: e.color, born: game ? game.turn : 0 }); save(); } }

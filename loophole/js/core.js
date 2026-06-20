@@ -580,11 +580,15 @@
     _fauna(ev) {
       if (this.mode !== 'longgame') return;
       const FA_THRESH = 8, FA_SUSTAIN = 4, FA_SP_CAP = 4, FA_CAP = 8, STARVE = 14, BREED = 16, GRAZE_NEED = 4, REFUGE = 6, FLORA_CAP = 60, POLLEN = 0.5, DIET_REFUGE = 2;
-      const floraCount = this._patternCells('flora').length; /* a refuge: beasts won't graze the meadow below this — the prey is never eaten to nothing */
+      let floraCount = this._patternCells('flora').length; /* a refuge: beasts won't graze the meadow below this — the prey is never eaten to nothing (decremented as they eat, so a whole HERD can't overshoot it in one turn on a stale count) */
       const estFlora = this._patternCells('flora').filter(c => c.pat.est);
-      /* 1. a rich, diverse meadow (much established flora, ≥2 species) is a surplus of LIFE */
+      /* 1. a rich, diverse, LIVING meadow (much established flora, ≥2 species, AND actually producing —
+         some fed flora) is a surplus of LIFE. the fed requirement is the coupling: a fossil scaffold of
+         established-but-unfed beds (e.g. after the base is pulled) is standing-dead habitat — it must NOT
+         keep birthing fauna, or the animal layer would float free of the base it depends on. */
+      const fedEst = estFlora.filter(c => c.pat.fedOk);
       const diversity = new Set(estFlora.map(c => c.pat.sp)).size;
-      if (estFlora.length >= FA_THRESH && diversity >= 2 && this.faunaSpecies.size < FA_SP_CAP && this.fauna.length < FA_CAP) {
+      if (estFlora.length >= FA_THRESH && fedEst.length >= 2 && diversity >= 2 && this.faunaSpecies.size < FA_SP_CAP && this.fauna.length < FA_CAP) {
         this.faunaRun++;
         if (this.faunaRun >= FA_SUSTAIN) { this._speciateFauna(estFlora, ev); this.faunaRun = 0; }
       } else this.faunaRun = 0;
@@ -630,7 +634,7 @@
                  grazing becomes the first act of UNION — it lies down and becomes a compound (a coral).
                  combat → network. one-way: the beast is spent, a KIND remains. */
               f.bond = (f.bond || 0) + 1;
-              f.hunger = Math.max(0, f.hunger - 2); /* the nascent symbiosis already feeds it — a proto-coral increasingly lives off the partner it houses, so it need not hunt to bond, cannot starve mid-union, and does not eat the very flower it is becoming one with */
+              if (best.pat.fedOk) f.hunger = Math.max(0, f.hunger - 2); /* the nascent symbiosis feeds it — but only off a PRODUCING partner (the symbiont photosynthesises): a proto-coral lives off the partner it houses, so it need not hunt to bond and does not eat the very flower it is becoming. on a dead base the partner cannot produce, so the bond no longer shields it from starvation — the union, too, is coupled to the base. */
               if (this._shouldMerge(f, sp)) { this._symbiogenesis(f, sp, best, ev); continue; }
             }
             if (f.hunger >= GRAZE_NEED && floraCount > REFUGE) {
@@ -640,14 +644,14 @@
               let food = null;
               for (const nk of HEX.neighborsK(HEX.key(f.q, f.r))) {
                 const nc = this.cells.get(nk);
-                if (nc && nc.pat && nc.pat.t === 'flora' && nc.pat.sp !== sp.diet) { food = nc; break; }
+                if (nc && nc.pat && nc.pat.t === 'flora' && nc.pat.sp !== sp.diet && !(this.species.get(nc.pat.sp) || {}).compound) { food = nc; break; } /* never graze a coral — it is calcified reef, not a flower (and so the coral skeleton can outlast the polyps) */
               }
               if (!food && best.pat.sp === sp.diet && HEX.dist2(f.q, f.r, best.q, best.r) <= 1) {
                 let dietEst = 0; for (const x of this.cells.values()) if (x.pat && x.pat.t === 'flora' && x.pat.sp === sp.diet && x.pat.est) dietEst++;
                 if (dietEst > DIET_REFUGE) food = best; /* a last resort, and never below the partner's refuge */
               }
               if (food) {
-                this._killFlora(food); f.hunger = 0; f.fedRun = (f.fedRun || 0) + 1;
+                this._killFlora(food); floraCount--; f.hunger = 0; f.fedRun = (f.fedRun || 0) + 1;
                 food.e = U.clamp(food.e + 0.05, 0, 1); /* droppings → humus, fertilising the cycle */
                 ev.push({ t: 'graze', k: HEX.key(food.q, food.r), color: sp.color });
                 if (f.fedRun >= BREED && this.fauna.length < FA_CAP) {
@@ -702,7 +706,14 @@
       const sp = { id, diet: dietSp, ch, role, color: floraSp ? floraSp.color : '#d8c0a8', name, born: this.turn, seeded: true };
       this.faunaSpecies.set(id, sp);
       const spot = estFlora.find(c => c.pat.sp === dietSp) || estFlora[0];
-      this.fauna.push({ spId: id, q: spot.q, r: spot.r, age: 0, hunger: 0, fedRun: 0 });
+      /* a GRAZER arrives as a small HERD — a herbivore base with real biomass (so symbiogenesis has
+         several candidates and is witnessable within one game, and so an apex could one day find prey);
+         a pollinator, the specialised mutualist, drifts in alone. */
+      const born = role === 'grazer' ? 3 : 1;
+      for (let n = 0; n < born; n++) {
+        const at = n === 0 ? spot : (estFlora[this.rng.i(estFlora.length)] || spot);
+        this.fauna.push({ spId: id, q: at.q, r: at.r, age: 0, hunger: 0, fedRun: 0 });
+      }
       ev.push({ t: 'fauna', name, role, color: sp.color, k: HEX.key(spot.q, spot.r), eats: floraSp ? floraSp.name : 'wildflowers' });
     }
     _stepToward(q, r, tq, tr, avoid) {
