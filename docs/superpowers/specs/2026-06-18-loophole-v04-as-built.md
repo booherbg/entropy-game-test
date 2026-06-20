@@ -60,7 +60,9 @@ the player as the **element bars** in the metabolism panel ("the elements · wha
   carries `compound`/`flora`/`beast`; `meta.fauna` carries `role`/`eats`; both persist across runs (old
   saves degrade gracefully — roleless beasts read as grazers).
 - **audio:** `AU.bloom()` (a rising unfurl when a flower opens), `AU.wither()` (a sigh on extinction),
-  `AU.beast()` (a low resonant call when a beast arrives).
+  `AU.beast()` (a low resonant call when a beast arrives), and the food-web voices: `AU.merge()` (two
+  voices glide into a unison, then a warm bell — symbiogenesis sounding like itself), `AU.oneness()` (a
+  warm chord swelling into one sustained bloom), `AU.predate()` (a sharp low strike, the apex's cull).
 
 ## 5. Where it lives
 - **core.js:** element consts + `floraColor` + `FAUNA_SUF` (before `class Game`); `_ecology`/`_speciate`/

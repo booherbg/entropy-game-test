@@ -127,6 +127,20 @@
       [196, 294, 392, 494, 587, 880].forEach((f, i) =>
         setTimeout(() => { this.blip(f, 4.5, 'sine', 0.045); this.blip(f * 1.002, 4.5, 'sine', 0.03); }, i * 380));
     },
+    /* SYMBIOGENESIS — two species become one: two voices glide TOGETHER into a unison (combat → network),
+       then a warm bell, the new KIND that neither was */
+    merge() {
+      this.blip(294, 1.0, 'triangle', 0.05, 440);
+      this.blip(587, 1.0, 'triangle', 0.045, 440);
+      setTimeout(() => { this.bell(440, 1.8, 0.06); this.bell(660, 1.4, 0.03); }, 720);
+    },
+    /* THE MEADOW BECOMES ONE — a warm chord rising into a single sustained bloom (the many, one) */
+    oneness() {
+      [196, 262, 330, 392, 523].forEach((f, i) => setTimeout(() => { this.bell(f, 3.6, 0.045); this.bell(f * 1.003, 3.6, 0.028); }, i * 300));
+      setTimeout(() => this.bell(523, 4.6, 0.055), 1500);
+    },
+    /* a KILL — a sharp, low strike (the apex cull) */
+    predate() { this.blip(160, 0.13, 'sawtooth', 0.055, 80); this.noise(0.14, 900, 0.035, true); },
   };
   function startAudio() {
     AU.init();
@@ -746,6 +760,7 @@
             if (!fl.some(b => b.name === e.name && b.color === e.color)) { fl.push({ name: e.name, color: e.color, role: e.role || 'grazer', eats: e.eats, born: game ? game.turn : 0 }); save(); } }
           break;
         case 'faunaGone': toast('the « <b style="color:' + e.color + '">' + e.name + '</b> » are gone — the meadow could no longer hold them. remembered.', '', 6000); AU.wither(); break;
+        case 'predate': if (AU.predate) AU.predate(); break; /* a kill — a sharp strike, no toast (it happens often) */
         case 'merge':
           toast('the food web does something it has never done — « <b style="color:' + e.color + '">' + e.beast + '</b> » does not eat the « <b style="color:' + e.color + '">' + e.flora + '</b> » it has lived beside so long; it <b>becomes one</b> with it. a new KIND is born — « <b style="color:' + e.color + '">' + e.name + '</b> », a <b>coral</b>: an animal that lay down and became a garden, feeding itself and building reef for the others. <b>symbiogenesis</b> — the union Margulis foresaw, the rarest thing your world can do.', 'good', 12000);
           (AU.merge || AU.beast)();
@@ -754,7 +769,7 @@
           break;
         case 'oneness':
           toast('the meadow has become <b>one</b> — a web of so much union and cooperation that the parts no longer read as parts. a single living thing, breathing. <span class="muted">(' + e.corals + ' unions · ' + e.kinds + ' kinds, woven.)</span>', 'good', 12000);
-          (AU.merge || AU.beast)();
+          (AU.oneness || AU.coalesce)();
           pushOverlay(echoOverlay(25, '— the meadow becomes one —')); /* the long game's quiet awakening — Margulis: a pointillist landscape of tiny living beings */
           break;
         case 'dissolveWarn': toast('the garden thins — coherence below 22% (' + e.streak + '/3)', 'warn', 5200); break;
