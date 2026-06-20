@@ -7,6 +7,56 @@ Method & telos: `docs/superpowers/specs/2026-06-19-loophole-prime-directive.md`.
 
 ---
 
+## 2026-06-20 · the food web sheds combat for cooperation (the herd, and a dissolved dichotomy)
+
+I ran a *play-first* loop — probed the running ecology before building anything — and it told me
+things I hadn't designed.
+
+**1. Left to run, the web SHEDS its combative layer.** Over a long run the grazer (the herbivore,
+the "combat" trophic level) dwindles to a single vestige while pollinators fill the animal layer.
+The food web, unguided, converges to a **cooperative climax** — mutualists and mergers, almost no
+grazing. *Margulis's "life took over by networking, not combat" emerging from the mechanics, nobody
+having scripted it.* Beautiful — but it also meant the crown jewel I'd just shipped (symbiogenesis)
+barely happened within a single turn-100 game: one ephemeral grazer → 0–2 corals by game end. The
+feature was nearly invisible in actual play.
+
+**2. One small change, a large effect.** A grazer now arrives as a small **herd**, not a lone
+vestige. Merges roughly tripled; corals are present by turn 100; a real herbivore base exists; late
+diversity rose. The smallest faithful change with the biggest emergent return — the most on-theme
+kind of edit this game rewards.
+
+**3. The herd EXPOSED two coupling cheats I'd shipped without seeing.** With more biomass moving
+through the system, two free lunches became visible:
+- A dead **fossil scaffold** (established-but-unfed beds, e.g. after pulling the base) was still
+  *summoning new fauna* — the animal layer was coupled to standing-dead bed COUNT, not to
+  production. Pull the base and fauna floated at ~4 forever. *Fix:* a meadow must be FED to birth
+  fauna.
+- A grazer cohabiting its diet but unable to merge (coral cap reached) was **immortal** — its "the
+  union already feeds me" hunger-decay wasn't tied to a *living* partner. A single grazer clung to a
+  dead world for 400 turns. *Fix:* the proto-coral self-feeds only off a PRODUCING partner — so the
+  union, too, is coupled to the base. Both cheats were invisible until a herd put load on the system.
+
+**4. The hysteresis became LITERAL.** Grazers don't graze a coral (it's calcified reef, not a
+flower), so when the base is pulled the soft web unwinds to zero while the **corals persist as the
+fossil scaffold**. The game's old murmur — *"a coral skeleton after the polyps"* — is now exactly,
+mechanically what the cascade leaves behind. The metaphor became the mechanism.
+
+**5. The deepest one, which the test suite surfaced by FAILING:** the **combat/cooperation dichotomy
+has dissolved.** Food-web I's headline claim was *mutualism is positive-sum — networking beats
+combat* (a pollinated meadow ended 17 flora vs a grazed 5). It is no longer true. Once grazers became
+gentle specialists that **merge**, an all-grazer meadow ends just as rich as an all-pollinator one
+(16 ≈ 16, carrying-capacity bound) AND grows **corals the pollinated one never does** (combat → union).
+The mutualist is no longer "better" — because *combat itself became generative.* I didn't decide
+this; the assertion broke, I measured why, and the sim had quietly proven Margulis's actual, deeper
+point: there was never a clean line between combat and networking. The harness now asserts the truer
+thing — the matured web is **all net-positive, and even the grazer ends in union.**
+
+*Shipped: `214ff68`. Guards: `[emergence]` food-web (combat≈cooperation), symbiogenesis (Δ12
+diversity now, up from Δ8), the cascade's three-part truth (coupling to ZERO + a coral-skeleton
+scaffold). base garden still 24/24, deterministic.*
+
+---
+
 ## 2026-06-20 · the merger kept teaching me how merger works (symbiogenesis / the coral)
 
 Building the never-been-a-game-mechanic feature — a grazer and its diet flora *merge* into a compound
