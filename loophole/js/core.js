@@ -1127,6 +1127,7 @@
     flourishScore() {
       let live = 0; const kinds = new Set(), floraSp = new Set();
       for (const c of this.cells.values()) if (c.pat) { live++; kinds.add(c.pat.t); if (c.pat.t === 'flora') floraSp.add(c.pat.sp); }
+      let coralSp = 0; for (const sp of this.species.values()) if (sp.compound) coralSp++;
       const s = this.stats;
       return Math.max(0, Math.round(
         this.coherence() * 300 +
@@ -1137,9 +1138,12 @@
         (s.eaten || 0) * 2 +
         (this.stage - 1) * 50 +
         floraSp.size * 25 +                               /* the diversity of emergent flora */
-        this.fauna.length * 30 + this.faunaSpecies.size * 40)); /* megafauna — the pinnacle of a flourishing world */
+        this.fauna.length * 30 + this.faunaSpecies.size * 40 + /* a living animal layer */
+        coralSp * 70 +                                    /* the UNIONS — symbiogenesis, the cooperative pinnacle (a flourishing world is one that COOPERATES, not one that merely teems) */
+        (this.firedOcc['oneness'] ? 600 : 0)));           /* the meadow became ONE — the summit */
     }
     flourishGrade(score) {
+      if (this.firedOcc['oneness']) return 'a world that became one'; /* the summit — the meadow recognised as a single living thing, above any mere score */
       if (score >= 2800) return 'a flourishing world';
       if (score >= 2000) return 'a thriving garden';
       if (score >= 1300) return 'a living garden';
@@ -1149,8 +1153,9 @@
     flourishBreakdown() {
       let live = 0; const kinds = new Set(), floraSp = new Set();
       for (const c of this.cells.values()) if (c.pat) { live++; kinds.add(c.pat.t); if (c.pat.t === 'flora') floraSp.add(c.pat.sp); }
+      let coralSp = 0; for (const sp of this.species.values()) if (sp.compound) coralSp++;
       const s = this.stats;
-      return [
+      const rows = [
         ['coherence held', Math.round(this.coherence() * 300)],
         ['living cells', live * 4],
         ['diversity', kinds.size * 45],
@@ -1159,8 +1164,11 @@
         ['disorder devoured', Math.round((s.eaten || 0) * 2)],
         ['epochs reached', (this.stage - 1) * 50],
         ['emergent flora', floraSp.size * 25],
-        ['megafauna sustained', this.fauna.length * 30 + this.faunaSpecies.size * 40],
+        ['the animal layer', this.fauna.length * 30 + this.faunaSpecies.size * 40],
       ];
+      if (coralSp) rows.push(['unions woven (corals)', coralSp * 70]);
+      if (this.firedOcc['oneness']) rows.push(['the meadow became one', 600]);
+      return rows;
     }
 
     /* ── the turn pipeline ── */

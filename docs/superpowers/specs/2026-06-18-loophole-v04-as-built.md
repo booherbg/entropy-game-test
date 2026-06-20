@@ -137,6 +137,13 @@ The megafauna chain becomes a **web**, leading (per Margulis) with cooperation, 
   communities of bacteria… a pointillist landscape made of tiny living beings." Measured: fires 5/8
   meadows ~turn 52–106, EARNED (never young/combative), deterministic. The food web's natural attractor
   *is* the holobiont — the two halves of the game ("entropy, consciousness") were never two. `?shot=oneness`.
+- **Flourishing = cooperation** (`flourishScore`/`flourishBreakdown`/`flourishGrade`): the long game's reward
+  once called "megafauna the pinnacle" and rewarded fauna *count* — but the cooperative climax SHEDS the
+  combative layer (grazers → corals), so a meadow that became *one* could score *lower* than a teeming
+  combative one: the goal rewarded the opposite of the game's deepest theme. Realigned: **unions woven
+  (corals) ×70** and **the meadow became one +600** are now the top-rewarded components, and a meadow that
+  reaches oneness earns the summit grade **"a world that became one"** (above "a flourishing world").
+  Measured: a cooperative meadow scores ~+1000 over the same world combative; ✦2677 vs ✦1450. `?shot=longend`.
 
 ## 7. Open items (next)
 - **Coral / fauna visibility at full-board zoom** — corals (like beasts) read small on a large board;
