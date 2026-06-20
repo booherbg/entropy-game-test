@@ -53,9 +53,12 @@ the player as the **element bars** in the metabolism panel ("the elements · wha
   lush & full; established beds glow), `_drawFauna` (a large dark-outlined grazing beast in its diet
   colour, drawn as an overlay).
 - **ui:** the haiku-of-fact **cellTip** ("eats light, leaves rot · established · thrives at N–N%
-  entropy"); arrival/extinction/cull toasts; the **journals** in the murmurs codex — "life witnessed"
-  (flora, with the colour→diet legend) and "beasts that grazed your meadows" (fauna). `meta.flora` /
-  `meta.fauna` persist across runs.
+  entropy"); arrival/extinction/cull toasts; the **journals** in the murmurs codex, reshaped so the
+  food web reads as a *web* — "life witnessed" (flora, colour→diet legend), **"unions"** (each coral
+  naming the two parents it was born from — `beast ⊕ flora`), and fauna split by **role** ("herds · the
+  grazers", "mutualists · the pollinators", "apex · the cullers"), each with a one-line note. `meta.flora`
+  carries `compound`/`flora`/`beast`; `meta.fauna` carries `role`/`eats`; both persist across runs (old
+  saves degrade gracefully — roleless beasts read as grazers).
 - **audio:** `AU.bloom()` (a rising unfurl when a flower opens), `AU.wither()` (a sigh on extinction),
   `AU.beast()` (a low resonant call when a beast arrives).
 

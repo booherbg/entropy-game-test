@@ -743,14 +743,14 @@
             toast('a <b>herd</b> walks into the world — « <b style="color:' + e.color + '">' + e.name + '</b> », drawn by a meadow rich enough to feed it. it grazes the ' + e.eats + ' and lives only while the meadow does — and, lived-with long enough, a grazer may become one with its flower (a coral).', 'good', 8500);
           AU.beast();
           { const fl = meta.fauna || (meta.fauna = []);
-            if (!fl.some(b => b.name === e.name && b.color === e.color)) { fl.push({ name: e.name, color: e.color, born: game ? game.turn : 0 }); save(); } }
+            if (!fl.some(b => b.name === e.name && b.color === e.color)) { fl.push({ name: e.name, color: e.color, role: e.role || 'grazer', eats: e.eats, born: game ? game.turn : 0 }); save(); } }
           break;
         case 'faunaGone': toast('the « <b style="color:' + e.color + '">' + e.name + '</b> » are gone — the meadow could no longer hold them. remembered.', '', 6000); AU.wither(); break;
         case 'merge':
           toast('the food web does something it has never done — « <b style="color:' + e.color + '">' + e.beast + '</b> » does not eat the « <b style="color:' + e.color + '">' + e.flora + '</b> » it has lived beside so long; it <b>becomes one</b> with it. a new KIND is born — « <b style="color:' + e.color + '">' + e.name + '</b> », a <b>coral</b>: an animal that lay down and became a garden, feeding itself and building reef for the others. <b>symbiogenesis</b> — the union Margulis foresaw, the rarest thing your world can do.', 'good', 12000);
           (AU.merge || AU.beast)();
           { const fl = meta.flora || (meta.flora = []);
-            if (!fl.some(f => f.name === e.name)) { fl.push({ name: e.name, color: e.color, ch: e.ch, compound: 1, born: game ? game.turn : 0 }); save(); } }
+            if (!fl.some(f => f.name === e.name)) { fl.push({ name: e.name, color: e.color, ch: e.ch, compound: 1, flora: e.flora, beast: e.beast, born: game ? game.turn : 0 }); save(); } }
           break;
         case 'dissolveWarn': toast('the garden thins — coherence below 22% (' + e.streak + '/3)', 'warn', 5200); break;
         case 'dissolved': onDissolved(); break;
@@ -1004,21 +1004,37 @@
       (voices.length
         ? `<div class="voicelist">${voices.map(i => `<div class="voice">“${QA[i].q}”<div class="murmurcite">— ${QA[i].by}</div></div>`).join('')}</div>`
         : `<div class="muted">real human words, gathered as you play. none yet — they surface at cascades, rites, and the slow turning of the seasons.</div>`);
-    const flora = meta.flora || [], DIET = ['light', 'stone', 'rot'];
+    const allFlora = meta.flora || [], DIET = ['light', 'stone', 'rot'];
+    const flora = allFlora.filter(f => !f.compound), corals = allFlora.filter(f => f.compound);
     const floraHTML = `<div class="codexhead">life witnessed · ${flora.length}</div>` +
       (flora.length
         ? `<div class="muted" style="margin-bottom:7px">a flower wears its <b>diet</b> — <span style="color:#d4e878">chartreuse eats light</span> · <span style="color:#78c8ec">cyan eats stone</span> · <span style="color:#ce7ad4">violet eats rot</span> · blends between.</div>
            <div class="codexlist">${flora.slice(0, 80).map(f => `<span class="endart" style="border-color:${f.color}99;color:${f.color}" title="eats ${DIET[f.ch] || '?'}">❀ ${f.name}</span>`).join(' ')}</div>`
         : `<div class="muted">flora your worlds dream up — summoned by what you leave in surplus, in the long game. none yet. point at one to read what it eats; its colour is its diet.</div>`);
+    /* the UNIONS — symbiogenesis made legible: each coral names the two it was born from */
+    const coralHTML = corals.length
+      ? `<div class="codexhead">unions · ${corals.length}</div>
+         <div class="muted" style="margin-bottom:7px">a grazer and the flower it lived beside, become <b>one</b> — a <b>coral</b> (symbiogenesis). a kind neither was: self-feeding, reef-building.</div>
+         <div class="codexlist">${corals.slice(0, 40).map(c => `<span class="endart" style="border-color:${c.color}99;color:${c.color}">❖ ${c.name}${c.beast && c.flora ? ` <span class="muted" style="font-size:.82em">· ${c.beast} ⊕ ${c.flora}</span>` : ''}</span>`).join(' ')}</div>`
+      : '';
+    /* the FAUNA split by role — so the web reads as a web: who grazes, who pollinates, who hunts */
     const fauna = meta.fauna || [];
+    const ROLES = [
+      { k: 'grazer', head: 'herds · the grazers', mark: '❦', note: 'herbivores a rich meadow summons — some, lived-with long enough, lie down as coral.' },
+      { k: 'pollinator', head: 'mutualists · the pollinators', mark: '✦', note: 'they spread life rather than eat it — networking, not combat (Margulis).' },
+      { k: 'predator', head: 'apex · the cullers', mark: '⊿', note: 'the top of your web — they cull the herd, and their fear drives the prey into union.' },
+    ];
     const faunaHTML = fauna.length
-      ? `<div class="codexhead">beasts that grazed your meadows · ${fauna.length}</div><div class="codexlist">${fauna.slice(0, 60).map(b => `<span class="endart" style="border-color:${b.color}99;color:${b.color}">❦ ${b.name}</span>`).join(' ')}</div>`
+      ? ROLES.map(r => { const grp = fauna.filter(b => (b.role || 'grazer') === r.k); return grp.length
+          ? `<div class="codexhead">${r.head} · ${grp.length}</div><div class="muted" style="margin-bottom:7px">${r.note}</div><div class="codexlist">${grp.slice(0, 60).map(b => `<span class="endart" style="border-color:${b.color}99;color:${b.color}">${r.mark} ${b.name}</span>`).join(' ')}</div>`
+          : ''; }).join('')
       : '';
     pushOverlay(panelOverlay(`
       <div class="paneltitle">murmurs</div>
       <div class="murmurlist">${items.join('')}</div>
       <div class="muted center">${meta.echoes.length < 24 ? 'the rest are still in the soil. they surface as you play.' : 'all of it, gathered. thank you for listening.'}</div>
       ${floraHTML}
+      ${coralHTML}
       ${faunaHTML}
       ${voicesHTML}
       ${codex}`,
@@ -1530,7 +1546,9 @@
     if (kind === 'help') helpOverlay();
     if (kind === 'murmurs') {
       meta.echoes = [0, 1, 2, 3, 4, 5, 6, 7]; meta.quotes = [0, 1, 4, 10, 20];
-      meta.flora = [{ name: 'goldfern', color: '#bcd87a', ch: 0 }, { name: 'dawncup', color: '#a9d49a', ch: 0 }, { name: 'quartzveil', color: '#86c6d0', ch: 1 }, { name: 'ashlace', color: '#c389c6', ch: 2 }, { name: 'mirebloom', color: '#be7fc0', ch: 2 }];
+      meta.flora = [{ name: 'goldfern', color: '#bcd87a', ch: 0 }, { name: 'dawncup', color: '#a9d49a', ch: 0 }, { name: 'quartzveil', color: '#86c6d0', ch: 1 }, { name: 'ashlace', color: '#c389c6', ch: 2 }, { name: 'mirebloom', color: '#be7fc0', ch: 2 },
+        { name: 'goldcoral', color: '#c3afb6', ch: 0, compound: 1, beast: 'goldstrider', flora: 'goldfern' }, { name: 'mirepolypary', color: '#be7fc0', ch: 2, compound: 1, beast: 'mireelk', flora: 'mirebloom' }];
+      meta.fauna = [{ name: 'goldstrider', color: '#bcd87a', role: 'grazer' }, { name: 'mireelk', color: '#be7fc0', role: 'grazer' }, { name: 'golddancer', color: '#bcd87a', role: 'pollinator' }, { name: 'sundrifter', color: '#d4e878', role: 'pollinator' }, { name: 'mireshrike', color: '#c2503f', role: 'predator' }];
       murmursOverlay();
     }
     if (kind === 'voice') { meta.quotes = []; surfaceQuote(); }
