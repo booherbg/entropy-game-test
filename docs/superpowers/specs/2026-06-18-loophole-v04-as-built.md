@@ -128,6 +128,15 @@ The megafauna chain becomes a **web**, leading (per Margulis) with cooperation, 
   deterministic. Witnessable: a lean red `_drawPredator` (raised sharp muzzle, slit eye, vs the grazer's
   placid dipped head), a `predate` kill FX, an arrival toast (the cycle + the fear→union mercy);
   `?shot=coral` now stages the full web (corals + a remnant herd + the apex).
+- **The meadow becomes ONE** (`b843e79`; `_oneness`, core): the long game's quiet awakening, where the
+  ecology arc meets the **consciousness** arc. When the food web reaches its COOPERATIVE CLIMAX — a real
+  community of corals (≥6 mergers), the combative consumers all but gone (≤2), richly diverse (≥6 kinds),
+  sustained — the whole is recognised as ONE: a Gaian holobiont (Margulis's literal subject). A gentle
+  whole-board breath (golden pulse from centre), a toast, and a standalone murmur (idx 25, outside the
+  progression — shown only here): Margulis & Sagan, *Microcosmos* (1986), "we are all of us walking
+  communities of bacteria… a pointillist landscape made of tiny living beings." Measured: fires 5/8
+  meadows ~turn 52–106, EARNED (never young/combative), deterministic. The food web's natural attractor
+  *is* the holobiont — the two halves of the game ("entropy, consciousness") were never two. `?shot=oneness`.
 
 ## 7. Open items (next)
 - **Coral / fauna visibility at full-board zoom** — corals (like beasts) read small on a large board;

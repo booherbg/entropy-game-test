@@ -7,6 +7,38 @@ Method & telos: `docs/superpowers/specs/2026-06-19-loophole-prime-directive.md`.
 
 ---
 
+## 2026-06-20 · the ecology arc arrived at the consciousness arc (the meadow becomes one)
+
+I went looking for the next thing to build with no plan, and a play-first probe handed me something
+I didn't expect: **the food web, left to run, converges on a clean, measurable, well-timed end state.**
+
+Track the cooperation (corals + pollinators) against the combat (grazers + apex) over a long run, and
+every meadow tells the same story: they start balanced (~turn 20–40), cooperation pulls decisively
+ahead (~turn 60), and by **turn ~80–100 — the game's own natural end — the meadow is a community of
+6–10 corals with the combative consumers all but gone** (combat ≤ 2), richly diverse, and then it just
+*holds* there, stable. It is a genuine attractor. Not every meadow reaches it (about 5 of 8 do; the
+rest settle one or two corals short) — so it is *earned*, not given.
+
+And here is the part that stopped me: **that attractor is a Gaian holobiont.** A meadow so woven of
+union and mutualism that the parts no longer read as parts — which is *exactly* the thing the game's
+own murmurs have been circling in their non-dual movement (the self as eddy, "there is only one
+thing," "a way for the cosmos to know itself"). The game is, by its own description, "about entropy,
+consciousness, and our place in both." I had spent four loops building the **entropy/ecology** half
+and treating the **consciousness** half as a separate, hand-authored climax (the garden's awakening).
+But the ecology, followed honestly, *walked right up to the consciousness theme on its own.* The food
+web's natural endpoint **is** the holobiont; the holobiont **is** the non-dual whole. The two halves
+of the game were never two.
+
+So the only thing left to build was a recognition — to let the world *notice* when it has become one,
+and say so (with the line that was waiting for it: Margulis's "we are all of us walking communities of
+bacteria... a pointillist landscape made of tiny living beings"). I didn't connect the ecology to the
+consciousness theme. The mechanics did, and the probe just showed me they had.
+
+*Shipped: `b843e79`. Guard: `[emergence]` oneness — fires 5/8 meadows ~turn 52–106, earned (never young
+or combative), deterministic. The murmur progression (24) intact; 26 echoes total.*
+
+---
+
 ## 2026-06-20 · the apex that engineers its own obsolescence (predation drives cooperation)
 
 The last beat of the food-web arc was supposed to be the obvious one: a keystone predator (Paine,
