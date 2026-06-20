@@ -1342,6 +1342,14 @@
     const g = game;
     const rows = g.flourishBreakdown().map(([label, val]) => `<div>${label}</div><div>+${val}</div>`).join('');
     const best = meta.bestFlourish;
+    /* the closing thought — the thermodynamic capstone. the player spent the game building ORDER against
+       the second law; here the loophole resolves: a living world runs the gradient DOWN faster than the
+       bare rock it rose from (Schneider & Kay), so the order served the disorder. there is no outside —
+       the inside, alive, IS how the fire burns. (callbacks the anthology's Heraclitus + the premise.) */
+    const becameOne = !!(g.firedOcc && g.firedOcc.oneness);
+    const closing = becameOne
+      ? 'you grew order against the second law for a hundred turns — and a meadow that became <b>one</b> is the law at its most alive: a single dissipating whole, an ever-living fire kindling and going out in measures, spending the gradient as fast as anything ever has. you never cheated the slope. you became the most beautiful way down it. there was never an outside.'
+      : 'you grew order against the second law for a hundred turns. but the law was never the enemy: a living world runs the gradient down faster than the bare rock it rose from — your order was disorder’s own quickest path. that is the loophole, plainly. there is no outside; the inside, alive, is only how the fire finds to burn.';
     setTimeout(() => pushOverlay((wrap, close) => {
       const box = el('div', 'panelbox endbox');
       box.innerHTML = `
@@ -1350,6 +1358,7 @@
         <div class="flourishbig">✦ ${score}${best > score ? '' : ' <span class="muted small">— your best</span>'}</div>
         <div class="statgrid">${rows}</div>
         ${statsHTML(g)}
+        <p class="endnote oneclose">${closing}</p>
         <div class="endbtns">
           <button id="e-again">grow another</button>
           <button id="e-title" class="ghostbtn">title</button>
