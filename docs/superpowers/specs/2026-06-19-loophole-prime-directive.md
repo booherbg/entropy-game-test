@@ -28,7 +28,10 @@ play  →  critique  →  research  →  distill  →  build  →  repeat
    (the reading list below). Find weird rabbit holes. Follow what *I* am genuinely drawn to.
 4. **distill** — extract one transferable nugget: a principle that can become a mechanic.
 5. **build** — ship one safe, verified, witnessable increment that embodies the nugget.
-6. **repeat** — commit + push, then the next fire picks up.
+6. **log** — if the iteration surfaced something *true the sim does on its own* (not just a feature),
+   write it to `loophole/DISCOVERIES.md` (newest first). The discovery log is part of the point —
+   watching what emerges that nobody designed.
+7. **repeat** — commit + push, then the next fire picks up. Keep turns SHORT so 10-min fires don't stack.
 
 **Invariants that never bend** (the sacred constraints): base "garden" game stays **24/24** and
 fauna-free · everything **deterministic** (one seeded RNG) · zero deps, runs from `file://` ·
