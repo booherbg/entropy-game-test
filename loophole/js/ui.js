@@ -1419,11 +1419,14 @@
         <p class="endnote">it woke. for a moment the whole board was one pattern, and the pattern was looking.</p>
         ${statsHTML(game)}
         <p class="endnote muted small">you woke this garden at <b>difficulty ${cur}</b>${cur ? '' : ' (baseline)'}.${canDeeper ? ` <b>go deeper</b> unlocks and plays <b>difficulty ${next}</b> — the dark presses ~12% harder, the wild ground rougher, the bar to wake higher.` : ' you stand at the deepest spring there is.'} <b>begin again</b> replays difficulty ${cur}. pick any unlocked level from the title's <i>new garden</i>. (murmurs, voices &amp; relics-seen always carry over.)</p>
+        <p class="endnote">but a garden need not end at waking. let one <b>keep going</b> — tend <b>the long game</b> toward turn 100 and watch life you never planted arise from your surpluses: flowers wearing their diet as colour, beasts that graze them, unions that neither was, and — if the meadow grows rich enough — a world that becomes <b>one</b>.</p>
         <div class="endbtns">
+          <button id="e-long">tend the long game →</button>
           ${canDeeper ? `<button id="e-deeper">go deeper · difficulty ${next}</button>` : ''}
           <button id="e-again" class="ghostbtn">begin again</button>
           <button id="e-title" class="ghostbtn">title</button>
         </div>`;
+      box.querySelector('#e-long').onclick = () => { close(); newRun(undefined, cur, 'longgame'); }; /* the bridge to the wonder — the long game is where the food web, oneness & the capstone live */
       if (canDeeper) box.querySelector('#e-deeper').onclick = () => { meta.asc = Math.max(meta.asc, next); save(); close(); newRun(undefined, next); };
       box.querySelector('#e-again').onclick = () => { close(); newRun(undefined, cur); };
       box.querySelector('#e-title').onclick = () => { close(); showTitle(); };

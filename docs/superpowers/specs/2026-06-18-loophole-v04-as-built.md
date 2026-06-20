@@ -158,6 +158,14 @@ The megafauna chain becomes a **web**, leading (per Margulis) with cooperation, 
 - **The long game's murmur cap** (`echoCap`): raised to 14 (garden stays 6) — a 100-turn run earns far more
   murmurs than the garden sprint, and the cap of 6 was spent by turn 15, so the food-web murmurs never fired.
   Now ~11–12 surface across the run; the Margulis "symbiosis generates novelty" line lands on the first union.
+- **The bridge to the wonder** (`winOverlay`): the *transmission* fix. Found by playing as a new player —
+  the base garden's awakening (the first win) offered only "go deeper · difficulty N+1" (a *harder* base
+  garden) and "begin again." It never pointed to the long game, where the entire food-web / oneness /
+  thermodynamic-capstone arc lives. So a player could master the base garden, be steered into ever-harder
+  base gardens, and **never discover the wonder** — the telos ("let other minds follow the path") failed at
+  the one bridge that mattered. Now the awakening invites it: a "tend the long game →" button (first, prominent)
+  plus a line naming what arises (flowers, beasts, unions, "a world that becomes one"). The base garden stays
+  the first experience (default mode unchanged); the win is now the on-ramp to the deep game.
 
 ## 7. Open items (next)
 - **Coral / fauna visibility at full-board zoom** — corals (like beasts) read small on a large board;
