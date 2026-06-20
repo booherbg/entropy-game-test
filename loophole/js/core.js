@@ -1907,7 +1907,7 @@
 
     /* echoes: occasions pull murmurs in order — but a fitting one may step forward
        within its movement, so the words arrive when the play earns them */
-    echoCap() { return Math.round(this.mod('echoCap', 6)); }
+    echoCap() { return Math.round(this.mod('echoCap', this.mode === 'longgame' ? 14 : 6)); } /* the long game runs 100 turns and EARNS far more murmurs (every union, every cycle) — the garden's cap of 6 starved its soul, leaving only the early entropy murmurs and never the food web's */
     _nextEchoIdx() {
       for (let i = 0; i < 24; i++) if (!this.echoOwned.has(i)) return i; /* 24 belongs to the awakening */
       return null;
