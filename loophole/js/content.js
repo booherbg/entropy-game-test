@@ -334,6 +334,7 @@
     blight: 'rot has taken hold — it spreads, and gnaws your patterns. tend it to wound it; foragers devour it; crystal auras corrode it; cut off its food and it starves. clearing it pays insight.',
     sap: 'patterns run on ❧ sap. moss, ants and crystals MAKE it; fronds, blooms and heartwood BURN it. mycelium is the grid that carries it. note: moss makes most sap on a frontier (beside disorder) and ants only while there’s disorder to eat — a crystal makes sap anywhere, forever.',
     starve: 'a consumer is starving — not enough ❧ sap, so it wilts. the surest fix is a CRYSTAL nearby (steady sap, anywhere). moss and ants go quiet once their surroundings are clean, so an interior network can starve even when it looks full of producers.',
+    orderseep: 'the richer the garden grows, the faster its rim seeps — your own order quickens it. a steep garden steepens the gradient to the dark around it, and steep gradients run fast. the more order you hold, the harder the dark pulls to take it back. this is the tension you tend.',
   };
 
   /* ───────────────────────── artifacts ───────────────────────── */

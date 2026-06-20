@@ -7,6 +7,32 @@ Method & telos: `docs/superpowers/specs/2026-06-19-loophole-prime-directive.md`.
 
 ---
 
+## 2026-06-20 · the game was always proving its own ending (the seep IS the thesis)
+
+I went down a rabbit hole — Rayleigh-Bénard convection, order that snaps into being at a critical
+gradient precisely to dissipate it faster — meaning to build it as a new layer: the abiotic "origin of
+order" beneath the food web. Before writing a line, I went to read how the entropy field actually
+works, to find where convection would hook in. The rabbit hole collapsed into something better:
+**the game already does it.**
+
+The seep — the second law returning each turn — is not a flat tax. `pressure()` scales with coherence:
+`slope = 1 + 1.5 · C`. The code's own comment: *"a richer garden has a steeper gradient to the
+surrounding dark, so it seeps faster… its own order pulls the dark in harder."* So the more order you
+build, the FASTER entropy fights to take it back — because your order steepens the gradient. That is
+exactly the thesis the closing capstone just shipped (*"a living world runs the gradient down faster
+than bare rock; the order serves the disorder"*). The garden's central tension — build order, the dark
+fights harder — has been a working demonstration of the thermodynamics of dissipative structures the
+whole time. Measured: a coherent garden (C≈0.7) seeps at ~2× the base rate; at C≈0.95, ~2.4×.
+
+The capstone doesn't ADD the thesis. It NAMES what the seep was always doing — which means the
+Rayleigh-Bénard layer would have been mechanically redundant (the gradient already drives the flux).
+The right move wasn't a new mechanic but to make the existing one legible: a one-time hint, fired once
+the garden is coherent enough to feel it, naming the tension (*"your own order quickens the seep… this
+is the tension you tend"*) — the felt setup the ending later reframes.
+
+The lesson, again: read the system before extending it. The wonder I went looking for to BUILD was
+already there to be FOUND.
+
 ## 2026-06-20 · the ecology arc arrived at the consciousness arc (the meadow becomes one)
 
 I went looking for the next thing to build with no plan, and a play-first probe handed me something

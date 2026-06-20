@@ -781,6 +781,10 @@
         case 'wither': break;
       }
     }
+    /* the thesis, made legible: when the garden grows coherent enough that its own order visibly
+       quickens the seep (pressure slope ≈ 1 + 1.5·coherence — roughly doubled by here), name the
+       tension the player is feeling. it sets up the long game's closing reframe without spoiling it. */
+    if (game && game.coherence() > 0.7) hint('orderseep');
     const late = game.takeLateEcho();
     if (late != null) {
       if (!meta.echoes.includes(late)) { meta.echoes.push(late); save(); }
