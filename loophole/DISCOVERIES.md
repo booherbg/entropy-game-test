@@ -7,6 +7,46 @@ Method & telos: `docs/superpowers/specs/2026-06-19-loophole-prime-directive.md`.
 
 ---
 
+## 2026-06-20 · the apex that engineers its own obsolescence (predation drives cooperation)
+
+The last beat of the food-web arc was supposed to be the obvious one: a keystone predator (Paine,
+Yellowstone) that thins an overgrazing herd and thereby *releases* the meadow — the top-down cascade
+to mirror the bottom-up one. I built it. A **play-first probe was blunt:**
+
+**1. A bare culler adds *nothing* here.** With the predator on, corals and diversity were unchanged
+(sometimes slightly *lower*). The reason is the previous loop's discovery: this web **sheds combat for
+cooperation** — there is no sustained grazing layer for a predator to be the keystone *of*. The classic
+move simply doesn't apply to a web that has evolved past it. The probe refused to let me ship the
+textbook answer.
+
+**2. So the predator had to DRIVE the cooperation, not oppose it.** The synthesis that resolves the
+tension is the whole point of the increment: under predation **fear**, a grazer **flees into union** —
+it skips most of its grazing youth, bonds to its flower twice as fast, and the threatened meadow
+tolerates more corals (a coral is *immune* to the culler). So the apex, by hunting, drives its prey
+into **the very form that escapes it**. It engineers its own obsolescence — it hunts the herd into
+coral, and then, with nothing left to hunt, starves. *Combat drives cooperation.* That is not a
+metaphor I imposed; it is the only framing under which the predator earned a measurable, positive
+effect: a predator-present meadow ends with **more corals (25 vs 18) and more diverse (55 vs 49 kinds)**
+than the same world without it (Σ6 seeds). Margulis's "networking, not combat" — except here the combat
+*is* the thing that produces the networking.
+
+**3. The apex's effect surfaced two more truths (by breaking guards).** Its extra corals meant grazers
+now merge away so fast that they are genuinely **transient** — the test "a grazer emerged" had to start
+tracking the *whole run*, because a snapshot at the end finds only pollinators and corals. And the
+cascade's RELAXATION moved house: with more hardy corals, pulling the base no longer drops the flora
+*count* (the coral skeleton holds it up) — the relaxation now lives entirely in the **living, fed
+layer**, which still unwinds to zero. The metaphor keeps becoming the mechanism.
+
+**The shape of the whole arc, in hindsight:** mutualism (the pollinator) said cooperation *beats*
+combat; symbiogenesis (the coral) said combat *becomes* cooperation; the dissolution said there was
+never a clean line; and predation says combat *drives* cooperation. Four loops, and the food web has
+argued itself, from its own mechanics, all the way to Margulis's actual thesis.
+
+*Shipped: `0cfc31d`. Guards: `[emergence]` predation — apex emerges 6/6, combat-drives-cooperation
+(more corals + diversity, never a collapse), deterministic. base garden still 24/24.*
+
+---
+
 ## 2026-06-20 · the food web sheds combat for cooperation (the herd, and a dissolved dichotomy)
 
 I ran a *play-first* loop — probed the running ecology before building anything — and it told me

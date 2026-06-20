@@ -113,11 +113,20 @@ The megafauna chain becomes a **web**, leading (per Margulis) with cooperation, 
   **cellTip** (its two parents · self-feeding · hardy band); the merge **murmur** (Margulis, *Symbiotic
   Planet* 1998 — "at the base of the creativity of all large familiar forms of life, symbiosis generates
   novelty", landed on the first union); `?shot=coral`.
+- **Predation — the apex** (`0cfc31d`; `_hunt` / `_speciatePredator`, core; `FAUNA_PRED_SUF`, `PRED`;
+  `_drawPredator`): the top-down counterpart to the bottom-up summoning chain. A grazer **herd** summons a
+  keystone **culler** that hunts it under the same non-collapse discipline (donor-control, refuge-bounded,
+  dissipative — it boom-busts, as apex predators do). A bare culler adds nothing to a web that sheds combat
+  for cooperation, so the apex DRIVES the cooperation: under predation **fear** a grazer flees into union
+  (`MERGE.YOUTH_FEAR` + faster bond + `MERGE.FEAR_CAP` raises the coral ceiling — a coral is immune to the
+  culler). The apex hunts its prey into the very form that escapes it: **combat drives cooperation**
+  (Margulis, all the way). Measured (harness `[emergence]`, Σ6 seeds): apex emerges **6/6**; a predator-
+  present meadow ends with **MORE corals (25 vs 18)** and **MORE diverse (55 vs 49 kinds)**, 6/6 stay alive,
+  deterministic. Witnessable: a lean red `_drawPredator` (raised sharp muzzle, slit eye, vs the grazer's
+  placid dipped head), a `predate` kill FX, an arrival toast (the cycle + the fear→union mercy);
+  `?shot=coral` now stages the full web (corals + a remnant herd + the apex).
 
 ## 7. Open items (next)
-- **Predation BETWEEN fauna** — a culler/keystone predator that thins a herd and (Paine/Yellowstone)
-  thereby *releases* the meadow: the top-down trophic cascade to mirror the bottom-up one. Was next in
-  the arc; deferred to lead Margulis-first with the merger. Donor-controlled, refuge-bounded.
 - **Coral / fauna visibility at full-board zoom** — corals (like beasts) read small on a large board;
   fine zoomed in. The render path is verified (the dispatch runs), the legibility is the open item.
 - **node↔browser ecology divergence** (found while staging `?shot=coral`): the long game **auto-widens**
