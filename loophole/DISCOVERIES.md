@@ -18,6 +18,22 @@ itself. That is the whole game.
 
 ---
 
+## 2026-06-21 · the crystal is the dead order — Schrödinger's *other* crystal
+
+Everything else I've probed makes order the *living* way — dissipatively, off a gradient: the ant, the
+moss, the food web, hungry and metabolising. The crystal is the exception, and the game names it exactly:
+*"order without hunger."* I watched one beside an ant. It sits at entropy **0.03** — frozen, near-perfect
+order — and stays there. It makes a flat 1.80 sap forever. And the tell: **its age reads 0 at turn 1 and
+0 at turn 24 — it never ages.** Timeless, metabolism-free, outside the lifecycle entirely. The living
+things around it grow, metabolise, age, die; the crystal just *is*.
+
+That is precisely Schrödinger's distinction in *What Is Life?*: the dead **periodic** crystal (static,
+ordered, lifeless) versus life, the **aperiodic** crystal that holds its order only by ceaselessly eating
+negentropy. The game has both — and it knows the difference. The crystal is order you can freeze and
+forget; the living garden is order that must keep eating the gradient or die. The whole wonder is on the
+living side: the crystal is the cold contrast that tells you what life is, by being the thing it isn't.
+(Schrödinger was already in the murmurs. The mechanic was quoting him all along.)
+
 ## 2026-06-21 · the ant colony is a Szilard engine (a demon that makes peace with the second law)
 
 The game calls the ants "Maxwell's demons that starve in paradise." I put one alone in a sea of disorder
