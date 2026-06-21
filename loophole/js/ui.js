@@ -221,7 +221,7 @@
   function echoOverlay(idx, headText) {
     return (wrap, close) => {
       AU.echo();
-      if (idx < 25 && !meta.echoes.includes(idx)) { meta.echoes.push(idx); save(); } /* the oneness murmur (25) is a special recognition, not a collectible in the progression count */
+      if (idx < 24 && !meta.echoes.includes(idx)) { meta.echoes.push(idx); save(); } /* murmurs 24 (the loophole, re-shown each waking) and 25 (oneness) are special recognitions shown not collected — banking 24 overflowed the /24 count to 25/24 after a win */
       const box = el('div', 'echobox');
       const sig = R.sigilCanvas('murmur' + idx, 30, 'uncommon');
       sig.className = 'echosigil';

@@ -11,13 +11,13 @@
   C.PATTERNS = {
     moss: {
       t: 'moss', name: 'moss', cost: 3, maxE: 0.80, stage: 1, hotkey: '1',
-      rule: 'cleans its cell · carpets outward every ~3 turns · mature moss soothes neighbors and pays 0.4 while beside disorder',
-      long: 'the first word order learns to say. cleans its own cell hard, and once mature (age 3) soothes every neighbor. every few turns it copies itself into the calmest open neighbor. mature moss pays 0.4 — but only while it touches a gradient (a neighbor over 30%, or the rim): you cannot farm stillness. only deep noise (>88%) can kill it.',
+      rule: 'cleans its cell · carpets outward every ~3 turns · mature moss soothes neighbors and pays 0.55 while beside disorder',
+      long: 'the first word order learns to say. cleans its own cell hard, and once mature (age 3) soothes every neighbor. every few turns it copies itself outward into the wildest open ground it can still hold — it advances on the gradient, not back into the calm. mature moss pays 0.55 — but only while it touches a gradient (a neighbor over 30%, or the rim): you cannot farm stillness. only deep noise (>88%) can kill it.',
     },
     frond: {
       t: 'frond', name: 'frond', cost: 5, maxE: 0.50, stage: 1, hotkey: '2',
       rule: 'unfolds +1 depth/turn under 45% entropy (max 6) · withers above 55% · pays ~depth²',
-      long: 'a fractal theorem, unfolding one iteration per calm turn. income climbs steeply with depth — a full frond pays 5.25/turn. but above 55% entropy it loses depth, and squalls tear two whole iterations away. fronds are a bet that you can keep a promise.',
+      long: 'a fractal theorem, unfolding one iteration per calm turn. income climbs steeply with depth — a full frond pays about 7/turn before synergies. but above 55% entropy it loses depth, and squalls tear two whole iterations away. fronds are a bet that you can keep a promise.',
     },
     ant: {
       t: 'ant', name: 'ant colony', cost: 8, maxE: 0.65, stage: 2, hotkey: '3',
@@ -26,13 +26,13 @@
     },
     myc: {
       t: 'myc', name: 'mycelium', cost: 6, maxE: 0.60, stage: 3, hotkey: '4',
-      rule: 'links nearby patterns (range 2, 5 max) · the network shares entropy · pays 0.2/link',
+      rule: 'links nearby patterns (range 2, 5 max) · the network pools sap & smooths entropy · 0.2 upkeep, no income',
       long: 'the underground sentence that connects the nouns. each turn it reaches one new link toward the nearest pattern within 2, then the whole network smooths its entropy toward the mean — fragile fronds survive by being plumbed into sturdy moss. networks are also what heartwood pulses travel through.',
     },
     crys: {
       t: 'crys', name: 'crystal', cost: 12, maxE: 1.0, stage: 3, hotkey: '5',
       rule: 'locks its cell at stillness · halves incoming entropy & storm damage within 2 · permanent',
-      long: 'order without hunger. its cell is held at ~0 forever, and everything within 2 cells takes half the seep and half the squall. it earns nothing, replicates never, and cannot die. the skeleton you hang a garden on. plantable even in total noise — it is, after all, a rock.',
+      long: 'order without hunger. its cell is held at ~0 forever, and everything within 2 cells takes half the seep and half the squall. it pays a quiet, steady 1.8 sap anywhere — a battery you can place in total noise — replicates never, and cannot die. the skeleton you hang a garden on. it is, after all, a rock.',
     },
     bloom: {
       t: 'bloom', name: 'bloom', cost: 4, maxE: 0.40, stage: 4, hotkey: '6',
