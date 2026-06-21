@@ -18,6 +18,20 @@ itself. That is the whole game.
 
 ---
 
+## 2026-06-21 · the ant colony is a Szilard engine (a demon that makes peace with the second law)
+
+The game calls the ants "Maxwell's demons that starve in paradise." I put one alone in a sea of disorder
+and watched. It does **not** sort the disorder (Maxwell) — the local entropy stays high, the seep
+refilling it as fast as anything could clear it. It **extracts** from it (Szilard): the colony turns the
+surrounding gradient into sap, grows from a population of 6 to a steady **14, and then holds** — a stable
+engine running on the persistent disorder the second law keeps delivering. Starve it of the gradient
+(clean ground) and it dies; that's the "paradise" that kills it.
+
+So the ant is the *work-extraction* facet of the thesis the rest of the game keeps stating from other
+angles: a dissipative structure (Prigogine) maximising the energy flux through itself (Lotka), living off
+a gradient it cannot exhaust. Not a demon *cheating* the second law — a demon that has made its peace
+with it, and earns its living from the running-down. The capstone, in miniature, with six legs.
+
 ## 2026-06-21 · the wildflowers are a (calm) Game of Life
 
 The blooms aren't a metaphor for a cellular automaton — they *are* one. The code calls it "hex-life": a
