@@ -18,6 +18,19 @@ itself. That is the whole game.
 
 ---
 
+## 2026-06-21 · the food web is decoupled from difficulty — the wonder is reachable at every level
+
+Tested whether high difficulty starves the ecology: ascension raises the entropy pressure to 1.6× at
+level 5, and an engaged player climbing the ladder might plausibly lose the wonder to the rising dark. It
+doesn't happen — oneness and coral rates are **flat across ascension 0 / 2 / 5.** The garden gets harder;
+the meadow it grows does not. The likely reason: the food web runs on the *element* economy (producer
+surpluses → flora), which is largely independent of the base-pressure (the seep) that difficulty scales.
+So the wonder is difficulty-independent — you never trade it away for a harder game.
+
+(What *does* gate oneness is density, not difficulty — the restraint finding, re-confirmed here in
+passing: a dense planting breeds combat and suppresses the climax; leaving open ground is the move. Which
+is exactly the guidance the long game already gives in its opening line.)
+
 ## 2026-06-20 · the coral is a keystone — the union builds a haven that makes more life
 
 Real corals are keystone reefs: the structure shelters the biodiversity around it. The game's corals
