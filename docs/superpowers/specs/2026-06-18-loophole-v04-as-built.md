@@ -146,6 +146,15 @@ The megafauna chain becomes a **web**, leading (per Margulis) with cooperation, 
   (corals) ×70** and **the meadow became one +600** are now the top-rewarded components, and a meadow that
   reaches oneness earns the summit grade **"a world that became one"** (above "a flourishing world").
   Measured: a cooperative meadow scores ~+1000 over the same world combative; ✦2677 vs ✦1450. `?shot=longend`.
+- **…and cooperation > *teeming*, too** (`7fa5af9`+`2010226`, 2026-06-21): that first pass made the
+  cooperative bonuses additive, but they STILL lost to raw board SIZE. A verified test pitted a compact
+  gardener (reaches oneness) against a widener (big teeming board) over 8 seeds and the **widener won 8/8**
+  (e.g. ✦2675 no-oneness > ✦1840 oneness): `live×4` and every size-correlated term buried the cooperative
+  bonuses — `flourishScore` was contradicting its own comment ("cooperates, not teems"). Fix: oneness now
+  **AMPLIFIES** the whole flourishing **×1.5**, it doesn't merely add — so a compact world made one
+  out-flourishes a big one that only teemed (✦2760 > ✦2675), while a big world that ALSO became one still
+  wins (the apex is a *large* whole, not a small one). `flourishBreakdown` gained an exact lift row so the
+  itemization still sums to the displayed score.
 - **The closing thought** (`onLongEnd`): the long game ended on a scoreboard with no reflection (the garden
   game closes with "it woke…"). Now it closes with the **thermodynamic capstone** — the loophole resolved.
   In real non-equilibrium thermodynamics (Schneider & Kay's airborne thermal data: old-growth forest 24.7°C
