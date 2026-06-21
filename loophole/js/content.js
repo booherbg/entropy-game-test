@@ -326,6 +326,7 @@
   /* ───────────────────────── hints (first-time toasts) ───────────────────────── */
   C.HINTS = {
     start: 'the rim seeps — the dark outside presses in. select moss and plant where the ground is still soft.',
+    firstplant: 'now let the world breathe — the round button, lower right — to pass a turn. a few turns in, the moss wakes and spreads on its own, greening as it goes.',
     tend: 'tend (T) scrubs one cell for 1 order. humble, and load-bearing.',
     frond: 'fronds are rich and fragile: they unfold while their cell stays calm. shelter them in carpet.',
     storm: 'a squall gathers where the air shimmers. crystals blunt it; moss survives it; fronds do not.',

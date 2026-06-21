@@ -869,7 +869,7 @@
   function applyToolAt(k, silent) {
     if (!game || game.over || processing || overlayOpen || !k || !tool) return false;
     let res = null;
-    if (tool.type === 'plant') { res = game.plant(tool.pt, k); if (res && res.ok) { AU.plant(tool.pt); if (tool.pt === 'frond' || tool.pt === 'bloom' || tool.pt === 'heart') hint('sap'); } }
+    if (tool.type === 'plant') { res = game.plant(tool.pt, k); if (res && res.ok) { AU.plant(tool.pt); hint('firstplant'); /* the missing rung: tell a newcomer to end the turn — the gate to the first "it's alive" moment */ if (tool.pt === 'frond' || tool.pt === 'bloom' || tool.pt === 'heart') hint('sap'); } }
     else if (tool.type === 'tend') { res = game.tend(k); if (res && res.ok) AU.tend(); }
     else if (tool.type === 'prune') { const c = game.cells.get(k); if (!c || !c.pat) return false; res = game.prune(k); if (res && res.ok) AU.prune(); }
     else if (tool.type === 'art') { res = game.useArtifact(tool.i, k); if (res && res.ok) { AU.take(); buildRail(); selectTool(null); } }
@@ -1650,7 +1650,7 @@
     selectTool({ type: 'plant', pt: 'moss' });
     save();
     if (game.mode === 'longgame') { hint('longgame'); setTimeout(() => hint('start'), 7000); setTimeout(() => hint('tend'), 15000); } /* the bridge's landing: orient the player to the deep game first, THEN the planting basics */
-    else { hint('start'); setTimeout(() => hint('tend'), 9000); }
+    else { hint('start'); setTimeout(() => hint('tend'), 13000); } /* tend trails the plant→breathe loop, so the firstplant nudge lands first even for a slow starter */
   }
 
   function continueRun() {
