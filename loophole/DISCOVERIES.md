@@ -29,6 +29,32 @@ game.
 
 ---
 
+## 2026-06-21 · the mycelium is a mutual-aid collective — and the cast is complete
+
+The last unread pattern, and it completes the set. The mycelium isn't mere plumbing. The network it forms
+(union-find over the myc/heart link graph) does two things the help compresses into *"shares burden"*: it
+**pools** — every cell in a network gets the *same* fed-ratio, computed from the whole network's production
+over its whole upkeep, so a fragile consumer survives on the collective's output, not its own patch — and
+it **recovers the tax** on solitude: un-networked surplus converts to order at only ×0.55, networked
+surplus at full. I verified it — five crystals earn **33% more order networked than as islands**, from
+identical producers. The web is strictly better than going it alone.
+
+So the mycelium is *cooperation, made a pattern*: the collective out-produces the sum of its parts and
+carries its weakest members. Which completes the **cast** — because reading the seven building blocks one
+at a time, each turned out to *be* a distinct idea you can plant:
+
+- **moss** — the pioneer producer, paid only at the frontier (you can't farm stillness)
+- **ant** — the Szilard engine, drawing work from disorder, starving in paradise
+- **crystal** — Schrödinger's *dead* periodic order, timeless and metabolism-free
+- **bloom** — a hexagonal Game of Life, Conway's calm cousin
+- **heart** — a literal pacemaker, beating sap through the network when fed
+- **frond** — the patient fractal, quadratically rich and fragile-resilient
+- **mycelium** — the mutual-aid collective, where cooperation strictly pays
+
+Seven patterns, seven embodied ideas — thermodynamics, complexity, ecology — each one operable. And the
+last of them states the whole game's thesis in miniature: *connection out-produces isolation.* The food
+web's long argument for cooperation was already there in the base garden's grid, one pattern wide.
+
 ## 2026-06-21 · the frond is the patient fractal — rich, fragile, quietly resilient
 
 Another glossed pattern, read properly. A frond's output is the **triangular number** of its unfolding
