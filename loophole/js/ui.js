@@ -1696,6 +1696,17 @@
       for (let i = 0; i < 120 && !game.over; i++) { game.over = false; game.turn = Math.min(game.turn, 90); game.order += 12; game.endTurn(); }
       game.firedOcc.oneness = true; /* stage the SUMMIT ending for the reference shot (the meadow grew genuinely cooperative; this shows what "becoming one" looks like at the end) */
       game.turn = 100; onLongEnd(game.flourishScore(), game.flourishGrade(game.flourishScore())); }
+    if (kind === 'grow') { /* same meadow as `longend`, grown to ?n iterations, board only (no overlay) —
+                              for time-lapsing the food web ARISING. deterministic, so frames stitch smoothly. */
+      document.body.classList.add('cinema'); /* clean board: no HUD or rail */
+      game.mode = 'longgame';
+      const hd = c => (Math.abs(c.q) + Math.abs(c.r) + Math.abs(c.q + c.r)) / 2;
+      [...game.cells.values()].filter(c => hd(c) <= 8).sort((c, d) => (c.q - d.q) || (c.r - d.r)).forEach((c, i) => { if (i % 7 === 0) c.pat = game._mkPat('moss'); else if (i % 7 === 3) c.pat = game._mkPat('ant'); else if (i % 13 === 5) c.pat = game._mkPat('crys'); });
+      game._recompute();
+      const n = Math.max(0, +(new URLSearchParams(location.search).get('n') || 60));
+      for (let i = 0; i < n && !game.over; i++) { game.over = false; game.turn = Math.min(game.turn, 90); game.order += 12; game.endTurn(); }
+      updateHUD(); R.dirty();
+    }
     if (kind === 'kit') {
       /* a developed build: a few cultivars + relics so the kit + compounding fill out */
       game.insight = 8; game.legendDiscount = 5;

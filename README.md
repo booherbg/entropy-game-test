@@ -31,6 +31,8 @@ enough **merge into a coral** — *symbiogenesis*, Lynn Margulis's actual radica
 neither parent. An **apex** arrives to thin the herds, and the pressure drives *more* union. And when the
 web grows cooperative enough, the meadow **becomes one** — a single living thing that recognises itself.
 
+![the food web arising: a meadow grows flora, then fauna, then symbiogenic corals, from bare producers — none of it planted](loophole/shots/foodweb.gif)
+
 ![the meadow becomes one](loophole/shots/oneness.png)
 
 None of it is scripted. The food web, grown from real complexity science — Margulis, Prigogine, Kauffman,
