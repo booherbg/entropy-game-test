@@ -29,6 +29,29 @@ game.
 
 ---
 
+## 2026-06-21 · the question, answered — the food web needs open ground, and base-game skill suffocates it
+
+Yesterday's flagged caveat: does *skilled* play preserve the food web through a widening? The harness exports
+the right tool — `greedyTurn`, a competent deterministic player that wins 24/24 (it guards its own test run,
+so it requires cleanly). I drove it through a long game and tracked the web, with widening and without.
+
+The cleanest cut is same-board. On an identical compact radius-4 meadow, a *sparse* static seed (~35%
+planted, the bare probe's setup) sustains ~15–20 flora and the full apex cycle — while `greedyTurn` densely
+filling that same board peaks at **1–12 flora and decays to zero**, no apex. The flora are summoned onto
+*open* ground; a board packed for coherence has none. **Density suffocates the web.**
+
+Widening doesn't rescue it. Let the bot greedy-widen (its default, out to radius 8) and the flora peak far
+higher — 23–44, because the new ground genuinely *is* room — but still collapse to zero late. A meadow you
+never stop filling and re-widening never lets the web hold. More space lifts the peak, not the persistence.
+
+So the competent bot loses the food web *either way* — and the reason isn't widening, it's the absence of
+restraint. With a control this time, that is the same truth the *restraint reaches oneness* entries found,
+now generalised from oneness to the whole web: **the instincts that win the base game — pack tight, push
+coherence, widen for score — are precisely the wrong ones for the long one.** Life arises only where you
+leave room and let it be. The player who masters the awakening must *unlearn* it; the game never says so, it
+just rewards the restraint by making the web appear where you practised it. (Yesterday's caveat, closed: not
+a probe artifact, not widening per se — the want of the room the web needs.)
+
 ## 2026-06-21 · the widen-trigger, resolved — and the probe that broke when I "fixed" it
 
 A loose end logged in *the pollinator* entry: the long game seemed to "auto-widen in the browser but not in
