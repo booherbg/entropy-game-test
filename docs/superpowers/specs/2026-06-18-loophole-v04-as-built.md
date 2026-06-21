@@ -205,5 +205,14 @@ The megafauna chain becomes a **web**, leading (per Margulis) with cooperation, 
 - ~~**Excretion food-web** is ~tuned but the deeper autocatalytic loops want more channels~~ — the
   autocatalytic loop is now confirmed real *and* surfaced (above); deeper channel richness still open.
 
+- **Verified robustness** (2026-06-21, measured this session): the engine is fast and the save is small.
+  Worst-case per-turn cost on a maximally-widened board (radius 8, 217 cells, full ecology — 209 living,
+  7 herds, 5 corals) is **avg 2.1ms / max 5.4ms** — every turn well under one 60fps frame (16ms). The
+  contemplative pace is a *design choice*, not a compute ceiling (~10ms/frame headroom sits unused). The
+  serialized save at that size is **26.5 KB** — 0.5% of the ~5MB localStorage quota — and roundtrips
+  byte-exact, so the full-precision determinism fix costs nothing. (The food web is also continuously
+  fuzzed, and the wonder's reachability asserted — ≥half of meadows must reach oneness — in the harness.)
+  Robust on every axis measured.
+
 *Design intent: `…-emergence-engine.md`, `…-emergence-foundations.md`, `…-ecology-northstar.md`.
 Memory: `loophole-roadmap`.*
