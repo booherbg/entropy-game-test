@@ -46,5 +46,9 @@ soundtrack) stays intact. See [`loophole/README.md`](loophole/README.md).
 
 - `loophole/` — the entire game (open `index.html`; no build, no server)
 - `loophole/README.md` — how to play, publish, and develop
+- [`loophole/DISCOVERIES.md`](loophole/DISCOVERIES.md) — a lab notebook of what the simulation does that
+  *nobody designed*: the food web arguing its own way from competition to Gaia, an autocatalytic set that
+  needs diversity to close, a meadow that is steadiest when it stays small enough to become one. The most
+  surprising reading in the repo.
 - `loophole/test/harness.js` — node test suite (bots, fuzzing, determinism, balance)
 - `docs/superpowers/specs/` — the design document
