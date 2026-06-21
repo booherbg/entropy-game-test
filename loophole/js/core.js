@@ -704,7 +704,7 @@
       const alive = new Set(this.fauna.map(f => f.spId));
       for (const id of [...this.faunaSpecies.keys()]) {
         const sp = this.faunaSpecies.get(id);
-        if (sp.seeded && !alive.has(id)) { this.faunaSpecies.delete(id); ev.push({ t: 'faunaGone', name: sp.name, color: sp.color }); }
+        if (sp.seeded && !alive.has(id)) { this.faunaSpecies.delete(id); ev.push({ t: 'faunaGone', name: sp.name, color: sp.color, role: sp.role }); }
       }
     }
     /* ── the meadow becomes ONE: the long game's quiet awakening ──

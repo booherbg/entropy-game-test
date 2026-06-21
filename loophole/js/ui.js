@@ -782,7 +782,12 @@
           { const fl = meta.fauna || (meta.fauna = []);
             if (!fl.some(b => b.name === e.name && b.color === e.color)) { fl.push({ name: e.name, color: e.color, role: e.role || 'grazer', eats: e.eats, born: game ? game.turn : 0 }); save(); } }
           break;
-        case 'faunaGone': toast('the « <b style="color:' + e.color + '">' + e.name + '</b> » are gone — the meadow could no longer hold them. remembered.', '', 6000); AU.wither(); break;
+        case 'faunaGone':
+          if (e.role === 'predator') /* the apex didn't outlast its prey — it over-hunted the herd and starved (the cycle's other turn) */
+            toast('the apex « <b style="color:' + e.color + '">' + e.name + '</b> » is gone — a predator cannot outlast its prey. it thinned the herd faster than the meadow could renew, and starved where they had grazed; but the meadow holds, and in time summons another.', '', 8000);
+          else
+            toast('the « <b style="color:' + e.color + '">' + e.name + '</b> » are gone — the meadow could no longer hold them. remembered.', '', 6000);
+          AU.wither(); break;
         case 'predate': if (AU.predate) AU.predate(); break; /* a kill — a sharp strike, no toast (it happens often) */
         case 'autocatalysis':
           toast('the meadow has begun to <b>feed itself</b> — every element its flora eat, some flora now also make. a closed ring of metabolism, woven from diversity alone. <span class="muted">(order, for free — kauffman’s autocatalytic set, emerged.)</span>', 'good', 9000);
