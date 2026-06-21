@@ -992,6 +992,14 @@
     });
   }
 
+  function shareGarden() {
+    /* a seed makes the same world twice — so a link carrying it grows this exact garden for anyone */
+    const url = location.origin + location.pathname + '?seed=' + encodeURIComponent(game.seed) + (game.mode === 'longgame' ? '&mode=longgame' : '');
+    const fall = () => toast('share this seed to grow this world: ' + game.seed, '', 7000);
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(() => toast('a link to this exact garden is on your clipboard — share a world', '', 4500), fall);
+    else fall();
+  }
+
   function menuOverlay() {
     pushOverlay(panelOverlay(`
       <div class="paneltitle">a moment of stillness</div>
@@ -1013,14 +1021,7 @@
         box.querySelector('#m-murmurs').onclick = () => { close(); murmursOverlay(); };
         box.querySelector('#m-sound').onclick = () => { AU.setMuted(!meta.muted); close(); };
         box.querySelector('#m-values').onclick = () => { meta.values = !meta.values; R.valuesMode = meta.values; save(); close(); };
-        box.querySelector('#m-share').onclick = () => {
-          /* a seed makes the same world twice — so a link carrying it grows this exact garden for anyone */
-          const url = location.origin + location.pathname + '?seed=' + encodeURIComponent(game.seed) + (game.mode === 'longgame' ? '&mode=longgame' : '');
-          const fall = () => toast('share this seed to grow this world: ' + game.seed, '', 7000);
-          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(() => toast('a link to this exact garden is on your clipboard — share a world', '', 4500), fall);
-          else fall();
-          close();
-        };
+        box.querySelector('#m-share').onclick = () => { shareGarden(); close(); };
         box.querySelector('#m-save').onclick = () => { saveImage(); close(); };
         box.querySelector('#m-abandon').onclick = () => { close(); if (game) game.over = true; store.run = null; save(); showTitle(); };
       }
@@ -1426,9 +1427,12 @@
         <div class="endbtns">
           <button id="e-again">grow another</button>
           <button id="e-title" class="ghostbtn">title</button>
-        </div>`;
+        </div>
+        <div class="keeprow"><button id="e-save" class="ghostbtn">save as image</button><button id="e-share" class="ghostbtn">share a link</button></div>`;
       box.querySelector('#e-again').onclick = () => { close(); newRun(undefined, g.asc, 'longgame'); };
       box.querySelector('#e-title').onclick = () => { close(); showTitle(); };
+      box.querySelector('#e-save').onclick = saveImage;
+      box.querySelector('#e-share').onclick = shareGarden;
       wrap.appendChild(box);
     }, { dismissible: false }), 900);
   }
@@ -1469,8 +1473,11 @@
           ${canDeeper ? `<button id="e-deeper">go deeper · difficulty ${next}</button>` : ''}
           <button id="e-again" class="ghostbtn">begin again</button>
           <button id="e-title" class="ghostbtn">title</button>
-        </div>`;
+        </div>
+        <div class="keeprow"><button id="e-save" class="ghostbtn">save as image</button><button id="e-share" class="ghostbtn">share a link</button></div>`;
       box.querySelector('#e-long').onclick = () => { close(); newRun(undefined, cur, 'longgame'); }; /* the bridge to the wonder — the long game is where the food web, oneness & the capstone live */
+      box.querySelector('#e-save').onclick = saveImage;
+      box.querySelector('#e-share').onclick = shareGarden;
       if (canDeeper) box.querySelector('#e-deeper').onclick = () => { meta.asc = Math.max(meta.asc, next); save(); close(); newRun(undefined, next); };
       box.querySelector('#e-again').onclick = () => { close(); newRun(undefined, cur); };
       box.querySelector('#e-title').onclick = () => { close(); showTitle(); };
