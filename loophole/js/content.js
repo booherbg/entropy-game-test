@@ -311,6 +311,16 @@
     { q: 'the early stages in the emergence of life are no more surprising, no more accidental, than water flowing downhill.', by: 'morowitz, smith & trefil, “the origin of life,” american scientist (2009)' },
     { q: 'natural selection tends to make the energy flux through the system a maximum, so far as compatible with the constraints to which the system is subject.', by: 'alfred lotka, “contribution to the energetics of evolution,” pnas (1922)' },
     { q: 'you start with a random clump of atoms, and if you shine light on it for long enough, it should not be so surprising that you get a plant.', by: 'jeremy england, in quanta magazine (2014)' },
+    /* the science fiction of becoming-one — the genre that dreamed a living world and the many made one,
+       which is this garden's deepest subject. (all verified against primary text.) */
+    { q: 'we are only seeking man. we have no need of other worlds. we need mirrors.', by: 'stanisław lem, solaris (1961)' },
+    { q: 'they had found universes in grains of sand.', by: 'greg bear, blood music (1985)' },
+    { q: 'when the cosmos wakes, if ever she does, she will find herself not the single beloved of her maker, but merely a little bubble adrift on the boundless and bottomless ocean of being.', by: 'olaf stapledon, star maker (1937)' },
+    { q: 'there is insufficient data for a meaningful answer.', by: 'isaac asimov, “the last question” (1956)' },
+    { q: 'the universe began as an enormous breath being held.', by: 'ted chiang, “exhalation” (2008)' },
+    { q: 'he says the ‘i’ is all of us.', by: 'theodore sturgeon, more than human (1953)' },
+    { q: 'light is the left hand of darkness, and darkness the right hand of light. two are one, life and death.', by: 'ursula k. le guin, the left hand of darkness (1969)' },
+    { q: 'all that you touch you change. all that you change changes you.', by: 'octavia e. butler, parable of the sower (1993)' },
   ];
 
   /* ───────────────────────── hints (first-time toasts) ───────────────────────── */
