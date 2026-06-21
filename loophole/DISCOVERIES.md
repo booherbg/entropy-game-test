@@ -7,6 +7,24 @@ Method & telos: `docs/superpowers/specs/2026-06-19-loophole-prime-directive.md`.
 
 ---
 
+## 2026-06-20 · the meadow is a steady state — constant whole, flux of parts (no portfolio effect)
+
+Tested a famous ecological hypothesis: does **diversity stabilise** the meadow (Tilman's portfolio effect
+— a diverse community's aggregate steadies because its species fluctuate out of phase)? Measured flora
+diversity against the temporal CV of total biomass across 18 meadows. Answer: **no** — and the *reason* is
+the finding. Every meadow is already near-maximally stable (**CV 4–8% of total biomass, flat across the
+whole diversity range**). The non-collapse design (donor-control, satiety, refuges — the
+never-Lotka-Volterra invariant) regulates the whole to its carrying capacity so firmly that there's no
+instability left for diversity to cure. The portfolio effect can't show because the portfolio is already
+perfectly hedged.
+
+But the null has a shape worth keeping. The meadow's biomass holds nearly **constant** while its
+**composition churns** — flora arise, establish, are grazed, merge into corals, give way to the next. The
+constancy of the whole amid the flux of the parts: a *shifting-mosaic steady state* (Bormann & Likens) —
+and exactly the Heraclitus the game already quotes, *"an ever-living fire, kindling and going out in
+measures."* The fire is constant; only its fuel turns over. The homeostasis IS the Gaian trait, hiding in
+plain sight as mere "stability." (A negative result, but one the sim turned into its own metaphor.)
+
 ## 2026-06-20 · the flora close Kauffman's loop — but only with Paine's diversity
 
 The game rests on two complexity-science pillars: **Kauffman** (autocatalytic sets — "order for free", a
