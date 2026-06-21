@@ -268,8 +268,8 @@ function greedyBot(seed, maxTurns, trace) {
   return { g, arrivals };
 }
 
-function chaosBot(seed, turns) {
-  const g = new Game(seed);
+function chaosBot(seed, turns, mode) {
+  const g = new Game(seed, mode ? { mode } : undefined);
   const r = new RNG(seed + '|chaos');
   const types = C.PATTERN_ORDER;
   while (!g.over && g.turn < turns) {
@@ -397,6 +397,13 @@ function main() {
       try { chaosBot('chaos-' + i, 50); } catch (e) { threw = e; }
     }
     ok(!threw, '60 chaos runs, no exceptions, invariants hold', threw && threw.message);
+    /* the LONG GAME (the food web) was never fuzzed — only garden mode. random play through flora,
+       fauna, symbiogenesis, predation and oneness, with widening, on the growing board. */
+    let threwL = null;
+    for (let i = 0; i < 60 && !threwL; i++) {
+      try { chaosBot('chaosL-' + i, 80, 'longgame'); } catch (e) { threwL = e; }
+    }
+    ok(!threwL, '60 long-game chaos runs (the food web), no exceptions, invariants hold', threwL && threwL.message);
   }
 
   /* playability: greedy wins */
