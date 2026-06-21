@@ -170,10 +170,15 @@ The megafauna chain becomes a **web**, leading (per Margulis) with cooperation, 
 ## 7. Open items (next)
 - **Coral / fauna visibility at full-board zoom** — corals (like beasts) read small on a large board;
   fine zoomed in. The render path is verified (the dispatch runs), the legibility is the open item.
-- **node↔browser ecology divergence** (found while staging `?shot=coral`): the long game **auto-widens**
-  the board in the browser (radius 4→5, 61→91 cells) but not in a bare node grow loop, so the *same seed*
-  yields different meadows headlessly vs in-page. Determinism holds *within* node (the harness proves it);
-  this is a board-radius/setup-path difference, not a stray RNG. Worth a closer look (the widen-trigger path).
+- ~~**node↔browser ecology divergence**~~ — **understood, not a bug**: a real long game widens through the
+  stages (the *player* takes the golden choice; node grow-probes simply never did), reaching ~217 cells by
+  stage 6. Determinism holds (same seed + same widen choices → same world). The real finding (DISCOVERIES,
+  2026-06-20): widening is well-rewarded (~3000 flourish) but **oneness is the COMPACT path** (widened
+  0/6 vs compact 5–8/10 — a bigger board breeds more combat, and oneness needs it ≤ 2). The long game's
+  `widenReady` prompt now names that tradeoff so the player doesn't foreclose oneness blind. *Open design
+  question (the creator's call): the flourish NUMBER rewards the big board, while the GRADE ("a world that
+  became one") already crowns oneness — should the cooperative climax also out-score raw size, or is the
+  number-vs-grade split the right two-paths design?*
 - ~~**Base-economy `c.e` quantization** breaks save→load→endTurn determinism~~ — **FIXED** (save format
   v3): the sim's floats (`c.e`, `eMin`, `carry`, `insightFrac`, ant `food`, storm/blight queue positions)
   are now serialized at full precision, and cells are serialized in **insertion order** instead of sorted

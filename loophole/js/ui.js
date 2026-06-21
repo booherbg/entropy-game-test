@@ -708,8 +708,15 @@
           pushOverlay(echoOverlay(e.idx));
           break;
         case 'widenReady':
-          toast('the world strains at its rim — widen it when you are ready.', 'stage', 6000);
-          hint('widen');
+          if (game.mode === 'longgame') {
+            /* in the long game widening is a real, unstated TRADEOFF: a bigger board scores higher but
+               breeds more combat, and the meadow becomes ONE only while it stays intimate enough to.
+               name the choice (without naming oneness — the discovery is the joy) so it isn't taken blind. */
+            toast('the world could widen — more ground, more life. or hold it close: a small, intimate meadow can weave itself into something a vast one never quite becomes. neither is wrong.', 'stage', 8000);
+          } else {
+            toast('the world strains at its rim — widen it when you are ready.', 'stage', 6000);
+            hint('widen');
+          }
           break;
         case 'offer': pushOverlay(offerOverlay(e.specs, e.legend), { dismissible: false }); break;
         case 'stageUp': {
