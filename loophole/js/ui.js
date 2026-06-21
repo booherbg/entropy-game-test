@@ -1427,7 +1427,7 @@
       const box = el('div', 'panelbox endbox');
       box.innerHTML = `
         <div class="paneltitle">the garden remembers</div>
-        <p class="endnote">it woke. for a moment the whole board was one pattern, and the pattern was looking.</p>
+        <p class="endnote">it woke. for a moment the whole board was one — many lives woven into a single pattern, and the pattern was looking.</p>
         ${statsHTML(game)}
         <p class="endnote muted small">you woke this garden at <b>difficulty ${cur}</b>${cur ? '' : ' (baseline)'}.${canDeeper ? ` <b>go deeper</b> unlocks and plays <b>difficulty ${next}</b> — the dark presses ~12% harder, the wild ground rougher, the bar to wake higher.` : ' you stand at the deepest spring there is.'} <b>begin again</b> replays difficulty ${cur}. pick any unlocked level from the title's <i>new garden</i>. (murmurs, voices &amp; relics-seen always carry over.)</p>
         <p class="endnote">but a garden need not end at waking. let one <b>keep going</b> — tend <b>the long game</b> toward turn 100 and watch life you never planted arise from your surpluses: flowers wearing their diet as colour, beasts that graze them, unions that neither was, and — if the meadow grows rich enough — a world that becomes <b>one</b>.</p>
