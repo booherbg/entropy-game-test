@@ -7,6 +7,30 @@ Method & telos: `docs/superpowers/specs/2026-06-19-loophole-prime-directive.md`.
 
 ---
 
+## 2026-06-20 · the flora close Kauffman's loop — but only with Paine's diversity
+
+The game rests on two complexity-science pillars: **Kauffman** (autocatalytic sets — "order for free", a
+closed loop of mutually-producing parts) and **Paine** (the keystone — *diversity*, not biomass, is what
+holds a web together). I went to check whether the first is actually *real* — do the flora's excretions
+close a loop, or is it an aspirational comment? — and found the two pillars are **the same mechanism**.
+
+Each flora eats one element (`ch`) and excretes another (`ex`, always a *different* channel). So the
+flora form an eat→excrete network, and it **closes into a complete autocatalytic ring** — every element
+both eaten AND produced by the flora, so the meadow begins to feed *itself* rather than leaning only on
+the bare producers. But only above a **diversity threshold**. Measured across 14 meadows at turn 80:
+**0/6 closed at 3 living species, 2/5 at 4, 1/1 at 5, 1/1 at 6.** Below ~4 kinds the loop stays open; at
+4–5 it closes. Kauffman's order-for-free *requires* Paine's keystone diversity — and nobody designed that
+coupling; it fell out of a 3-element cycle and a random-but-different excretion channel.
+
+And the closure **peaks mid-succession, then fades** (turn 40: 6/14 closed; turn 80: 4/14) — because the
+flora become **corals**, leaving the flora pool: symbiogenesis *supersedes* the metabolic ring with a
+higher union. The autocatalytic set is a rung on the ladder to oneness, not the top.
+
+This milestone had been happening **invisibly**, so I surfaced it: once a meadow grows ≥4 diverse flora
+that close the ring, a beat fires — *"the meadow has begun to feed itself… order, for free."* A diverse
+meadow earns it (~50% of runs); a sparse one never does. The lesson the sim keeps teaching without
+stating it: **diversity is what lets a community become self-sustaining.**
+
 ## 2026-06-20 · widening is not a trap — oneness is the COMPACT path (and a probe nearly lied)
 
 Chasing a node/browser reproducibility gap, I realised a real long game **widens** through the stages

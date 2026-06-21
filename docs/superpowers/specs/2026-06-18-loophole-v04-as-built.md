@@ -185,7 +185,16 @@ The megafauna chain becomes a **web**, leading (per Margulis) with cooperation, 
   — the live cell Map is in insertion order and the ecology consumes RNG while iterating it, so a
   sorted-on-reload board drew a divergent sequence. Save→load is now byte-exact (flourish Δ = 0 over 40
   turns across seeds; harness all-determinism green). v2 saves still load (fromJSON is version-aware).
-- **Excretion food-web** is ~tuned but the deeper autocatalytic loops want more channels / tag richness.
+  Completed: the sustained run-counters (`faunaRun`/`predRun`/`onenessRun`/`autocatRun`) are now serialized
+  too — a save mid-accumulation was the one remaining hole (only `surplusRun` had been saved).
+- **The meadow feeds itself** (`_autocatalysis`, core): a witnessable food-web beat that had been emerging
+  invisibly. The flora eat one element and excrete another; once a meadow grows ≥4 diverse kinds whose
+  excretions **close the ring** (every element both eaten and produced by the flora), it begins to feed
+  itself — Kauffman's autocatalytic set, gated by Paine's diversity (measured: 0/6 closed at 3 species,
+  reliable at 5+). A mid-succession milestone before symbiogenesis supersedes it; fires in ~50% of runs
+  (the diverse ones earn it). See DISCOVERIES.md.
+- ~~**Excretion food-web** is ~tuned but the deeper autocatalytic loops want more channels~~ — the
+  autocatalytic loop is now confirmed real *and* surfaced (above); deeper channel richness still open.
 
 *Design intent: `…-emergence-engine.md`, `…-emergence-foundations.md`, `…-ecology-northstar.md`.
 Memory: `loophole-roadmap`.*

@@ -768,6 +768,10 @@
           break;
         case 'faunaGone': toast('the « <b style="color:' + e.color + '">' + e.name + '</b> » are gone — the meadow could no longer hold them. remembered.', '', 6000); AU.wither(); break;
         case 'predate': if (AU.predate) AU.predate(); break; /* a kill — a sharp strike, no toast (it happens often) */
+        case 'autocatalysis':
+          toast('the meadow has begun to <b>feed itself</b> — every element its flora eat, some flora now also make. a closed ring of metabolism, woven from diversity alone. <span class="muted">(order, for free — kauffman’s autocatalytic set, emerged.)</span>', 'good', 9000);
+          (AU.bloom || AU.echo)();
+          break;
         case 'merge':
           toast('the food web does something it has never done — « <b style="color:' + e.color + '">' + e.beast + '</b> » does not eat the « <b style="color:' + e.color + '">' + e.flora + '</b> » it has lived beside so long; it <b>becomes one</b> with it. a new KIND is born — « <b style="color:' + e.color + '">' + e.name + '</b> », a <b>coral</b>: an animal that lay down and became a garden, feeding itself and building reef for the others. <b>symbiogenesis</b> — the union Margulis foresaw, the rarest thing your world can do.', 'good', 12000);
           (AU.merge || AU.beast)();

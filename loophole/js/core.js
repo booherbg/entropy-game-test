@@ -186,6 +186,7 @@
       this.faunaRun = 0;           /* sustained meadow-richness → opens a fauna niche */
       this.predRun = 0;            /* sustained grazer-herd abundance → opens an apex (predator) niche */
       this.onenessRun = 0;         /* sustained cooperative-climax → the meadow is recognised as ONE */
+      this.autocatRun = 0;         /* sustained metabolic closure → the meadow's flora feed each other (Kauffman) */
       this.firedOcc = {};
       this.stormI = 0;
       this.stormQueue = [];
@@ -722,6 +723,23 @@
         if (++this.onenessRun >= 3) { this.firedOcc['oneness'] = true; ev.push({ t: 'oneness', corals, kinds }); }
       } else this.onenessRun = 0;
     }
+    /* Kauffman's autocatalytic set, emergent: the living flora close a metabolic RING — every element they
+       eat (ch), some flora also EXCRETES (ex) — so the meadow begins to feed itself rather than leaning
+       only on the bare producers. it takes DIVERSITY to close (never below ~4 species — Paine's keystone
+       meets Kauffman's order-for-free). a mid-succession milestone, before symbiogenesis supersedes it. */
+    _autocatalysis(ev) {
+      if (this.mode !== 'longgame' || this.firedOcc['autocatalysis']) return;
+      const eaten = new Set(), made = new Set(), live = new Set();
+      for (const c of this._patternCells('flora')) {
+        const s = this.species.get(c.pat.sp);
+        if (s && !s.compound) { eaten.add(s.ch); made.add(s.ex); live.add(s.id); }
+      }
+      /* needs DIVERSITY (≥4 living kinds), not just 3 lucky early flora coincidentally covering the ring —
+         the milestone is the meadow grown rich enough that its metabolism closes (the measured threshold). */
+      if (live.size >= 4 && [0, 1, 2].every(ch => eaten.has(ch) && made.has(ch))) {
+        if (++this.autocatRun >= 2) { this.firedOcc['autocatalysis'] = true; ev.push({ t: 'autocatalysis', kinds: live.size }); }
+      } else this.autocatRun = 0;
+    }
     _speciateFauna(estFlora, ev) {
       const id = this.nextFauna++;
       /* it specialises on the meadow's DOMINANT flower — its identity derives from what it eats */
@@ -1195,6 +1213,7 @@
       let income = this._metabolism(ev);
       income += this._ecology(ev); /* emergent flora arise from the metabolism's surpluses */
       this._fauna(ev);             /* and megafauna arise from a rich meadow, grazing it */
+      this._autocatalysis(ev);     /* the flora's metabolism closes into a self-feeding ring (Kauffman) */
       this._oneness(ev);           /* and the whole web, at its cooperative climax, is recognised as ONE */
       income += this._artifactIncome(ev);
       income *= this.mod('incomeAll', 1);
@@ -1994,6 +2013,7 @@
         species: [...this.species.values()].sort((a, b) => a.id - b.id),
         nextSpecies: this.nextSpecies,
         surplusRun: this.surplusRun,
+        faunaRun: this.faunaRun, predRun: this.predRun, onenessRun: this.onenessRun, autocatRun: this.autocatRun,
         fauna: this.fauna,
         faunaSpecies: [...this.faunaSpecies.values()].sort((a, b) => a.id - b.id),
         nextFauna: this.nextFauna,
@@ -2051,6 +2071,7 @@
       g.species = new Map((o.species || []).map(s => [s.id, s]));
       g.nextSpecies = o.nextSpecies || 1;
       g.surplusRun = o.surplusRun || [0, 0, 0];
+      g.faunaRun = o.faunaRun || 0; g.predRun = o.predRun || 0; g.onenessRun = o.onenessRun || 0; g.autocatRun = o.autocatRun || 0;
       g.fauna = o.fauna || [];
       g.faunaSpecies = new Map((o.faunaSpecies || []).map(s => [s.id, s]));
       g.nextFauna = o.nextFauna || 1;
