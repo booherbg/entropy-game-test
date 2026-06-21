@@ -18,6 +18,23 @@ itself. That is the whole game.
 
 ---
 
+## 2026-06-21 · the wildflowers are a (calm) Game of Life
+
+The blooms aren't a metaphor for a cellular automaton — they *are* one. The code calls it "hex-life": a
+bloom is born on an empty, calm cell with exactly **three** bloom neighbours (Conway's birth rule, B3),
+survives on 2–4, and dies lonely (≤1) or crowded (>4). The garden contains a hexagonal Game of Life, and
+the help's *"arrange kindling, then spark"* is the player seeding it.
+
+So I ran it. Across five random soups and seven hand-built configs (lines, rings, stars), every single
+one **settled into a still life within 3–5 generations** — I found no oscillators, no gliders, no
+spaceships. Where Conway's square B3/S23 is famously chaotic and Turing-complete (class 4), this hex
+B3/S234 is its *calm cousin*: a strongly stabilising automaton where every arrangement finds a steady
+shape and holds.
+
+Which is exactly right for a contemplative garden — the wildflowers don't churn, they settle. A Game of
+Life that has made peace. And a fractal echo of the whole thing: order from arrangement, finding its
+stable form. The mechanic is the thesis, one scale down.
+
 ## 2026-06-21 · the food web is decoupled from difficulty — the wonder is reachable at every level
 
 Tested whether high difficulty starves the ecology: ascension raises the entropy pressure to 1.6× at
