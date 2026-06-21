@@ -7,6 +7,27 @@ Method & telos: `docs/superpowers/specs/2026-06-19-loophole-prime-directive.md`.
 
 ---
 
+## 2026-06-20 · the flora evolve gently — and the gentleness is what lets them become one
+
+The as-built claims the flora undergo "fast natural selection." I went to verify it: do the survivors
+actually differ from the dead? Measured four randomized traits (entropy tolerance, spread rate,
+establishment speed, niche size) across **187 species** — 72 survivors, 115 extinct.
+
+Selection is **real but weak.** All four traits point the right way — survivors have wider tolerance
+(+5%), faster spread (+3%), faster establishment (settle −6%), and bigger niches (+4%) — but only by a
+few percent. Four-for-four directional consistency says the signal is genuine, not noise; the smallness
+says **survival is mostly niche-luck, not trait-fitness.** The flora are closer to Hubbell's *neutral*
+theory of biodiversity (community composition as stochastic drift) than to strong niche-selection.
+
+And the weakness is not a flaw — it is the **load-bearing feature.** Strong selection would drive the
+meadow toward a monoculture of the fittest. But the autocatalytic ring needs ≥4 diverse kinds to close
+(Kauffman ⨯ Paine, logged above), and oneness needs ≥6. **The gentle, drift-dominated evolution is
+exactly what keeps the meadow diverse enough to feed itself and to become one.** The flora don't compete
+their way to a winner — they drift their way to a community. Hubbell's neutrality, Paine's keystone,
+Kauffman's ring, Margulis's holobiont: one mechanism, the same as it always is. Strong selection would
+have killed Gaia in the cradle. (No fix — the right move was to understand why a "weak" result is the
+correct one, and leave it be.)
+
 ## 2026-06-20 · the meadow is a steady state — constant whole, flux of parts (no portfolio effect)
 
 Tested a famous ecological hypothesis: does **diversity stabilise** the meadow (Tilman's portfolio effect
