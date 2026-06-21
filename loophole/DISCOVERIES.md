@@ -5,6 +5,17 @@ designed. Each loop iteration that surfaces something true gets an entry — new
 findings about the **simulation's own behaviour** (often surprising), not a changelog of features.
 Method & telos: `docs/superpowers/specs/2026-06-19-loophole-prime-directive.md`.*
 
+**What it keeps adding up to.** The food web's *arc* was designed — cooperation winning its way to Gaia.
+But the entries below were written one probe at a time, with no plan, and they keep finding that the
+machinery coheres far more deeply than it was built to. Examine any single piece and it serves the same
+end: the flora evolve *gently* (Hubbell's drift) precisely because that preserves the diversity (Paine)
+the metabolism needs to close its self-feeding ring (Kauffman); the symbiogenic union (Margulis) builds a
+keystone reef (Holland) that shelters still more life; the whole holds homeostatic while dissipating the
+gradient faster than bare rock would (Schneider & Kay). Six thinkers and the second law, built into
+separate mechanisms over separate weeks, found — not made — to be putting one argument: that cooperation
+and diversity bend a world toward becoming one. The player only tends the conditions. The argument makes
+itself. That is the whole game.
+
 ---
 
 ## 2026-06-20 · the coral is a keystone — the union builds a haven that makes more life
