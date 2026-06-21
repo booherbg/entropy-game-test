@@ -20,7 +20,10 @@ And it isn't only the food web. The base garden, probed just as blindly, turned 
 wildflowers are a (calm) Game of Life, the ants are Szilard engines drawing work from a gradient, the
 crystal is Schrödinger's dead *periodic* order set against the living *aperiodic* kind — and the
 awakening itself demands integration *and* differentiation, which is Tononi's exact definition of
-consciousness. So the subtitle — *entropy, consciousness, and our place in both* — turns out to be
+consciousness. The rhyme reaches even the parts you never decide: the **soundtrack** assembles its own
+order as yours climbs — drone, then rhythm, then melody, negentropy made audible — and the **blight**, the
+antagonist, hunts your most-ordered cells and starves on empty ground, the second law given a body and an
+appetite. So the subtitle — *entropy, consciousness, and our place in both* — turns out to be
 embodied mechanism by mechanism, base and bloom alike: **entropy** is the dissipative living order traced
 everywhere here; **consciousness** is the awakening (IIT) and the meadow that becomes one (Gaia); *our
 place in both* is the hand that tends and the eye the garden opens. The game does not depict its themes.
