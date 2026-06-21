@@ -845,7 +845,7 @@
       if (this.valuesMode || this.game.flag('forecast')) this._valuesFrame(cx);
       cx.restore();
       if (this.flashT > 0) {
-        cx.fillStyle = rgba('#e8e8e0', this.flashT * 0.22);
+        cx.fillStyle = rgba('#e8e8e0', this.flashT * (this.reduceFlashes ? 0.06 : 0.22)); /* reduceFlashes: a dim hint, not a photosensitive full-luminance flash */
         cx.fillRect(0, 0, W, H);
         this.flashT = Math.max(0, this.flashT - 0.05);
       }
@@ -1064,7 +1064,7 @@
       for (const b of this.bolts) {
         b.life += dt;
         const u = b.life / b.max;
-        const flick = 0.5 + 0.5 * Math.sin(b.life * 80);
+        const flick = this.reduceFlashes ? 0.85 : (0.5 + 0.5 * Math.sin(b.life * 80)); /* reduceFlashes: steady bolt, not a ~12.7Hz luminance flicker (seizure-risk band) */
         cx.strokeStyle = rgba(PAL.stormBolt, (1 - u) * flick);
         cx.lineWidth = 2.2 * (1 - u);
         cx.beginPath();
@@ -1191,7 +1191,7 @@
       for (const e of evs) {
         switch (e.t) {
           case 'storm': {
-            this.flashT = 1; this.shake = 1;
+            this.flashT = 1; this.shake = this.reduceFlashes ? 0.2 : 1; /* reduceFlashes: a gentle nudge, not a whole-screen jolt */
             const cp = this.pos.get(e.center);
             if (cp) {
               this.pulses.push({ x: cp.x, y: cp.y, r: this.s * 0.5, v: this.s * 0.55, a: 0.95, w: 4.5, col: PAL.stormBolt });

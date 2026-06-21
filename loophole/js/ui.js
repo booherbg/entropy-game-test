@@ -1010,6 +1010,7 @@
         <button id="m-murmurs">murmurs (${meta.echoes.length}/24)</button>
         <button id="m-sound">sound: ${meta.muted ? 'off' : 'on'}</button>
         <button id="m-values">entropy values: ${meta.values ? 'shown' : 'hidden'}</button>
+        <button id="m-flashes">reduce flashes &amp; shake: ${meta.reduceFlashes ? 'on' : 'off'}</button>
         <button id="m-share">share this garden</button>
         <button id="m-save">save this garden as an image</button>
         <button id="m-abandon" class="danger">let this garden go</button>
@@ -1021,6 +1022,7 @@
         box.querySelector('#m-murmurs').onclick = () => { close(); murmursOverlay(); };
         box.querySelector('#m-sound').onclick = () => { AU.setMuted(!meta.muted); close(); };
         box.querySelector('#m-values').onclick = () => { meta.values = !meta.values; R.valuesMode = meta.values; save(); close(); };
+        box.querySelector('#m-flashes').onclick = () => { meta.reduceFlashes = !meta.reduceFlashes; R.reduceFlashes = meta.reduceFlashes; save(); close(); toast(meta.reduceFlashes ? 'storms will be gentler — softer flash, steady lightning, less shake' : 'full storm visuals restored', '', 4000); };
         box.querySelector('#m-share').onclick = () => { shareGarden(); close(); };
         box.querySelector('#m-save').onclick = () => { saveImage(); close(); };
         box.querySelector('#m-abandon').onclick = () => { close(); if (game) game.over = true; store.run = null; save(); showTitle(); };
@@ -1764,6 +1766,10 @@
   /* ───────── boot ───────── */
   function boot() {
     R = new LP.Renderer($('board'), $('fx'));
+    /* photosensitivity: default to the OS prefers-reduced-motion setting; toggleable in the menu.
+       softens the storm flash, the ~12.7Hz lightning flicker, and the screen shake. */
+    if (meta.reduceFlashes == null) meta.reduceFlashes = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    R.reduceFlashes = meta.reduceFlashes;
     bindBoard();
     R.start();
     $('endturn').onclick = endTurn;
