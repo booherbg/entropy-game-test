@@ -7,6 +7,35 @@ Method & telos: `docs/superpowers/specs/2026-06-19-loophole-prime-directive.md`.
 
 ---
 
+## 2026-06-20 · widening is not a trap — oneness is the COMPACT path (and a probe nearly lied)
+
+Chasing a node/browser reproducibility gap, I realised a real long game **widens** through the stages
+(to ~217 cells) while my probes never had. So I tested widening — and it looked catastrophic: every
+widened meadow grew **0 corals, no oneness, flourish ~580** vs ~2000 compact. I nearly shipped a fix
+(stop the long game widening) for what looked like a wonder-destroying trap, and even built two core
+"fixes" (gating the board growth, gating the per-stage pressure) — neither worked.
+
+That two patches failed is what finally made me distrust the *probe* instead of the game. It was an
+artifact: `widen()` sets a pending artifact offer, and `endTurn()` returns early — **blocked** — while
+an offer is pending (`if (this.pendingOffer) return [{t:'blocked'}]`). My probe never resolved the
+offer, so after the first widen the ecology simply never ran again. A real player picks the artifact and
+plays on. The recurring lesson, paid for again: **a broken probe gives false confidence — and false
+catastrophe.** Robustness ≠ existence; neither does ruin.
+
+With the offer resolved, the truth — and the real signal that was hiding under the false alarm. Widening
+is **fine and well-rewarded**: a 217-cell meadow grows a rich food web and scores **~3000 flourish**,
+*higher* than a compact one (~2000). But **oneness is the COMPACT path** — widened games reached oneness
+**0/6**; compact games **5–8/10**. A bigger board breeds more flora → more grazers and predators → more
+combat, and oneness requires the combat to subside (≤ 2). So the long game holds two genuine end-states:
+**widen** into a big, teeming, high-scoring ecology that never quite becomes one — or **stay compact**
+and let a small meadow weave itself into a single living whole. The restraint thesis again, now at the
+scale of the whole board: a world becomes one not by growing without bound, but by holding an intimacy
+in which cooperation can win.
+
+(Open tension, logged not fixed: the flourish *score* rewards the big board over oneness, so a
+score-optimiser widens and misses the wonder. Worth weighing — carefully — whether the cooperative
+climax should out-reward raw size. Not rushed at the tail of a long debugging session.)
+
 ## 2026-06-20 · restraint reaches oneness more readily than abundance
 
 Auditing transmission (can a player actually REACH the wonder?), I measured the oneness rate across 20
