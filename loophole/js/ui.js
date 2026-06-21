@@ -774,8 +774,11 @@
         case 'fauna':
           if (e.role === 'pollinator')
             toast('a <b>pollinator</b> drifts in — « <b style="color:' + e.color + '">' + e.name + '</b> » — drawn by a meadow varied enough to need one. it sips the ' + e.eats + ' and carries its kind into open ground: it <b>spreads</b> life rather than eating it. a mutualist — the meadow grows richer for it.', 'good', 9000);
-          else if (e.role === 'predator')
-            toast('an <b>apex</b> appears — « <b style="color:' + e.color + '">' + e.name + '</b> » — drawn by a herd grown big enough to hunt. it culls the ' + e.eats + ', the top of your web at last: predator and prey now <b>cycle</b>, so the meadow no longer settles into a still picture. and its danger carries a strange mercy — a hunted grazer <b>flees into union</b>, merging with its flower sooner. <b>combat drives cooperation.</b>', 'good', 10500);
+          else if (e.role === 'predator') {
+            if (!meta.hints.includes('loreApex')) { meta.hints.push('loreApex'); save();
+              toast('an <b>apex</b> appears — « <b style="color:' + e.color + '">' + e.name + '</b> » — drawn by a herd grown big enough to hunt. it culls the ' + e.eats + ', the top of your web at last: predator and prey now <b>cycle</b> — the herd will breathe, rising and culled and rising again, while the meadow holds steady beneath. and its danger carries a strange mercy — a hunted grazer <b>flees into union</b>, merging with its flower sooner. <b>combat drives cooperation.</b>', 'good', 10500); }
+            else toast('another <b>apex</b> rises — « <b style="color:' + e.color + '">' + e.name + '</b> » — the herd had grown huntable again.', 'good', 5000);
+          }
           else
             toast('a <b>herd</b> walks into the world — « <b style="color:' + e.color + '">' + e.name + '</b> », drawn by a meadow rich enough to feed it. it grazes the ' + e.eats + ' and lives only while the meadow does — and, lived-with long enough, a grazer may become one with its flower (a coral).', 'good', 8500);
           AU.beast();
@@ -783,8 +786,11 @@
             if (!fl.some(b => b.name === e.name && b.color === e.color)) { fl.push({ name: e.name, color: e.color, role: e.role || 'grazer', eats: e.eats, born: game ? game.turn : 0 }); save(); } }
           break;
         case 'faunaGone':
-          if (e.role === 'predator') /* the apex didn't outlast its prey — it over-hunted the herd and starved (the cycle's other turn) */
-            toast('the apex « <b style="color:' + e.color + '">' + e.name + '</b> » is gone — a predator cannot outlast its prey. it thinned the herd faster than the meadow could renew, and starved where they had grazed; but the meadow holds, and in time summons another.', '', 8000);
+          if (e.role === 'predator') { /* the apex didn't outlast its prey — it over-hunted the herd and starved (the cycle's other turn) */
+            if (!meta.hints.includes('loreApexGone')) { meta.hints.push('loreApexGone'); save();
+              toast('the apex « <b style="color:' + e.color + '">' + e.name + '</b> » is gone — a predator cannot outlast its prey. it thinned the herd faster than the meadow could renew, and starved where they had grazed; but the meadow holds, and in time summons another.', '', 8000); }
+            else toast('the apex « <b style="color:' + e.color + '">' + e.name + '</b> » is gone — it outran its prey, and starved. the meadow holds.', '', 5000);
+          }
           else
             toast('the « <b style="color:' + e.color + '">' + e.name + '</b> » are gone — the meadow could no longer hold them. remembered.', '', 6000);
           AU.wither(); break;
