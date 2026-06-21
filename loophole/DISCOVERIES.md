@@ -29,6 +29,25 @@ game.
 
 ---
 
+## 2026-06-21 · the heartwood is a literal heart — a pacemaker that beats only when fed
+
+I'd called the heartwood a "broadcast integrator" and never actually read its pulse. It is far more alive
+than that — it is a *heart*. Every 3 turns it **beats**, but only if it is fed (sap ≥ 0.5: *"a starved
+heart cannot pulse — the drum needs sap to beat"*). And each beat pulses through every cell its mycelial
+network reaches and *quickens* it: lowers their entropy, ages and spreads the moss, grows the fronds,
+feeds the ant colonies (+1.2), and fires an extra generation of the wildflowers' Game of Life. It even
+reaches out for nearby hyphae on its own (up to 4 links), wiring itself deeper into the web.
+
+I verified the quickening: a network with a beating heart spreads its moss measurably faster than the same
+network with a plain hub (42 cells vs 40 by turn 15; both saturate eventually, but the heart gets there
+sooner). The per-beat nudge is modest by design — a pulse, not a flood — but it is real, and it compounds
+across everything living in reach.
+
+So the deepest mechanic in the base game is the most literal of all: the garden has a *heart*, and it
+beats — drawing sap to drum the whole network's metabolism faster, going still when starved, and serving
+as the clock the awakening is built around (the win needs a heartwood, beating, at the centre of a diverse
+25-cell web). The pattern named "heart" is, mechanically, exactly a heart.
+
 ## 2026-06-21 · the flourishing score disagreed with the game — and now agrees
 
 I resolved a long-parked fork by *testing* it instead of guessing. The flourishing score's own comment
