@@ -29,6 +29,24 @@ game.
 
 ---
 
+## 2026-06-21 · the flourishing score disagreed with the game — and now agrees
+
+I resolved a long-parked fork by *testing* it instead of guessing. The flourishing score's own comment
+declares the thesis in code: *"a flourishing world is one that COOPERATES, not one that merely teems."*
+So I pitted a gentle gardener (compact, reaches oneness) against a widener (big board, teeming) across
+eight seeds — and the widener won **8/8.** A big board that never became one (✦2675) out-scored a compact
+meadow that *did* (✦1840). The math flatly contradicted its own stated intent: raw size (`live × 4`, and
+every term that scales with cell count) buried the cooperative bonuses.
+
+The fix: oneness now **amplifies** the whole flourishing (×1.5) instead of adding a flat +600. A compact
+world made one now out-flourishes a big one that only teemed (✦2760 > ✦2675; ✦3057 > ✦2775) — while a
+*big* world that also became one still takes the crown (the apex is a large whole, not a small one).
+Verified; harness green.
+
+The lesson is the one this notebook keeps teaching: the parts must agree. A score is a *statement* of what
+a game values — and this one was quietly saying "teem" while every other system said "cooperate." Now it
+says what the game always meant.
+
 ## 2026-06-21 · the garden is gentle on purpose (the safety net under the wood-wide-web)
 
 I went looking for Simard's wood-wide-web — proof that the mycelial network keeps the fragile alive by

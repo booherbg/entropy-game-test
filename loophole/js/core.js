@@ -1150,7 +1150,7 @@
       for (const c of this.cells.values()) if (c.pat) { live++; kinds.add(c.pat.t); if (c.pat.t === 'flora') floraSp.add(c.pat.sp); }
       let coralSp = 0; for (const sp of this.species.values()) if (sp.compound) coralSp++;
       const s = this.stats;
-      return Math.max(0, Math.round(
+      const base =
         this.coherence() * 300 +
         live * 4 +
         kinds.size * 45 +
@@ -1160,8 +1160,13 @@
         (this.stage - 1) * 50 +
         floraSp.size * 25 +                               /* the diversity of emergent flora */
         this.fauna.length * 30 + this.faunaSpecies.size * 40 + /* a living animal layer */
-        coralSp * 70 +                                    /* the UNIONS — symbiogenesis, the cooperative pinnacle (a flourishing world is one that COOPERATES, not one that merely teems) */
-        (this.firedOcc['oneness'] ? 600 : 0)));           /* the meadow became ONE — the summit */
+        coralSp * 70 +                                    /* the UNIONS — symbiogenesis, the cooperative pinnacle */
+        (this.firedOcc['oneness'] ? 600 : 0);             /* the meadow became ONE — the summit */
+      /* a flourishing world is one that becomes ONE, not one that merely teems — so oneness AMPLIFIES the
+         whole score (×1.5), it doesn't just add to it. without this, raw board size won 8/8 over a compact
+         meadow that actually became one — the math contradicted this function's own intent. cooperation is
+         the apex: a small world made whole out-flourishes a big one that only teemed. (see DISCOVERIES.) */
+      return Math.max(0, Math.round(base * (this.firedOcc['oneness'] ? 1.5 : 1)));
     }
     flourishGrade(score) {
       if (this.firedOcc['oneness']) return 'a world that became one'; /* the summit — the meadow recognised as a single living thing, above any mere score */
