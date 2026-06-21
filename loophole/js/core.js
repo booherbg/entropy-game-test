@@ -1193,7 +1193,13 @@
         ['the animal layer', this.fauna.length * 30 + this.faunaSpecies.size * 40],
       ];
       if (coralSp) rows.push(['unions woven (corals)', coralSp * 70]);
-      if (this.firedOcc['oneness']) rows.push(['the meadow became one', 600]);
+      if (this.firedOcc['oneness']) {
+        rows.push(['the meadow became one', 600]);
+        /* oneness amplifies the whole flourishing ×1.5 (see flourishScore) — show that lift here, so the
+           breakdown sums to the score the player sees instead of falling short by a third. */
+        const base = rows.reduce((a, [, v]) => a + v, 0);
+        rows.push(['being one lifted the whole garden (×1.5)', this.flourishScore() - base]); /* exact lift, so the rows sum to the displayed score (absorbs per-row rounding) */
+      }
       return rows;
     }
 
