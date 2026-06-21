@@ -29,6 +29,33 @@ game.
 
 ---
 
+## 2026-06-21 · the blight hunts your order — entropy, given a body, is the predator of negentropy
+
+The antagonist, finally probed. The blight (rot and wisps) doesn't seep blindly or spread at random. It
+**hunts the order you build**, and it lives on nothing else.
+
+Called `_blightStep` directly with a cell whose neighbours ranged from calm (e=0.05) to wild (e=0.90):
+- the **wisp** (motile) drifts to the **calmest open ground** (it targeted e=0.05 — the low-entropy cells
+  you've tended) and re-wilds it, raising entropy +0.10. It seeks the calm and ruins it.
+- the **rot** (spreading) targets the **calmest pattern** (your most-ordered, lowest-entropy growth) and
+  eats it. It spreads toward your best work, not away from it.
+
+And the seal that makes it a clean thermodynamic mirror: the blight **starves without order**. A rot ringed
+by empty ground — nothing to eat — loses hp and dies (traced `hp 2→1→1→0` over four turns). It cannot live
+in a vacuum; it needs the negentropy you made. So this isn't the passive seep (the ambient entropy that
+returns each turn) — it's the second law that has learned to *seek*, and seeks exactly what you built.
+
+The strategy this implies is the dark twin of the food-web finding. There, the meadow wanted *restraint* —
+leave open ground and life appears. Here the same emptiness is a weapon: you cannot out-order the blight
+(more order is more food); you **starve** it — clear the ground around a rot and it dies of the nothing you
+gave it. Abundance feeds the predator of abundance; absence kills it.
+
+So the blight joins the family — the ants (Szilard engines), the crystal (dead order), the soundtrack
+(sonified negentropy). Every actor in this garden, the antagonist included, *is* a face of the one subject.
+The seep is the second law as *law*; the blight is the second law as *hunger*. (Verified by calling the
+targeting directly and by the starvation trace; the author's own comments at core.js:1821/1829 say it
+plainly — "rot lives on order… wisps drift toward the calm and ruin it.")
+
 ## 2026-06-21 · the soundtrack is sonified negentropy — the music assembles as the garden orders itself
 
 The one major system no probe had ever touched: the generative audio. It belongs to the same family as the
