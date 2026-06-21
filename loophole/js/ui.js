@@ -1020,6 +1020,24 @@
   }
 
   /* ───────── menus & screens ───────── */
+  function captionImage(ctx, W, H) {
+    /* close the transmission chain: a stranger who sees this saved picture on social can learn what it is
+       and grow the SAME garden — the seed makes the same world twice, so it travels with the image. kept
+       subtle: the garden is the star, this is a quiet footer over a faint scrim. */
+    const pad = Math.round(W * 0.024), fs = Math.max(13, Math.round(W * 0.0162));
+    const grad = ctx.createLinearGradient(0, H - fs * 4.5, 0, H);
+    grad.addColorStop(0, 'rgba(8,6,5,0)'); grad.addColorStop(1, 'rgba(8,6,5,0.62)');
+    ctx.fillStyle = grad; ctx.fillRect(0, H - fs * 4.5, W, fs * 4.5);
+    ctx.font = `${fs}px "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif`;
+    ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(234,228,214,0.74)';
+    ctx.fillText('loophole · a thermodynamic garden', pad, H - pad);
+    ctx.textAlign = 'right';
+    const base = location.protocol === 'file:' ? '' : (location.host + location.pathname).replace(/index\.html$/, '').replace(/\/+$/, '/');
+    ctx.fillStyle = 'rgba(234,228,214,0.62)';
+    ctx.fillText((base ? base + '   ·   ' : '') + 'seed ' + (game ? game.seed : ''), W - pad, H - pad);
+  }
   function saveImage() {
     /* a garden is a unique procedural image — let the player keep it. composite the opaque board (it
        paints its own dark) with the live FX layer, then download as PNG. the canvas is same-origin and
@@ -1031,6 +1049,7 @@
     const ctx = out.getContext('2d');
     ctx.drawImage(board, 0, 0);
     if (fx) ctx.drawImage(fx, 0, 0);
+    captionImage(ctx, out.width, out.height); /* identity + reproducible seed, so the picture can find its way home */
     out.toBlob(blob => {
       if (!blob) { toast('the image could not be captured', 'warn'); return; }
       const a = document.createElement('a');
