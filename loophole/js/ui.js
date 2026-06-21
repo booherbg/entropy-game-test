@@ -1500,8 +1500,8 @@
     R.valuesMode = meta.values;
     selectTool({ type: 'plant', pt: 'moss' });
     save();
-    hint('start');
-    setTimeout(() => hint('tend'), 9000);
+    if (game.mode === 'longgame') { hint('longgame'); setTimeout(() => hint('start'), 7000); setTimeout(() => hint('tend'), 15000); } /* the bridge's landing: orient the player to the deep game first, THEN the planting basics */
+    else { hint('start'); setTimeout(() => hint('tend'), 9000); }
   }
 
   function continueRun() {

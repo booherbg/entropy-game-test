@@ -7,6 +7,28 @@ Method & telos: `docs/superpowers/specs/2026-06-19-loophole-prime-directive.md`.
 
 ---
 
+## 2026-06-20 · restraint reaches oneness more readily than abundance
+
+Auditing transmission (can a player actually REACH the wonder?), I measured the oneness rate across 20
+long games — a denser producer base vs a sparser one, each left hands-off to turn 100. Two findings.
+
+**Oneness is reachable** — not a rare jackpot. It fires for a solid fraction of meadows (5/10 dense,
+8/10 sparse), so a player who tends a long game has a real chance of seeing the summit. Good: the climax
+transmits.
+
+**And the surprise: the *sparser* garden reaches oneness MORE** — 8/10 vs 5/10, and earlier (turn 67 vs
+75). The mechanism is in the end-of-run combat counts: a denser producer base makes more flora → more
+grazers and predators → more COMBAT, and oneness requires the combat to subside (≤ 2). Dense runs carry
+3–4 hungry consumers at turn 100; sparse runs carry 1–2. The teeming, maximised meadow stays at war with
+itself; the gentler one settles into union.
+
+Nobody designed "plant less → more oneness." It fell out of the density↔combat↔cooperation coupling on
+its own — and it is the game's whole thesis, emergent: *cooperation, not maximisation, reaches the
+whole.* The player's instinct to fill every cell works against the climax; restraint — leaving room — is
+what lets the meadow become one. A Gaian lesson the simulation teaches without ever stating it. Left
+UNSAID in the game on purpose (the existing onboarding only nudges "leave open ground"): the discovery
+is the joy, and a player earning that realisation themselves is the whole point.
+
 ## 2026-06-20 · the meadow is a grazing mosaic — but a miniature one (a direction tested & closed)
 
 Chasing emergence, I probed whether the food web self-organizes *spatially*. The grazers roam as

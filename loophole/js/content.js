@@ -335,6 +335,7 @@
     sap: 'patterns run on ❧ sap. moss, ants and crystals MAKE it; fronds, blooms and heartwood BURN it. mycelium is the grid that carries it. note: moss makes most sap on a frontier (beside disorder) and ants only while there’s disorder to eat — a crystal makes sap anywhere, forever.',
     starve: 'a consumer is starving — not enough ❧ sap, so it wilts. the surest fix is a CRYSTAL nearby (steady sap, anywhere). moss and ants go quiet once their surroundings are clean, so an interior network can starve even when it looks full of producers.',
     orderseep: 'the richer the garden grows, the faster its rim seeps — your own order quickens it. a steep garden steepens the gradient to the dark around it, and steep gradients run fast. the more order you hold, the harder the dark pulls to take it back. this is the tension you tend.',
+    longgame: 'the long game — no single waking here. tend this world toward turn 100; it is scored on how ALIVE it becomes. life you never planted will arise from what you leave in surplus — flowers, then beasts, then unions — so give it open ground, and watch. the murmurs keep a journal of every species your worlds dream up.',
   };
 
   /* ───────────────────────── artifacts ───────────────────────── */
