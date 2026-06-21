@@ -39,8 +39,10 @@ consumer wilts, but it does not die. (The network governs *thriving* — output 
 
 And *that* is the finding, because it's a pattern I keep meeting. The food web cannot collapse
 (donor-control, satiety, refuges). The wildflowers' Game of Life always settles, never churns. The flora
-evolve by gentle drift, never red-in-tooth selection. And now: a fragile thing cannot simply starve to
-death. **The garden is forgiving — deliberately, structurally, everywhere.** Where most systems games
+evolve by gentle drift, never red-in-tooth selection. A fragile thing cannot simply starve to death. And
+even the *antagonist* pulls its punches: the rot is capped in size, and is forbidden from spawning onto a
+garden already failing (coherence under 30%) — the disease will not kick you while you're down.
+**The garden is forgiving — deliberately, structurally, everywhere.** Where most systems games
 *punish* (the factory backs up, the city riots, the civilisation falls), this one *catches* you. That
 gentleness isn't softness for its own sake — it's what makes the thing **contemplative** rather than
 stressful: a garden you can sit with, not a machine you must service. The temperament is as designed as
