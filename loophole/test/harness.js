@@ -288,6 +288,11 @@ function chaosBot(seed, turns, mode) {
     }
     g.endTurn();
     checkInvariants(g, 'chaos ' + seed + ' t' + g.turn);
+    if (g.turn % 15 === 0) { /* serialization roundtrip — in longgame this now exercises the food-web fields
+                                (species, fauna, the run-counters) too, catching any unserialized state. */
+      const s1 = JSON.stringify(g.serialize());
+      if (s1 !== JSON.stringify(Game.fromJSON(JSON.parse(s1)).serialize())) throw new Error('roundtrip mismatch at t' + g.turn + ' seed ' + seed);
+    }
   }
   return g;
 }
