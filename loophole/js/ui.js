@@ -951,6 +951,26 @@
     }, { passive: false });
     wrap.addEventListener('contextmenu', ev => { ev.preventDefault(); selectTool(null); });
     window.addEventListener('resize', () => { R.layout(); R.dirty(); });
+    /* keyboard play: a cell cursor reusing R.hovered for the visible highlight. arrows/WASD step to the
+       nearest cell in that screen direction; Enter places the armed tool. (cell detail is available via
+       the menu's "entropy values" overlay; a positioned keyboard tooltip is a later refinement.) */
+    function moveCursor(dx, dy) {
+      if (!game || !R.pos || !R.pos.size) return;
+      let curK = R.hovered;
+      if (!curK || !R.pos.has(curK)) {
+        curK = R.pos.has(HEX.key(0, 0)) ? HEX.key(0, 0) : R.pos.keys().next().value;
+        R.hovered = curK; R.dirty(); return;
+      }
+      const cur = R.pos.get(curK);
+      let best = null, bestDist = Infinity;
+      for (const [k, p] of R.pos) {
+        if (k === curK) continue;
+        const vx = p.x - cur.x, vy = p.y - cur.y, dist = Math.hypot(vx, vy);
+        if (dist < 1 || (vx * dx + vy * dy) / dist < 0.4) continue; /* must be roughly in the arrow direction */
+        if (dist < bestDist) { bestDist = dist; best = k; }
+      }
+      if (best) { R.hovered = best; R.dirty(); }
+    }
     window.addEventListener('keydown', ev => {
       if (ev.key === 'Escape') {
         if (overlayOpen) { if (overlayDismissible) closeOverlay(); return; }
@@ -965,6 +985,9 @@
       if (ev.key === 'x' || ev.key === 'X') selectTool({ type: 'prune' });
       for (const t of C().PATTERN_ORDER)
         if (ev.key === C().PATTERNS[t].hotkey) selectTool({ type: 'plant', pt: t });
+      const nav = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], w: [0, -1], s: [0, 1], a: [-1, 0], d: [1, 0] };
+      if (nav[ev.key]) { ev.preventDefault(); moveCursor(nav[ev.key][0], nav[ev.key][1]); }
+      else if (ev.key === 'Enter' && R.hovered) { ev.preventDefault(); if (applyToolAt(R.hovered, false)) save(); }
     });
     document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
   }
