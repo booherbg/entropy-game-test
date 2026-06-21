@@ -293,9 +293,16 @@
         else if (s.role === 'consumer') dot = (p.fed != null && p.fed < 0.5) ? PAL.sapStarve : PAL.dewBlue;
         if (!dot) continue;
         const pos = this.pos.get(HEX.key(c.q, c.r));
-        cx.fillStyle = rgba(dot, 0.92);
-        cx.beginPath(); cx.arc(pos.x + this.s * 0.42, pos.y - this.s * 0.42, this.s * 0.1, 0, TAU); cx.fill();
-        cx.strokeStyle = 'rgba(10,8,6,0.5)'; cx.lineWidth = 0.8; cx.stroke();
+        /* shape encodes role (colourblind-safe, since the colours are red/green): producers point UP
+           (they give order), consumers point DOWN (they take it). colour stays as the fed/starving cue,
+           redundant with the dashed starving-ring. */
+        const dx = pos.x + this.s * 0.42, dy = pos.y - this.s * 0.42, r = this.s * 0.13, up = s.role === 'producer';
+        cx.fillStyle = rgba(dot, 0.95);
+        cx.beginPath();
+        if (up) { cx.moveTo(dx, dy - r); cx.lineTo(dx + r * 0.9, dy + r * 0.62); cx.lineTo(dx - r * 0.9, dy + r * 0.62); }
+        else { cx.moveTo(dx, dy + r); cx.lineTo(dx + r * 0.9, dy - r * 0.62); cx.lineTo(dx - r * 0.9, dy - r * 0.62); }
+        cx.closePath(); cx.fill();
+        cx.strokeStyle = 'rgba(10,8,6,0.6)'; cx.lineWidth = 0.8; cx.stroke();
       }
       /* placement guide: with a plant tool held, ring every cell it can root in */
       if (this.mode && this.mode.type === 'plant') {
