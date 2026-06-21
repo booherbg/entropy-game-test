@@ -5,7 +5,8 @@
   'use strict';
   const LP = globalThis.LP || (globalThis.LP = {});
   LP.VERSION = '0.2.0';
-  LP.SAVE_V = 2;
+  LP.SAVE_V = 3; /* v3: cell entropy (c.e/eMin) and the sim's other floats stored at FULL precision, not
+                    quantized — so save→load is exact, not a chaotically-divergent approximation. v2 still loads. */
 
   /* ───────────────────────── utils ───────────────────────── */
   const U = LP.U = {
@@ -1960,27 +1961,29 @@
     serialize() {
       const si = s => Math.max(0, this.C.SOIL_ORDER.indexOf(s));
       const cells = [...this.cells.values()]
-        .sort((a, b) => a.r - b.r || a.q - b.q)
+        /* insertion order, NOT sorted: the live cell Map is in insertion order and the ecology consumes
+           RNG while iterating it, so a reload must restore that exact order or it draws a different
+           sequence. insertion order is deterministic (same seed → same order), so the roundtrip stays stable. */
         .map(c => {
-          const o = [c.q, c.r, Math.round(c.e * 1e4), Math.round(c.eMin * 1e4), si(c.soil)];
+          const o = [c.q, c.r, c.e, c.eMin, si(c.soil)];
           if (c.pat || c.trail) o.push(c.pat ? this._patJSON(c.pat) : 0, c.trail ? 1 : 0);
           return o;
         });
       return {
-        v: 2, seed: this.seed, asc: this.asc, mode: this.mode, s: this.rng.s,
+        v: LP.SAVE_V, seed: this.seed, asc: this.asc, mode: this.mode, s: this.rng.s,
         turn: this.turn, stage: this.stage, order: this.order,
-        carry: Math.round(this.carry * 1e6) / 1e6,
+        carry: this.carry,
         terra: this.terra.map(t => [t.q, t.r, si(t.b)]),
         radius: this.radius, lowStreak: this.lowStreak, finds: this.finds,
         echoOwned: [...this.echoOwned].sort((a, b) => a - b), echoRun: this.echoesThisRun,
         widenReady: this.widenReady, turnsInStage: this.turnsInStage,
-        insight: this.insight, insightFrac: Math.round(this.insightFrac * 1e4) / 1e4,
+        insight: this.insight, insightFrac: this.insightFrac,
         evolutions: [...this.evolutions],
         over: this.over, won: this.won, awakened: this.awakened,
         stormI: this.stormI,
-        stormQueue: this.stormQueue.map(s => [s.turn, Math.round(s.u * 1e6) / 1e6, s.radius, Math.round(s.power * 1e4) / 1e4]),
+        stormQueue: this.stormQueue.map(s => [s.turn, s.u, s.radius, s.power]),
         blightI: this.blightI,
-        blightQueue: this.blightQueue.map(b => [b.turn, Math.round(b.u * 1e6) / 1e6, Math.round(b.wisp * 1e6) / 1e6]),
+        blightQueue: this.blightQueue.map(b => [b.turn, b.u, b.wisp]),
         blight: [...this.blight.entries()].sort((a, b) => a[0] < b[0] ? -1 : 1).map(([k, b]) => [k, b.kind === 'wisp' ? 1 : 0, b.hp, b.age]),
         firedOcc: Object.keys(this.firedOcc).sort(),
         artifacts: this.artifacts.map(a => ({ spec: a.spec, charges: a.charges == null ? null : a.charges })),
@@ -2004,7 +2007,7 @@
       switch (p.t) {
         case 'moss': o = { t: p.t, age: p.age, spr: p.spr, stress: p.stress }; break;
         case 'frond': o = { t: p.t, age: p.age, depth: p.depth, maxed: !!p.maxed }; break;
-        case 'ant': o = { t: p.t, age: p.age, pop: p.pop, food: Math.round(p.food * 1e4) / 1e4 }; break;
+        case 'ant': o = { t: p.t, age: p.age, pop: p.pop, food: p.food }; break;
         case 'myc': o = { t: p.t, age: p.age, links: [...p.links] }; break;
         case 'crys': o = { t: p.t, age: p.age }; break;
         case 'bloom': o = { t: p.t, age: p.age, lone: p.lone }; break;
@@ -2054,8 +2057,8 @@
       g.stats = o.stats;
       g.series = o.series || [];
       for (const cd of o.cells) {
-        const c = g._mkCell(cd[0], cd[1], cd[2] / 1e4, SO[cd[4]] || 'loam');
-        c.eMin = cd[3] / 1e4;
+        const c = g._mkCell(cd[0], cd[1], o.v >= 3 ? cd[2] : cd[2] / 1e4, SO[cd[4]] || 'loam');
+        c.eMin = o.v >= 3 ? cd[3] : cd[3] / 1e4;
         if (cd.length > 5) {
           if (cd[5]) {
             c.pat = cd[5];

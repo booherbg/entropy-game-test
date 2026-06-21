@@ -174,7 +174,12 @@ The megafauna chain becomes a **web**, leading (per Margulis) with cooperation, 
   the board in the browser (radius 4→5, 61→91 cells) but not in a bare node grow loop, so the *same seed*
   yields different meadows headlessly vs in-page. Determinism holds *within* node (the harness proves it);
   this is a board-radius/setup-path difference, not a stray RNG. Worth a closer look (the widen-trigger path).
-- **Base-economy `c.e` quantization** breaks save→load→endTurn determinism in ALL modes (pre-existing).
+- ~~**Base-economy `c.e` quantization** breaks save→load→endTurn determinism~~ — **FIXED** (save format
+  v3): the sim's floats (`c.e`, `eMin`, `carry`, `insightFrac`, ant `food`, storm/blight queue positions)
+  are now serialized at full precision, and cells are serialized in **insertion order** instead of sorted
+  — the live cell Map is in insertion order and the ecology consumes RNG while iterating it, so a
+  sorted-on-reload board drew a divergent sequence. Save→load is now byte-exact (flourish Δ = 0 over 40
+  turns across seeds; harness all-determinism green). v2 saves still load (fromJSON is version-aware).
 - **Excretion food-web** is ~tuned but the deeper autocatalytic loops want more channels / tag richness.
 
 *Design intent: `…-emergence-engine.md`, `…-emergence-foundations.md`, `…-ecology-northstar.md`.

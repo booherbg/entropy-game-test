@@ -29,7 +29,7 @@
       if (!store.meta.flora) store.meta.flora = []; /* v0.4: the journal of life witnessed */
       if (!store.meta.fauna) store.meta.fauna = []; /* v0.4: the beasts your meadows summoned */
       /* a run snapshot from before v0.2 can't be read — the board changed shape. keep the murmurs. */
-      if (store.run && store.run.v !== LP.SAVE_V) store.run = null;
+      if (store.run && (store.run.v < 2 || store.run.v > LP.SAVE_V)) store.run = null; /* v2 and v3 both load (fromJSON is version-aware); only unreadable v1 / future formats are dropped */
     }
   } catch (e) { /* fresh soil */ }
   const save = () => {
