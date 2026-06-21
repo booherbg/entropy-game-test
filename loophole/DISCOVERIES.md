@@ -29,6 +29,37 @@ game.
 
 ---
 
+## 2026-06-21 · the herd breathes — the apex drives a real predator-prey cycle the biomass hid
+
+The *meadow-is-a-steady-state* entry (below) measured biomass CV (4–8%, flat) and called the food web so
+firmly regulated it's "never-Lotka-Volterra" — no instability left to oscillate. That was true of the
+*biomass*. But biomass is overwhelmingly flora — the stable producer base — and a stable whole can hide a
+moving part. So I tracked the fauna populations directly, with a control: every meadow run twice, the apex
+predator ON vs OFF (predation disabled, the meadow and herd otherwise identical), eight seeds.
+
+The apex leaves the textbook predator signature, clean on every seed:
+- it **lowers** the herd's mean (1.50 vs 2.38 grazers — a third fewer),
+- it **more than doubles** the herd's oscillation (3.3 vs 1.4 direction-reversals per run),
+- it **triples** the herd's crashes (10.3 vs 3.5 turns sitting at zero).
+
+So the herd genuinely cycles: it rises, the apex culls it, it crashes, the apex starves, it recovers. The
+intent written at `core.js:142` ("predator & prey cycle… does not settle into a dead fixed point")
+actually manifests — and the steady-state finding wasn't wrong, it was reading the wrong trophic layer.
+The producers hold a *shifting-mosaic steady state* (Bormann & Likens); the consumers above them breathe.
+
+And the cycle never becomes Lotka-Volterra's death-spiral — for the reason worth the entry. The herd *does*
+go locally extinct; it hits zero. But across a single run there are **2–3 distinct grazer species**: after
+each crash a *new* herd re-speciates from the meadow, which is still there. This is the classic resolution
+to the Lotka-Volterra instability — real predator-prey systems persist not by avoiding the cycle (the bare
+cycle is famously prone to collapse) but through refuges and recolonisation. The meadow is that refuge: the
+producer base survives every herd crash and re-seeds the next one. So the "never-Lotka-Volterra invariant"
+wants a better name — the non-collapse design (donor-control, satiety, `PRED.REFUGE=2` "never the last of
+the herd") does not *forbid* the oscillation. It *outlives* it.
+
+Which makes the Heraclitus the game already quotes literal one trophic layer down: *"an ever-living fire,
+kindling and going out in measures."* The meadow is the ever-living fire; the herd is the part that goes
+out and kindles again. (Probe kept: `test/probe-cycle.js` — re-run to reproduce the control.)
+
 ## 2026-06-21 · the mycelium is a mutual-aid collective — and the cast is complete
 
 The last unread pattern, and it completes the set. The mycelium isn't mere plumbing. The network it forms
