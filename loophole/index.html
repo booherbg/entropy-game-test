@@ -46,7 +46,7 @@
     transition: all .18s ease; letter-spacing: .02em;
   }
   button:hover { border-color: var(--moss); box-shadow: 0 0 14px rgba(124,158,87,0.25); }
-  button:disabled { opacity: .4; cursor: default; box-shadow: none; }
+  button:disabled { opacity: .58; cursor: default; box-shadow: none; } /* .4 dropped label text below readable contrast */
   button.danger:hover { border-color: var(--warn); box-shadow: 0 0 14px rgba(201,123,106,0.2); }
   .ghostbtn { background: transparent; border-color: var(--line2); color: #b8ad99; }
   .ghostbtn:hover { color: var(--text); }
@@ -186,7 +186,7 @@
   }
   .card:hover { transform: translateY(-3px); border-color: var(--moss); }
   .card.sel { border-color: var(--mossglow); box-shadow: 0 0 16px rgba(167,196,123,0.25); background: rgba(44,40,26,0.8); }
-  .card.locked { opacity: .35; pointer-events: auto; cursor: default; }
+  .card.locked { opacity: .6; pointer-events: auto; cursor: default; } /* readable: a player must be able to see WHY a card is locked (was .35) */
   .card.locked:hover { transform: none; border-color: var(--line2); }
   .card.broke:not(.locked) { opacity: .6; }
   .cardicon { width: 40px; height: 40px; display: block; margin: 0 auto; }
@@ -247,7 +247,7 @@
   }
   .panelbox.wide { max-width: 640px; width: min(94vw, 640px); }
   .paneltitle { font-family: var(--serif); font-size: 21px; color: var(--mossglow); margin-bottom: 12px; letter-spacing: .02em; }
-  .closex { position: absolute; top: 10px; right: 12px; border: none; background: none; font-size: 20px; color: var(--muted); padding: 4px 8px; }
+  .closex { position: absolute; top: 4px; right: 4px; border: none; background: none; font-size: 20px; color: var(--muted); min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0; } /* 44px touch target (was ~28px) — primary dismiss */
   .closex:hover { color: var(--text); box-shadow: none; }
   .menulist { display: flex; flex-direction: column; gap: 9px; }
   .menulist button { width: 100%; }
@@ -341,8 +341,8 @@
   /* difficulty picker (new garden) */
   .diffpick { margin: 16px 0 4px; }
   .diffrow { display: flex; gap: 7px; flex-wrap: wrap; justify-content: center; margin-bottom: 9px; }
-  .diffchip { min-width: 40px; padding: 7px 11px; font-family: var(--serif); font-size: 14px;
-    border: 1px solid var(--line2); background: transparent; color: var(--muted); border-radius: 7px; cursor: pointer; }
+  .diffchip { min-width: 44px; min-height: 44px; padding: 7px 13px; font-family: var(--serif); font-size: 14px;
+    border: 1px solid var(--line2); background: transparent; color: var(--muted); border-radius: 7px; cursor: pointer; } /* min 44px touch target */
   .diffchip:hover { color: var(--dew); }
   .diffchip.on { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 10px rgba(230,200,106,0.22); }
   .diffchip.wide { min-width: 130px; }
