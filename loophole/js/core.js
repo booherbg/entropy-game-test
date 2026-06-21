@@ -731,6 +731,8 @@
       if (this.mode !== 'longgame' || this.firedOcc['autocatalysis']) return;
       const eaten = new Set(), made = new Set(), live = new Set();
       for (const c of this._patternCells('flora')) {
+        if (!c.pat.est) continue; /* ESTABLISHED beds only — a ring of settled flora is a mature, sustained
+                                     metabolism; fresh seedlings coincidentally covering it (turn ~7) is not. */
         const s = this.species.get(c.pat.sp);
         if (s && !s.compound) { eaten.add(s.ch); made.add(s.ex); live.add(s.id); }
       }
