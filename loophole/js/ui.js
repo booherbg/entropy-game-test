@@ -194,19 +194,26 @@
   /* ───────── overlays (one at a time) ───────── */
   let overlayDismissible = false;
   let overlayCleanup = null;
+  let overlayReturnFocus = null; /* a11y: where focus was before the (first) overlay opened, restored when the queue drains */
   function pushOverlay(builder, opts) {
     overlayQueue.push({ b: builder, d: !opts || opts.dismissible !== false });
-    if (!overlayOpen) nextOverlay();
+    if (!overlayOpen) { overlayReturnFocus = document.activeElement; nextOverlay(); }
   }
   function nextOverlay() {
     const item = overlayQueue.shift();
-    if (!item) { overlayOpen = false; return; }
+    if (!item) { /* queue drained: restore focus so keyboard/SR users aren't stranded */
+      overlayOpen = false;
+      if (overlayReturnFocus && overlayReturnFocus.focus) { try { overlayReturnFocus.focus(); } catch (e) {} }
+      overlayReturnFocus = null;
+      return;
+    }
     overlayOpen = true;
     overlayDismissible = item.d;
     const wrap = $('overlay');
     wrap.innerHTML = '';
     wrap.classList.remove('hidden');
     item.b(wrap, closeOverlay);
+    wrap.focus(); /* move focus into the dialog so a screen reader announces it (murmurs, awakening, menus) */
   }
   function closeOverlay() {
     if (overlayCleanup) { overlayCleanup(); overlayCleanup = null; }
