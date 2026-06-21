@@ -681,6 +681,41 @@ function main() {
     }
   }
 
+  /* save robustness — corrupted / old / bad-data saves must recover, never strand a player. the clean
+     round-trip is proved above (determinism, the t%15 roundtrip in bots); this guards the FAILURE path
+     (ui.js's top-level load catch + continueRun's try, plus fromJSON's tolerance). regress it and a real
+     player gets a dead "continue" button. */
+  console.log('\n[save robustness]');
+  {
+    const g0 = new Game('save', { mode: 'longgame' });
+    for (let i = 0; i < 40; i++) { if (g0.widenReady) g0.widen(); g0.order += 20; g0.endTurn(); }
+    const good = g0.serialize();
+    let clean = false;
+    try { const g = Game.fromJSON(good); g.order += 20; g.endTurn(); clean = true; } catch (e) { /* fall through */ }
+    ok(clean, 'a clean save reloads and keeps playing');
+    /* the only unacceptable outcome is "loads, then crashes a turn later" — that strands the player.
+       throwing (continueRun catches it → fresh start) or loading-and-playing are both fine. */
+    const corruptions = [
+      ['delete cells', s => delete s.cells],
+      ['empty cells', s => { s.cells = []; }],
+      ['order = string', s => { s.order = 'xyz'; }],
+      ['order = NaN', s => { s.order = NaN; }],
+      ['missing fauna', s => delete s.fauna],
+      ['missing species', s => delete s.species],
+      ['stage out of range', s => { s.stage = 99; }],
+      ['only version field', s => { for (const k in s) if (k !== 'v') delete s[k]; }],
+      ['a cell e = string', s => { const c = s.cells; if (c && typeof c === 'object') { const k0 = Array.isArray(c) ? 0 : Object.keys(c)[0]; if (c[k0]) c[k0].e = 'bad'; } }],
+    ];
+    let safe = 0;
+    for (const [label, mutate] of corruptions) {
+      const save = JSON.parse(JSON.stringify(good)); mutate(save);
+      let stranded = false;
+      try { const g = Game.fromJSON(save); try { for (let i = 0; i < 3; i++) { g.order += 20; g.endTurn(); } } catch (e2) { stranded = true; } } catch (e) { /* threw on load → continueRun catches it */ }
+      if (!stranded) safe++; else console.log(`    !! ${label} loads then crashes a turn later`);
+    }
+    ok(safe === corruptions.length, 'no corrupted save strands the player (it throws→caught, or loads & plays — never loads-then-crashes)', `${safe}/${corruptions.length}`);
+  }
+
   console.log('\n' + (failures ? `${failures} FAILURE(S)` : 'ALL PASS'));
   process.exit(failures ? 1 : 0);
 }
