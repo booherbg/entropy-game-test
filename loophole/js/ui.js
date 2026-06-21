@@ -1496,8 +1496,8 @@
   }
   function modeLine(m) {
     return m === 'longgame'
-      ? 'the long game — no single waking. tend a world toward turn 100 and watch life you never planted arise from it: flowers summoned by your surpluses, beds, and beasts that graze them. leave open ground for it to spread. scored on how alive it becomes.'
-      : 'the garden — tend a world toward a single awakening. the base game.';
+      ? 'the long game — no single waking. tend a world toward turn 100 and watch life you never planted arise from it: flowers summoned by your surpluses, beds, and beasts that graze them. leave open ground for it to spread. scored on how alive it becomes. (best once you know the garden.)'
+      : 'the garden — tend a world toward a single awakening. the base game, and where to begin.';
   }
 
   function newRun(seed, depth, mode) {
