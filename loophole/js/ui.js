@@ -1038,18 +1038,24 @@
     ctx.fillStyle = 'rgba(234,228,214,0.62)';
     ctx.fillText((base ? base + '   ·   ' : '') + 'seed ' + (game ? game.seed : ''), W - pad, H - pad);
   }
-  function saveImage() {
-    /* a garden is a unique procedural image — let the player keep it. composite the opaque board (it
-       paints its own dark) with the live FX layer, then download as PNG. the canvas is same-origin and
-       wholly procedural, so it is not tainted and toBlob succeeds. */
+  function gardenCanvas() {
+    /* the composited, captioned garden — opaque board (paints its own dark) + live FX + the transmission
+       footer. shared by saveImage (download) and shareGarden (native share). same-origin + wholly
+       procedural, so the canvas is not tainted and toBlob succeeds. */
     const board = $('board'), fx = $('fx');
-    if (!board) return;
+    if (!board) return null;
     const out = document.createElement('canvas');
     out.width = board.width; out.height = board.height;
     const ctx = out.getContext('2d');
     ctx.drawImage(board, 0, 0);
     if (fx) ctx.drawImage(fx, 0, 0);
     captionImage(ctx, out.width, out.height); /* identity + reproducible seed, so the picture can find its way home */
+    return out;
+  }
+  function saveImage() {
+    /* a garden is a unique procedural image — let the player keep it, as a PNG download. */
+    const out = gardenCanvas();
+    if (!out) return;
     out.toBlob(blob => {
       if (!blob) { toast('the image could not be captured', 'warn'); return; }
       const a = document.createElement('a');
@@ -1060,10 +1066,29 @@
       toast('your garden, saved as an image', '', 3500);
     });
   }
-
-  function shareGarden() {
+  function shareURL() {
     /* a seed makes the same world twice — so a link carrying it grows this exact garden for anyone */
-    const url = location.origin + location.pathname + '?seed=' + encodeURIComponent(game.seed) + (game.mode === 'longgame' ? '&mode=longgame' : '');
+    return location.origin + location.pathname + '?seed=' + encodeURIComponent(game.seed) + (game.mode === 'longgame' ? '&mode=longgame' : '');
+  }
+  async function shareGarden() {
+    const url = shareURL();
+    /* prefer the native share sheet (where it exists — chiefly mobile): the player's ACTUAL captioned
+       garden image travels with a word and the seed-link, to any app, in one tap. the toBlob finishes
+       well within the click's transient-activation window, so the sheet still opens; and the image
+       footer already carries the url+seed, so even a platform that drops the text leads home. on
+       desktop (no Web Share) it falls back to copying the link, exactly as before. */
+    if (navigator.share) {
+      const title = 'loophole — a thermodynamic garden';
+      const text = 'a garden i grew — entropy, life, and a meadow that wakes up';
+      try {
+        const out = gardenCanvas();
+        const blob = out && await new Promise(res => out.toBlob(res));
+        const file = blob && typeof File !== 'undefined' && new File([blob], 'loophole-' + game.seed + '.png', { type: 'image/png' });
+        if (file && navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ title, text: text + ' — ' + url, files: [file] });
+        else await navigator.share({ title, text, url });
+        return;
+      } catch (e) { if (e && e.name === 'AbortError') return; /* user cancelled the sheet; any other failure → fall through to copy */ }
+    }
     const fall = () => toast('share this seed to grow this world: ' + game.seed, '', 7000);
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(() => toast('a link to this exact garden is on your clipboard — share a world', '', 4500), fall);
     else fall();
