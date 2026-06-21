@@ -33,7 +33,9 @@ waiting. A generative soundtrack starts on your first click.
 - if coherence stays under 22% for three turns, the stream takes the garden back
 
 A first winning run takes roughly 45–75 turns (under an hour). Seeds are deterministic —
-share a seed to share a world. Winning unlocks **deeper spring** (harder ascension levels).
+share a seed to share a world. Winning unlocks **deeper spring** (harder ascension levels) —
+and **invites you onward to the long game**, where an ecology you never planted arises from a
+world tended to turn 100 (see *v0.4 — "the food web"* below).
 
 ## publish
 
@@ -63,8 +65,10 @@ include or strip them as you like.
 
 ## design notes
 
-The design document lives at `docs/superpowers/specs/2026-06-11-loophole-design.md`
-(repo root). The short version: every system is the theme. Moss income is gradient-gated —
+The design documents live at `docs/superpowers/specs/` (repo root): the founding design at
+`2026-06-11-loophole-design.md`, the current as-built (through the food web) at
+`2026-06-18-loophole-v04-as-built.md`, and the autonomous-loop method at
+`2026-06-19-loophole-prime-directive.md`. The short version: every system is the theme. Moss income is gradient-gated —
 you cannot farm stillness. Ants are Maxwell's demons that starve in paradise. Order you hoard
 radiates away as heat (the second law, billing you). The win condition is integration *and*
 differentiation: coherence, plus a heartwood, plus a 25-cell network weaving four kinds of
@@ -72,7 +76,21 @@ life. The murmurs are real human words — Eddington on entropy, Schrödinger on
 entropy, Dōgen on forgetting the self, Wiener on patterns that perpetuate themselves — chosen
 and arranged by the game's own hand, an AI that admits the curation in the final movement.
 
-## v0.3 — "the metabolism" (in progress)
+## v0.4 — "the food web"
+
+Beyond the base garden lies **the long game** (choose it on the new-garden screen, or take the
+awakening's invitation): no single waking, but a world tended toward turn 100 and scored on how *alive*
+it becomes. Life you never planted **arises from your surpluses** — flora wearing their diet as colour,
+establishing into **beds**; a rich meadow draws Reynolds-flocked **grazing herds** and **pollinators**;
+a grazer and its long-grazed flower **merge into a coral** (*symbiogenesis*, Margulis's actual radical
+claim); an **apex** thins the herds, and the pressure drives *more* union. When the web grows cooperative
+enough, the meadow **becomes one** — a holobiont that recognises itself. A **flourishing** score rewards
+cooperation over conquest, and a closing **thermodynamic capstone** resolves the loophole in real
+non-equilibrium physics (a living world dissipates the gradient faster than bare rock — Schneider & Kay).
+Deterministic and emergent; lives in `_ecology`/`_fauna`/`_symbiogenesis`/`_oneness` (core.js), the base
+garden beneath it untouched. The lab notebook of what the simulation surprised us with is `DISCOVERIES.md`.
+
+## v0.3 — "the metabolism"
 
 The garden became a **dissipative structure** rather than an accumulator. Living patterns now
 run on **❧ sap**: moss, ants and crystals *produce* it; fronds, blooms and the heartwood
