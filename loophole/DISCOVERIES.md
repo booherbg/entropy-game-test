@@ -7,6 +7,26 @@ Method & telos: `docs/superpowers/specs/2026-06-19-loophole-prime-directive.md`.
 
 ---
 
+## 2026-06-20 · the coral is a keystone — the union builds a haven that makes more life
+
+Real corals are keystone reefs: the structure shelters the biodiversity around it. The game's corals
+"build REEF — terraform a habitable patch harder than an ordinary bed." I measured whether they actually
+*facilitate*: across the meadows that grew reefs, **non-coral flora cover is 2.2× higher within two cells
+of a coral than away from one** (11.9% vs 5.3%). The corals are genuine keystones — the meadow
+concentrates around them.
+
+But not the way I expected. The reef zone is **not** more *ordered* — its mean entropy is slightly
+*higher* (0.066 vs 0.057). The reef doesn't calm the ground; it shelters life that then runs the
+throughput up. A living reef is a dissipative *haven*, not a quiet one — which is exactly right
+thermodynamically (more life = more gradient-dissipation, the capstone again).
+
+The deeper shape is the food web's positive-sum, made concrete. Symbiogenesis (cooperation) builds a
+coral; the coral's reef concentrates *more* life (2.2×); more life → more diversity → more cooperation →
+more corals → oneness. **Cooperation doesn't merely win the meadow — it builds the conditions for more
+cooperation.** The reef is the niche-construction (Holland) by which the cooperative pinnacle seeds its
+own succession. Margulis's union, become a haven. (No fix — designed mechanism, emergent consequence;
+worth understanding, not changing.)
+
 ## 2026-06-20 · the flora evolve gently — and the gentleness is what lets them become one
 
 The as-built claims the flora undergo "fast natural selection." I went to verify it: do the survivors
