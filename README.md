@@ -17,7 +17,9 @@ turn. Read the soil, weave the synergies between neighbors, spend hoarded order 
 evolution tree, fight the creeping rot, and choose when to let the world widen. Gather the
 murmurs — real human words, curated by the game's own hand. Wake the garden.
 
-![the awakening](loophole/shots/awaken.png)
+![the awakening, in motion: the living garden resolves into a single glowing pattern](loophole/shots/awakening.gif)
+
+![and the garden opens its eye](loophole/shots/awaken.png)
 
 ### then let a garden *keep going*
 
