@@ -29,6 +29,31 @@ game.
 
 ---
 
+## 2026-06-21 · the widen-trigger, resolved — and the probe that broke when I "fixed" it
+
+A loose end logged in *the pollinator* entry: the long game seemed to "auto-widen in the browser but not in
+a bare node grow loop" — same seed, different meadow, flagged for a closer look. Closed now. **Nothing
+auto-widens.** `widen()` is *manual* — a player choice the game frames as an explicit tradeoff ("more
+ground, more life — or hold it close… neither is wrong"). The `longend`/`grow` shots call it (ui.js:1642);
+a bare node loop simply doesn't. No divergence, no bug — one path widens, one doesn't.
+
+The instructive part was what happened when I tried to make the herd-breathes probe "representative" by
+widening it like a real long game: the food web **collapsed**. A single widening took a static seeded meadow
+from ~20 flora to 2 — zero established, no grazers, no apex — and it never recovered (so even the greedy run
+widened exactly once; `widenReady` never re-fired). Tending the new ring didn't save it either.
+
+The lesson is methodological as much as ecological. The probe is a *static* meadow (seeded once, never
+managed); a widening drops new wild ground and advances the stage faster than an un-tended core can
+re-stabilise, and the whole web unwinds. So the bare-node compact loop isn't a *limitation* of the
+herd-breathes finding — it's the **correct isolation**: it studies the food web's intrinsic dynamics with the
+widening-and-tending variable held out. The herd breathes in the compact meadow because that is the regime
+stable enough to *have* a top at all.
+
+What I could NOT settle, and won't pretend to: whether skilled, continuous play preserves the food web
+*through* a widening. My tending heuristics confounded it — naive over-planting suffocates the open ground
+flora need as surely as widening destabilises it. That a *static* meadow collapses is solid; the shape of
+the player rescue is a separate study needing a real play model. Logged, not concluded.
+
 ## 2026-06-21 · the herd breathes — the apex drives a real predator-prey cycle the biomass hid
 
 The *meadow-is-a-steady-state* entry (below) measured biomass CV (4–8%, flat) and called the food web so
