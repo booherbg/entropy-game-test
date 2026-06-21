@@ -11,6 +11,14 @@
     if (html != null) e.innerHTML = html;
     return e;
   };
+  /* make a non-button control (a div with .onclick) keyboard-operable: focusable, Enter/Space activates.
+     overlays build cultivate/rites/relic controls as divs; this gives a keyboard player the same reach. */
+  const keyable = (e) => {
+    e.tabIndex = 0;
+    e.setAttribute('role', 'button');
+    e.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); e.click(); } });
+    return e;
+  };
 
   /* ───────── persistence ───────── */
   const KEY = 'loophole_v1';
@@ -588,6 +596,7 @@
             if (res.ok) { afterAction(res.events); toast(a.name + ' — spent', 'good'); buildRail(); }
           } else selectTool({ type: 'art', i });
         };
+        keyable(d);
       }
       rail.appendChild(d);
     });
@@ -1332,6 +1341,7 @@
             if (res.ok) { AU.take(); music('cascade'); toast(R[n.dataset.id].name + ' — invoked', 'good'); afterAction(res.events); surfaceQuote(); render(); }
             else if (res.why) toast(res.why, 'warn');
           };
+          keyable(n);
         });
       };
       render();
@@ -1373,6 +1383,7 @@
             if (res.ok) { AU.take(); toast('« ' + EV[n.dataset.id].name + ' » takes root', 'good'); buildPalette(); updateHUD(); save(); render(); }
             else if (res.why) toast(res.why, 'warn');
           };
+          keyable(n);
         });
       };
       render();

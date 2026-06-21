@@ -259,6 +259,8 @@
     font-style: italic; outline: none; margin: 10px 0 4px;
   }
   input[type=text]:focus { border-color: var(--moss); }
+  /* keyboard focus indicator: only shows for keyboard nav (not mouse clicks), so pointer users see nothing change */
+  button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 3px; }
 
   /* echo */
   .echobox { max-width: 560px; text-align: center; padding: 30px; cursor: pointer; }
