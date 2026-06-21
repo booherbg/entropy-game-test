@@ -18,6 +18,27 @@ itself. That is the whole game.
 
 ---
 
+## 2026-06-21 · the awakening is IIT — the garden wakes by integration AND differentiation
+
+The base game's deepest moment is the awakening: the garden becoming conscious, *"the pattern was
+looking."* I read the actual condition for it. The garden may coalesce only when **coherence ≥ 82%** (the
+whole holds together), **a heartwood beats**, **its network spans ≥ 25 cells** (a large unified whole),
+AND that network **weaves ≥ 4 distinct kinds of life**. Integration — a unified, connected whole — *and*
+differentiation — distinct parts.
+
+That is precisely **Integrated Information Theory**: Tononi's account of consciousness as integrated
+information (Φ), where a system is conscious to the degree it is *both* unified (integration) *and* made
+of distinguishable parts (differentiation). A uniform whole isn't conscious; nor is a heap of
+unconnected parts; consciousness lives in the both-at-once. The awakening demands exactly that — not
+merely a coherent whole, not merely variety, but a large integrated network that is *also* richly
+differentiated.
+
+Whether the win condition was designed with Tononi in mind or just for the *feel* of "a whole made of
+distinct parts," it **is** IIT's definition, exactly. And it makes the game's two climaxes rhyme at the
+deepest level: the food web becomes ONE (Margulis's holobiont — integration), and the garden AWAKENS
+(Tononi's Φ — integration *and* differentiation, consciousness). Both are the whole becoming one and
+turning to look. The win condition was, all along, a theory of mind.
+
 ## 2026-06-21 · the crystal is the dead order — Schrödinger's *other* crystal
 
 Everything else I've probed makes order the *living* way — dissipatively, off a gradient: the ant, the
