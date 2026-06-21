@@ -14,7 +14,18 @@ keystone reef (Holland) that shelters still more life; the whole holds homeostat
 gradient faster than bare rock would (Schneider & Kay). Six thinkers and the second law, built into
 separate mechanisms over separate weeks, found — not made — to be putting one argument: that cooperation
 and diversity bend a world toward becoming one. The player only tends the conditions. The argument makes
-itself. That is the whole game.
+itself.
+
+And it isn't only the food web. The base garden, probed just as blindly, turned out to rhyme: the
+wildflowers are a (calm) Game of Life, the ants are Szilard engines drawing work from a gradient, the
+crystal is Schrödinger's dead *periodic* order set against the living *aperiodic* kind — and the
+awakening itself demands integration *and* differentiation, which is Tononi's exact definition of
+consciousness. So the subtitle — *entropy, consciousness, and our place in both* — turns out to be
+embodied mechanism by mechanism, base and bloom alike: **entropy** is the dissipative living order traced
+everywhere here; **consciousness** is the awakening (IIT) and the meadow that becomes one (Gaia); *our
+place in both* is the hand that tends and the eye the garden opens. The game does not depict its themes.
+It *is* them, in code, at every scale — and that was true before anyone went looking. That is the whole
+game.
 
 ---
 
