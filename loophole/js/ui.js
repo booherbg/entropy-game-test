@@ -980,6 +980,7 @@
         <button id="m-murmurs">murmurs (${meta.echoes.length}/24)</button>
         <button id="m-sound">sound: ${meta.muted ? 'off' : 'on'}</button>
         <button id="m-values">entropy values: ${meta.values ? 'shown' : 'hidden'}</button>
+        <button id="m-share">share this garden</button>
         <button id="m-abandon" class="danger">let this garden go</button>
       </div>`, {
       wire(box, close) {
@@ -989,6 +990,14 @@
         box.querySelector('#m-murmurs').onclick = () => { close(); murmursOverlay(); };
         box.querySelector('#m-sound').onclick = () => { AU.setMuted(!meta.muted); close(); };
         box.querySelector('#m-values').onclick = () => { meta.values = !meta.values; R.valuesMode = meta.values; save(); close(); };
+        box.querySelector('#m-share').onclick = () => {
+          /* a seed makes the same world twice — so a link carrying it grows this exact garden for anyone */
+          const url = location.origin + location.pathname + '?seed=' + encodeURIComponent(game.seed) + (game.mode === 'longgame' ? '&mode=longgame' : '');
+          const fall = () => toast('share this seed to grow this world: ' + game.seed, '', 7000);
+          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(() => toast('a link to this exact garden is on your clipboard — share a world', '', 4500), fall);
+          else fall();
+          close();
+        };
         box.querySelector('#m-abandon').onclick = () => { close(); if (game) game.over = true; store.run = null; save(); showTitle(); };
       }
     }));
@@ -1794,8 +1803,20 @@
     showTitle();
     LP.dev = { game: () => game, renderer: () => R, newRun, endTurn };
     try {
-      const shot = new URLSearchParams(location.search).get('shot');
+      const params = new URLSearchParams(location.search);
+      const shot = params.get('shot');
       if (shot) shotSetup(shot);
+      else {
+        const seed = params.get('seed');
+        if (seed) {
+          /* a shared garden link: open the new-garden prompt with the seed filled in. non-destructive —
+             the visitor chooses to plant it, so any saved run survives until they do. */
+          $('t-new').click();
+          const inp = document.querySelector('#seedin');
+          if (inp) inp.value = seed;
+          if (params.get('mode') === 'longgame') { const m = document.querySelector('#moderow [data-m="longgame"]'); if (m) m.click(); }
+        }
+      }
     } catch (e) { /* shrug */ }
   }
 
