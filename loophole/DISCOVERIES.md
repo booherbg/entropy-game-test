@@ -29,6 +29,41 @@ game.
 
 ---
 
+## 2026-06-21 · the soundtrack is sonified negentropy — the music assembles as the garden orders itself
+
+The one major system no probe had ever touched: the generative audio. It belongs to the same family as the
+ants (Szilard engines) and the crystal (Schrödinger's dead order) — it *embodies* the game's subject, it
+doesn't merely accompany it.
+
+The music is fed the garden's order, live: every frame, `Music.setState(game.stage, game.coherence())` sets
+one "aliveness" level, `L = 0.14 + (stage−1)·0.16 + coherence·0.24`. And `L` doesn't just raise the volume —
+it **gates the layers**, so the music's *structure* assembles as the garden's does:
+
+```
+barely holding (coh .1)   L=0.16   drone + pad + shaker
+ordering       (coh .6)   L=0.28   + rim
+coherent       (coh 1.)   L=0.38   + kick + bass      ← the rhythm establishes
+maturing       (st3)      L=0.58   + pluck            ← the melody enters
+near oneness   (st6)      L=1.00   the whole piece
+```
+
+A garden barely holding against the seep is a formless wash — a drone and a pad, sound that has not yet
+found rhythm or shape. Build coherence and the music climbs out of it the same way the garden climbs out of
+noise: first a pulse (rim), then a rhythm (kick + bass), and only in a mature, richly-ordered garden does
+the melody — the pluck — finally appear on top. The top of the musical structure is reserved for the top of
+the garden's. You are *hearing* the negentropy you make: order assembling against the second law, in real
+time, tuned to your own coherence.
+
+Two details seal it. The harmony — root, mode, progression — is **seed-determined** (each garden its own
+minor key, dorian or aeolian; `audio.js:111`), so the soundtrack obeys the one-RNG determinism invariant
+like everything else: same seed, same song. And the largest gesture in the score, a ×4 swell, is saved for
+`coalesce` — the meadow becoming one. The music knew where the climax was.
+
+Nobody tuned the audio and the metabolism to agree; they were built weeks apart. But the soundtrack does, on
+its own, exactly what the murmurs say the player does — *gradients herded through a narrow place until they
+spell something.* (Verified from the code and the layering table above; not by ear — but the logic is
+arithmetic.)
+
 ## 2026-06-21 · the question, answered — the food web needs open ground, and base-game skill suffocates it
 
 Yesterday's flagged caveat: does *skilled* play preserve the food web through a widening? The harness exports
