@@ -29,6 +29,24 @@ game.
 
 ---
 
+## 2026-06-21 · the garden is gentle on purpose (the safety net under the wood-wide-web)
+
+I went looking for Simard's wood-wide-web — proof that the mycelial network keeps the fragile alive by
+plumbing them into distant supply. I couldn't make it bite: a frond cut off from all supply, alone or in
+a wall of eighteen, just *lived*. The code's own comment said why — *"a small ambient floor keeps a lone
+consumer alive; real scarcity is at scale."* There is a **safety net** under everything: a starved
+consumer wilts, but it does not die. (The network governs *thriving* — output — not survival.)
+
+And *that* is the finding, because it's a pattern I keep meeting. The food web cannot collapse
+(donor-control, satiety, refuges). The wildflowers' Game of Life always settles, never churns. The flora
+evolve by gentle drift, never red-in-tooth selection. And now: a fragile thing cannot simply starve to
+death. **The garden is forgiving — deliberately, structurally, everywhere.** Where most systems games
+*punish* (the factory backs up, the city riots, the civilisation falls), this one *catches* you. That
+gentleness isn't softness for its own sake — it's what makes the thing **contemplative** rather than
+stressful: a garden you can sit with, not a machine you must service. The temperament is as designed as
+the thesis, and just as consistent — the second law presses, but the garden was built to be merciful
+about it.
+
 ## 2026-06-21 · the awakening is IIT — the garden wakes by integration AND differentiation
 
 The base game's deepest moment is the awakening: the garden becoming conscious, *"the pattern was
