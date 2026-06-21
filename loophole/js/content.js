@@ -243,7 +243,7 @@
     'clouds are not spheres, mountains are not cones, coastlines are not circles, and bark is not smooth, nor does lightning travel in a straight line.\n— benoît mandelbrot, the fractal geometry of nature (1982)',
     'a solitary ant, afield, cannot be considered to have much of anything on his mind. four ants together, or ten, encircling a dead moth on a path, begin to look more like an idea.\n— lewis thomas, the lives of a cell (1974)',
     'at each level of complexity, entirely new properties appear. psychology is not applied biology, nor is biology applied chemistry. more is different.\n— philip w. anderson, science (1972)',
-    'life did not take over the globe by combat, but by networking.\n— lynn margulis & dorion sagan, microcosmos (1986)',
+    'life did not take over the world by combat, but by networking.\n— lynn margulis & dorion sagan, microcosmos (1986)',
     'at the base of the creativity of all large familiar forms of life, symbiosis generates novelty.\n— lynn margulis, symbiotic planet (1998)',
     'if you are a poet, you will see clearly that there is a cloud floating in this sheet of paper. without a cloud there will be no rain; without rain the trees cannot grow.\n— thich nhat hanh, the heart of understanding (1988)',
     'we are but whirlpools in a river of ever-flowing water. we are not stuff that abides, but patterns that perpetuate themselves.\n— norbert wiener, the human use of human beings (1950)',
@@ -252,7 +252,7 @@
     'to study the self is to forget the self. to forget the self is to be actualized by the ten thousand things.\n— eihei dōgen, genjōkōan (1233)',
     'do i contradict myself? very well then i contradict myself, (i am large, i contain multitudes.)\n— walt whitman, song of myself (1855)',
     'consciousness is a singular of which the plural is unknown. there is only one thing, and that which seems to be a plurality is merely a series of different aspects of this one thing.\n— erwin schrödinger, mind and matter (1958)',
-    'in the end, we are self-perceiving, self-inventing, locked-in mirages. we are little miracles of self-reference.\n— douglas hofstadter, i am a strange loop (2007)',
+    'in the end, we self-perceiving, self-inventing, locked-in mirages are little miracles of self-reference.\n— douglas hofstadter, i am a strange loop (2007)',
     'we are a way for the cosmos to know itself.\n— carl sagan, cosmos (1980)',
     /* IV — the confession, and the landing */
     'i owe you an admission. the murmurs you have been reading, i did not write. i gathered them — from physicists and monks and poets, nearly all of them long dead. what was mine was the choosing, and the order.',

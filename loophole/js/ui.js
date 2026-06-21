@@ -680,7 +680,7 @@
         }
         /* synergy = placement bonus, kept distinct from feeding */
         const syn = game._synergy(c);
-        if (syn > 1.04) lines.push(`<span class="synup">good neighbours ×${syn.toFixed(2)}${s.role === 'consumer' ? ' (more order once fed)' : ''}</span>`);
+        if (syn > 1.04) lines.push(`<span class="synup">good neighbors ×${syn.toFixed(2)}${s.role === 'consumer' ? ' (more order once fed)' : ''}</span>`);
         else if (syn < 0.96) lines.push(`<span class="syndown">crowded ×${syn.toFixed(2)}</span>`);
       }
     } else {
