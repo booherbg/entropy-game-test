@@ -29,6 +29,23 @@ game.
 
 ---
 
+## 2026-06-21 · the frond is the patient fractal — rich, fragile, quietly resilient
+
+Another glossed pattern, read properly. A frond's output is the **triangular number** of its unfolding
+depth (0.34 × d(d+1)/2) — so it rewards patience *quadratically*: a fully-unfolded frond pays ~7× a fresh
+one's base (the moss shelter around it multiplies that to ~18× in practice) while its upkeep rises only
+linearly. Left calm and sheltered, a frond becomes a quiet powerhouse.
+
+But only while calm. It unfolds when its cell's entropy is low and **retreats** the instant entropy passes
+0.55 — exactly the help's "rich and fragile." I hit a fully-unfolded frond with a storm: it dropped one
+level (d6→d5, 18.9→13.5 output) and then, sheltered by its moss, calmly re-unfolded the next turn. Fragile
+but not brittle — it bends and recovers rather than shattering (the gentleness runs even here).
+
+So the frond is the garden's **specialist**: the patient, sheltered richness the hardy generalist moss
+makes possible. The moss spreads anywhere, the crystal sits dead-still — and the frond does what complexity
+actually does, building something elaborate and quadratically valuable inside a calm the community has to
+hold open for it. The most fragile pattern is the richest.
+
 ## 2026-06-21 · the heartwood is a literal heart — a pacemaker that beats only when fed
 
 I'd called the heartwood a "broadcast integrator" and never actually read its pulse. It is far more alive
