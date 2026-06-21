@@ -970,6 +970,28 @@
   }
 
   /* ───────── menus & screens ───────── */
+  function saveImage() {
+    /* a garden is a unique procedural image — let the player keep it. composite the opaque board (it
+       paints its own dark) with the live FX layer, then download as PNG. the canvas is same-origin and
+       wholly procedural, so it is not tainted and toBlob succeeds. */
+    const board = $('board'), fx = $('fx');
+    if (!board) return;
+    const out = document.createElement('canvas');
+    out.width = board.width; out.height = board.height;
+    const ctx = out.getContext('2d');
+    ctx.drawImage(board, 0, 0);
+    if (fx) ctx.drawImage(fx, 0, 0);
+    out.toBlob(blob => {
+      if (!blob) { toast('the image could not be captured', 'warn'); return; }
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'loophole-' + (game ? game.seed : 'garden') + '.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      toast('your garden, saved as an image', '', 3500);
+    });
+  }
+
   function menuOverlay() {
     pushOverlay(panelOverlay(`
       <div class="paneltitle">a moment of stillness</div>
@@ -981,6 +1003,7 @@
         <button id="m-sound">sound: ${meta.muted ? 'off' : 'on'}</button>
         <button id="m-values">entropy values: ${meta.values ? 'shown' : 'hidden'}</button>
         <button id="m-share">share this garden</button>
+        <button id="m-save">save this garden as an image</button>
         <button id="m-abandon" class="danger">let this garden go</button>
       </div>`, {
       wire(box, close) {
@@ -998,6 +1021,7 @@
           else fall();
           close();
         };
+        box.querySelector('#m-save').onclick = () => { saveImage(); close(); };
         box.querySelector('#m-abandon').onclick = () => { close(); if (game) game.over = true; store.run = null; save(); showTitle(); };
       }
     }));
