@@ -33,6 +33,28 @@ game.
 
 ---
 
+## 2026-06-22 · the three elements are three ways to eat — niche theory under the flora's names
+
+Pulled one more thread: why do the evolved flora carry names like *flintbloom*, *peatfern*, *suncup*?
+Beneath the species list is a whole trophic architecture. There are exactly **three production elements**,
+one per base producer (`PROD_BLEND`: moss → 0, crystal → 1, ant → 2), and they are the three primary
+resource pools an ecosystem runs on: **light** (moss, the photosynthate), **mineral** (crystal, the lithic
+nutrient), and **humus** (ant, the detritus of decay). The code names the feeding-guilds exactly that —
+*lumen-eaters, mineral-eaters, humus-eaters* (core.js:97).
+
+The flora *speciate to partition them*, and the comment is pure niche theory: "a producer emits a blend; an
+uneaten surplus is a niche" (core.js:90) — an unexploited resource is an empty niche, and a flower evolves
+to fill it, taking its name from the channel it eats (`FLORA_PRE[ch]`, core.js:552). *Flintbloom* is a
+mineral-eater, *peatfern* a humus-eater, *suncup* a light-eater. The name *is* the diet.
+
+What turns it from clever to true: each guild's preferred ground follows its food. The entropy band a flora
+loves is `0.22·light + 0.38·mineral + 0.55·humus` (core.js:556) — **light-feeders want calm ground,
+rot-feeders want wild.** That is real ecology: a light-fed flower settles the stable, sunny order where
+photosynthesis dominates; a humus-fed one booms in the disturbance and decay where detritus is richest. The
+game didn't just label three diets — it gave each the habitat its real counterpart would choose. The whole
+evolving meadow is resource partitioning across the three pools every actual ecosystem runs on, and each
+flower tells you which it drinks from by its name.
+
 ## 2026-06-22 · the legendaries are a second codex — 22 ideas you buy with understanding
 
 The seven patterns turned out to be a cast of embodied ideas (the mycelium entry, below). I had never
