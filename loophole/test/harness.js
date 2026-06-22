@@ -716,6 +716,18 @@ function main() {
     ok(safe === corruptions.length, 'no corrupted save strands the player (it throws→caught, or loads & plays — never loads-then-crashes)', `${safe}/${corruptions.length}`);
   }
 
+  /* thermodynamics — the game's deepest claim, the one its title/README/intro all rest on: a living world
+     dissipates the gradient FASTER than bare rock (Schneider & Kay — life accelerates entropy production).
+     It's computed in pressure() as slope = 1 + 1.5·coherence. Guard it so the central claim can never
+     silently go false — the audio-harmony bug proved a documented claim can quietly diverge from the code. */
+  console.log('\n[thermodynamics]');
+  {
+    const g = new Game('therm', { mode: 'longgame' });
+    g._cohCache = 0; const bareRock = g.pressure();
+    g._cohCache = 1; const living = g.pressure();
+    ok(living > bareRock * 1.5, 'the second law bills you for the order you hold — the seep scales with coherence, so a living world runs the gradient down faster than bare rock (Schneider & Kay)', `bare=${bareRock.toFixed(4)} living=${living.toFixed(4)} (${(living / bareRock).toFixed(2)}x)`);
+  }
+
   console.log('\n' + (failures ? `${failures} FAILURE(S)` : 'ALL PASS'));
   process.exit(failures ? 1 : 0);
 }
