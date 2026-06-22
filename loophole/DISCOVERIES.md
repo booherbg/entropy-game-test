@@ -18,6 +18,7 @@ itself.
 
 And it isn't only the food web. The base garden, probed just as blindly, turned out to rhyme: the
 wildflowers are a (calm) Game of Life, the ants are Szilard engines drawing work from a gradient, the
+mycelium is Simard's wood-wide web, pooling production so a whole network shares one fed fate; the
 crystal is Schrödinger's dead *periodic* order set against the living *aperiodic* kind — and the
 awakening itself demands integration *and* differentiation, which is Tononi's exact definition of
 consciousness. The rhyme reaches even the parts you never decide: the **soundtrack** assembles its own
