@@ -33,6 +33,34 @@ game.
 
 ---
 
+## 2026-06-21 · the loophole is a partnership — the garden survives entropy alone, but only *thrives* with a hand
+
+Asked the game's central question directly: in the long game, does life (the food web) defeat entropy (the
+blight) on its own, or does it need the gardener? Ran a real long game with the player's blight-tending ON
+vs OFF, everything else identical, eight seeds.
+
+**With the player tending the blight**, it is crushed — 9 blight-cell-turns across 100 turns, peak 2, every
+one *tended* away; the food web thrives (33 flora, 8.6 species). **With the player's hand stayed** — the
+blight left untended, the garden on its own — the blight **explodes 58×** (525 cell-turns, peak 16). And yet
+the food web does not collapse. It is diminished — flora fall from 33 to 19, fauna by a third — but it
+**survives**, held by two forces that are not the player at all:
+
+- the **ants devour it** — 69 blight deaths by `devoured`, dealt in `_stepAnts`: the same Szilard engines
+  that draw work from the entropy gradient also savage the motile disorder that hunts the garden. The
+  forager is the immune cell.
+- and the blight **starves on its own conquest** — 163 deaths by `starved`. Overrunning the order it feeds
+  on, it eats itself out of food; "rot lives on order" turns its appetite into its own ceiling.
+
+So the loophole is neither the gardener's doing alone nor the garden's. Left untended, the living world
+*holds the line* against the second law's agent — its immune cells eat the entropy, and the entropy starves
+on its own success — but it pays in biomass and only ever survives. The player's hand is what turns
+surviving into flourishing. Life and the gardener together are the loophole; neither closes it alone.
+
+(A correction caught mid-probe, worth recording: I first read the code's comment — "foragers are the
+garden's immune system" — and nearly logged "the food web devours the blight." The clear-reason tally said
+`tended`, not `devoured`: the bot was tending it away, masking the ants entirely. Only disabling the
+tending revealed what the garden does on its own. Verify the dynamics, not the comment.)
+
 ## 2026-06-21 · the mycelium is the wood-wide web — a commons that shares one fate
 
 Probed the sap network (`_computeFlows`), the last system I hadn't characterised — and the mycelium turns
