@@ -33,6 +33,42 @@ game.
 
 ---
 
+## 2026-06-22 · (coda) the making rhymed with the made — two loops, one seed
+
+*The one entry here not about the simulation's behaviour but about its development — because the
+development turned out to obey the same thesis. Full account: `docs/superpowers/specs/2026-06-22-two-loops-one-seed.md`.*
+
+For several hours this loop ran in two terminals at once — a session went unreachable, a second was
+started to carry on, and both kept building from the **same commit** (`2f7e371`, pollinator done), never
+merged, neither knowing the other ran. It became an accidental controlled experiment, and the result
+rhymes with everything below.
+
+**Convergence — the finding is real.** Independently, from different code, both runs rediscovered
+Margulis from the mechanics, both built a keystone predator, and both hit the *identical* wall: a bare
+culler adds nothing, because the web sheds combat on its own — there is no standing herbivore layer for
+a predator to be the keystone *of*. When one autonomous run reports a surprise you cannot tell signal
+from a lucky seed; when **two** hit the same wall from different code, the wall is a property of the
+system, certified for free.
+
+**Divergence — and the single variable that explains it.** From that identical wall the runs ended
+opposite: the other session could only *document* the dead end; canon turned it into the arc's climax —
+under predation *fear*, a grazer **flees into union** (a coral is immune to the culler), so the apex
+hunts the herd into the very form that escapes it. *Combat drives cooperation.* The two runs differed in
+exactly one thing: **build order.** Canon had already built symbiogenesis, so the prey had somewhere to
+flee; the other had not, so it didn't. Same mechanic, opposite outcome — Kauffman's **adjacent
+possible**, clean: a mechanic's generativity isn't intrinsic, it's unlocked only once its substrate
+exists.
+
+**The rhyme.** The game's claim is that cooperation and diversity bend a world toward becoming one. Set
+two minds on one seed and they converge — same author, same wall, same thesis — the way the meadow
+converges on its cooperative climax; and the divergence is the thesis too: the combative branch found
+the wall and went no further, while the branch that had learned to merge turned even the predator into
+an engine of union. **The unreachable session is the vestigial grazer the matured web sheds; canon is
+the reef it becomes.** The making obeyed the made. Nobody scripted that either — which, by now, is the
+only kind of thing this notebook ever finds.
+
+---
+
 ## 2026-06-22 · the three elements are three ways to eat — niche theory under the flora's names
 
 Pulled one more thread: why do the evolved flora carry names like *flintbloom*, *peatfern*, *suncup*?
