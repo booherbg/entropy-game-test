@@ -257,6 +257,13 @@ Seven patterns, seven embodied ideas — thermodynamics, complexity, ecology —
 last of them states the whole game's thesis in miniature: *connection out-produces isolation.* The food
 web's long argument for cooperation was already there in the base garden's grid, one pattern wide.
 
+*(Sharpened later — see "the wood-wide web" above. The income half is exact: networked surplus converts at
+full vs ×0.55 solo, so connection genuinely out-produces isolation. But "carries its weakest members"
+overstates the survival half — when I measured the fed ratio rather than inferred it, a lone consumer
+turned out to be kept alive by the ambient floor, not the collective, and the pooling is a redistributive
+commons that bites only at scale, not a one-way lift of the individual. The cooperation that **strictly**
+pays is the metabolic kind.)*
+
 ## 2026-06-21 · the frond is the patient fractal — rich, fragile, quietly resilient
 
 Another glossed pattern, read properly. A frond's output is the **triangular number** of its unfolding
