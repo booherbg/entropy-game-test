@@ -1906,7 +1906,7 @@
         </div>`;
       pushOverlay(panelOverlay(`
         <div class="paneltitle">new garden</div>
-        <p class="muted">a seed makes the same world twice. share one, or trust the wind.</p>
+        <p class="muted" id="ng-intro">a seed makes the same world twice. share one, or trust the wind.</p>
         <input id="seedin" type="text" spellcheck="false" placeholder="${C().prettySeed(Math.random)}">
         ${modepicker}
         ${picker}
@@ -1953,11 +1953,14 @@
       else {
         const seed = params.get('seed');
         if (seed) {
-          /* a shared garden link: open the new-garden prompt with the seed filled in. non-destructive —
+          /* a shared garden link: open the new-garden prompt with the seed filled in, and name the gift so
+             the visitor knows a world was handed to them (not a coincidental pre-fill). non-destructive —
              the visitor chooses to plant it, so any saved run survives until they do. */
           $('t-new').click();
           const inp = document.querySelector('#seedin');
           if (inp) inp.value = seed;
+          const intro = document.querySelector('#ng-intro');
+          if (intro) intro.textContent = 'someone shared this world with you. a seed makes the same world twice — plant it, and tend it your way.';
           if (params.get('mode') === 'longgame') { const m = document.querySelector('#moderow [data-m="longgame"]'); if (m) m.click(); }
         }
       }
