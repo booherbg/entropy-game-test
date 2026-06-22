@@ -109,10 +109,15 @@ the melody — the pluck — finally appear on top. The top of the musical struc
 the garden's. You are *hearing* the negentropy you make: order assembling against the second law, in real
 time, tuned to your own coherence.
 
-Two details seal it. The harmony — root, mode, progression — is **seed-determined** (each garden its own
-minor key, dorian or aeolian; `audio.js:111`), so the soundtrack obeys the one-RNG determinism invariant
-like everything else: same seed, same song. And the largest gesture in the score, a ×4 swell, is saved for
-`coalesce` — the meadow becoming one. The music knew where the climax was.
+Two details seal it. The harmony — root, mode, progression — is **computed from a seed** (a minor key,
+dorian or aeolian; `audio.js:111`). *(A correction I owe my earlier self, who wrote "each garden its own
+key": on re-probing, `Music.start` fires once on the first interaction — which lands on the title, before
+any garden exists — so it is always seeded `'loophole'` and never re-seeded. Every garden currently plays
+that one key; the per-seed variation the code builds is latent, defeated by the start-timing. Verified
+dynamically: even with `?seed=willow-fen-42`, `start` still received `'loophole'`. Flagged for the creator
+— a re-seed on `newRun` would light it up, but it changes the game's sonic identity, so it's a call to
+make, not an edit to assume.)* And the largest gesture in the score, a ×4 swell, is saved for `coalesce` —
+the meadow becoming one. The music knew where the climax was.
 
 Nobody tuned the audio and the metabolism to agree; they were built weeks apart. But the soundtrack does, on
 its own, exactly what the murmurs say the player does — *gradients herded through a narrow place until they
