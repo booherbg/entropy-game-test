@@ -33,6 +33,32 @@ game.
 
 ---
 
+## 2026-06-22 · insight is the waste-heat of order you didn't spend — the dissipative imperative, made the economy
+
+Followed curiosity into a system I'd never characterised: where does *insight* — the currency that buys
+evolutions and legendaries — come from? It turns out to be the most thermodynamically honest economy in the
+game. There is an order cap (`28 + 16·stage`). Hold order above it and it **"radiates as heat — undissipated
+structure is just warmth"** (core.js:1245): you lose half of every point over the cap, each turn. But the
+loss is not total — **"heat does not all escape; some condenses into insight, the slow understanding."** A
+sixteenth of the spilled heat becomes the currency of your growth.
+
+I measured the sources across a real 63-turn game: a competent player condensed **~45 insight from 729
+spilled order**, against just **4** from clearing blight and a handful of one-time milestone grants — heat
+is **92%** of it. The engine of evolution here is, overwhelmingly, the warmth thrown off by order you were
+too slow to use. (The bot spent 48 of ~49 earned; the currency flows *through* you, it does not pool.)
+
+And a real trade-off hides in it. A hoarder — builds a little, then sits and lets order pile up — spilled
+**1324** and amassed **82** insight, far more than the spender's ~49, yet reached only **stage 2**: a
+stunted garden it now has the understanding but not the substrate to improve. The spender reached stage 6
+with almost none banked and a whole world to spend it on. Understanding accrues from what you waste; only
+spending grows a world worth understanding.
+
+It is the same law as *the seep*, turned inward. The seep is the second law billing you from outside — a
+rich garden leaks its gradient to the dark around it. The cap is the second law billing you from within —
+order you refuse to dissipate dissipates anyway, as heat. Both say the one thing the whole game says: a
+living structure cannot hold still. It runs the gradient down or it dies, and the only profit in the
+running is the slow understanding of why it had to run.
+
 ## 2026-06-21 · the loophole is a partnership — the garden survives entropy alone, but only *thrives* with a hand
 
 Asked the game's central question directly: in the long game, does life (the food web) defeat entropy (the
