@@ -756,6 +756,31 @@ function main() {
     ok(nets > 0 && maxVar < 1e-9, 'the mycelium is the wood-wide web — every cell in a network shares one fed ratio (variance 0)', `${nets} nets, maxVar=${maxVar.toExponential(1)}`);
   }
 
+  /* longevity — the harness's other games all end by turn ~140 (win, dissolve, or the 100-turn long game).
+     The base garden has no turn limit, though: a player can tend it forever without triggering the
+     awakening. This exercises that long-run regime — sustained stage 6 against the 2.5x seep — for the slow
+     failures a short game never reaches: a NaN creeping in, entropy escaping [0,1], runaway order, a crash. */
+  console.log('\n[longevity]');
+  {
+    const g = new Game('longevity', { mode: 'garden' });
+    g.beginCoalescence = () => ({ ok: false }); // a player who tends but never awakens — stays at stage 6
+    let nan = null, eMax = 0, crash = null, ran = 0, orderMax = 0;
+    try {
+      for (let t = 0; t < 300; t++) {
+        greedyTurn(g); g.endTurn(); ran = t + 1;
+        for (const c of g.cells.values()) {
+          if (!Number.isFinite(c.e) && !nan) nan = 'cell.e';
+          eMax = Math.max(eMax, c.e);
+          if (c.pat && !Number.isFinite(c.pat.fed) && !nan) nan = 'pat.fed';
+        }
+        if (!Number.isFinite(g.order) && !nan) nan = 'order';
+        orderMax = Math.max(orderMax, g.order);
+        if (g.over) break;
+      }
+    } catch (e) { crash = e.message || String(e); }
+    ok(!nan && !crash && eMax <= 1.0001 && ran >= 100, 'the base garden tends stably over a long run — no NaN, entropy bounded, no crash (300 turns at sustained stage 6)', `ran=${ran} nan=${nan} crash=${crash} eMax=${eMax.toFixed(3)} orderMax=${orderMax.toFixed(0)}`);
+  }
+
   console.log('\n' + (failures ? `${failures} FAILURE(S)` : 'ALL PASS'));
   process.exit(failures ? 1 : 0);
 }
