@@ -728,6 +728,34 @@ function main() {
     ok(living > bareRock * 1.5, 'the second law bills you for the order you hold — the seep scales with coherence, so a living world runs the gradient down faster than bare rock (Schneider & Kay)', `bare=${bareRock.toFixed(4)} living=${living.toFixed(4)} (${(living / bareRock).toFixed(2)}x)`);
   }
 
+  /* embodiments — DISCOVERIES.md claims the harness doesn't otherwise exercise: the wins don't depend on
+     HOW the blight targets, or whether the mycelium pools exactly. The audio-harmony bug proved a
+     documented claim can silently go false; these guard the wonders-file's central embodiments. */
+  console.log('\n[embodiments]');
+  {
+    /* the blight hunts your order: the wisp seeks the calmest (most-ordered) open ground */
+    const g = new Game(1);
+    const ck = HEX.key(0, 0);
+    const nbrs = HEX.neighborsK(ck).filter(nk => g.cells.has(nk));
+    const es = [0.05, 0.90, 0.50, 0.30, 0.70, 0.15];
+    nbrs.forEach((nk, i) => { const c = g.cells.get(nk); c.pat = null; c.e = es[i % es.length]; });
+    const calmest = nbrs.reduce((a, b) => g.cells.get(a).e < g.cells.get(b).e ? a : b);
+    ok(g._blightStep(ck, false) === calmest, 'the blight hunts your order — the wisp seeks the calmest, most-ordered open ground');
+  }
+  {
+    /* the mycelium is a commons: every cell in a network shares ONE fed ratio (variance 0) */
+    let maxVar = 0, nets = 0;
+    for (const seed of ['myc-a', 'myc-b', 'myc-c']) {
+      const g = new Game(seed, { mode: 'longgame' });
+      for (let t = 0; t < 80 && !g.over; t++) { greedyTurn(g); g.endTurn(); }
+      for (const n of g.networks) {
+        const feds = [...n.cells].map(k => g.cells.get(k)).filter(c => c && c.pat).map(c => c.pat.fed);
+        if (feds.length >= 2) { nets++; const m = feds.reduce((a, b) => a + b, 0) / feds.length; maxVar = Math.max(maxVar, feds.reduce((a, b) => a + (b - m) ** 2, 0) / feds.length); }
+      }
+    }
+    ok(nets > 0 && maxVar < 1e-9, 'the mycelium is the wood-wide web — every cell in a network shares one fed ratio (variance 0)', `${nets} nets, maxVar=${maxVar.toExponential(1)}`);
+  }
+
   console.log('\n' + (failures ? `${failures} FAILURE(S)` : 'ALL PASS'));
   process.exit(failures ? 1 : 0);
 }
