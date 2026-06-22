@@ -32,6 +32,30 @@ game.
 
 ---
 
+## 2026-06-21 · the mycelium is the wood-wide web — a commons that shares one fate
+
+Probed the sap network (`_computeFlows`), the last system I hadn't characterised — and the mycelium turns
+out to be the garden's hidden commons. A mycelial grid doesn't merely link patterns; it **pools** them.
+Every cell in a connected network is given the same fed ratio — `(production + ambient) / upkeep` summed
+across the whole component (core.js:393). So I measured the fed-ratio variance *within* networks across
+eight grown gardens: **exactly 0.00000.** Not nearly — perfectly. A frond at the far end of a network is
+fed at the identical rate as the moss it never touches. The connected share one fate.
+
+That is the **wood-wide web** — the mycorrhizal networks Suzanne Simard showed move carbon and nutrients
+tree to tree, a forest's buried economy. And the game models the commons without romance. It pools the
+*subsistence floor* too: the ambient sap that keeps growth alive is added once per network, not once per
+cell (core.js:393 vs :403) — so it is no one-way charity (across seeds it feeds about as many consumers
+*less* than their own patch would as *more*), and a lone consumer is already kept alive by that floor
+("real scarcity is at scale", core.js:386). What the web actually buys is **collective metabolism**: the
+network's pooled surplus is precisely what converts into the order you spend (`income += n.surplus * conv`,
+core.js:416). The fungus doesn't rescue the individual — it makes the community *productive*.
+
+So the mycelium joins the family — the ants (Szilard engines), the crystal (Schrödinger's dead order), the
+blight (entropy as predator), the soundtrack (sonified negentropy). The grid you lay to carry sap *is*
+Simard's web: a commons where the joined rise and fall together, and the shared surplus becomes the whole's
+wealth. (Verified: fed-ratio variance 0 within networks across 8 seeds; the per-network ambient and
+surplus→income read straight from `_computeFlows` / `_metabolism`.)
+
 ## 2026-06-21 · the blight hunts your order — entropy, given a body, is the predator of negentropy
 
 The antagonist, finally probed. The blight (rot and wisps) doesn't seep blindly or spread at random. It
