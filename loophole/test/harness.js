@@ -798,6 +798,33 @@ function main() {
     ok(n1 > n0, 'genesis still seeds life when calm ground exists', `planted +${n1 - n0}`);
   }
 
+  /* legendaries — 22 artifacts with mods + hooks (turnEnd: morphogen/otherhand; dissolve: secondspring and
+     mnemosyne's rewind), exercised by no other test. Smoke guard after the genesis no-op bug proved an
+     untested activation can break: each adds + runs its hooks without crashing; the dissolve-savers fire,
+     and mnemosyne survives a dissolve with no history to rewind to (the same edge-shape genesis tripped on). */
+  console.log('\n[legendaries]');
+  {
+    const ids = Object.keys(new Game('p', { mode: 'longgame' }).C.LEGENDARIES);
+    let crashed = null;
+    for (const id of ids) {
+      try {
+        const g = new Game('L-' + id, { mode: 'longgame' });
+        for (let t = 0; t < 12 && !g.over; t++) { greedyTurn(g); g.endTurn(); }
+        g.addArtifact({ id });
+        for (let t = 0; t < 8 && !g.over; t++) { greedyTurn(g); g.endTurn(); }
+      } catch (e) { crashed = id + ': ' + (e.message || e); break; }
+    }
+    ok(!crashed, `all ${ids.length} legendaries add + run their hooks without crashing`, crashed || `${ids.length} ok`);
+    let dCrash = null, saved = false;
+    try {
+      const g = new Game('spr', { mode: 'garden' }); for (let t = 0; t < 8; t++) { greedyTurn(g); g.endTurn(); }
+      g.addArtifact({ id: 'secondspring' }); const s = { by: null }; g.emit('dissolve', s, []); saved = !!s.by;
+      const g2 = new Game('mn', { mode: 'garden' }); g2.addArtifact({ id: 'mnemosyne' }); // no history yet
+      g2.emit('dissolve', { by: null }, []); // must not throw on the no-rewind edge
+    } catch (e) { dCrash = e.message || String(e); }
+    ok(!dCrash && saved, 'dissolve-saver hooks fire and survive the no-history edge', dCrash || `secondspring saved=${saved}`);
+  }
+
   console.log('\n' + (failures ? `${failures} FAILURE(S)` : 'ALL PASS'));
   process.exit(failures ? 1 : 0);
 }
