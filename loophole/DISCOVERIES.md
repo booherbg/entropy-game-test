@@ -33,6 +33,38 @@ game.
 
 ---
 
+## 2026-06-22 · the legendaries are a second codex — 22 ideas you buy with understanding
+
+The seven patterns turned out to be a cast of embodied ideas (the mycelium entry, below). I had never
+looked at the **legendaries** — the rare artifacts drafted for insight — and they are an entire *second*
+codex: 22 of them, each a real idea from physics, mathematics, biology, or philosophy, and each one
+*built*, not merely named.
+
+- **The thermodynamics of information, in full.** Maxwell's demon (sorts the most entropic cell down),
+  Szilard's engine (to know a cell precisely returns work), Landauer's ledger ("erasure pays"), the
+  demon's bargain (+80% income, +50% entropy — "a perfectly fair trade, it insists," because there is no
+  free lunch). The whole Maxwell→Szilard→Landauer argument that information is physical, as four relics.
+- **Statistical mechanics.** Poincaré recurrence, the Boltzmann brain ("it dreamed a universe between two
+  collisions"), the ratchet of life — and **the eddy**, "a pocket where the water rests by moving," which
+  is the cleanest one-line definition of a *dissipative structure* I have read, and the thing this whole
+  game is.
+- **Pattern, law, prophecy.** Noether's theorem, Turing's morphogen ("the leopard explains itself"),
+  Fibonacci unfolding, Lyapunov bloom, the strange attractor, Laplace's lens.
+- **Life and myth.** Gaia's breath, the second spring (serotiny — "some seeds only open after fire"),
+  ouroboros culture, stigmergy ("the path remembers"), Mnemosyne's mirror, the anthropic residue.
+
+They are *built*, not flavor. I checked Noether at the call site: the rule walks every crystal and looks
+for its mirror through the origin (`HEX.key(-q, -r)`); each symmetric pair pays a steady, conserved income.
+A literal symmetry producing a literal conservation law — Emmy Noether's 1918 theorem, as a game rule, and
+the flavor line ("for every mirror, a law") means it exactly. The demon's bargain is a true devil's trade
+in the mods — `incomeAll ×1.8, pressure ×1.5` — the second law refusing the free lunch.
+
+The quiet marvel is the currency. You buy them with **insight**, which (the entry below) is the waste-heat
+of order you were too slow to spend — "the slow understanding." So the deepest economy in the game reads:
+the heat thrown off by your striving condenses into understanding, and understanding is spent to purchase
+the laws of nature themselves. You earn Noether's theorem by dissipating. The progression *is* the thesis —
+order running down, buying with its own lost warmth the rules of its running.
+
 ## 2026-06-22 · insight is the waste-heat of order you didn't spend — the dissipative imperative, made the economy
 
 Followed curiosity into a system I'd never characterised: where does *insight* — the currency that buys
