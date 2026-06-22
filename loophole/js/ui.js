@@ -1392,9 +1392,12 @@
           const cls = chk.ok ? 'buyable' : 'locked';
           const cost = game.riteCost(id);
           const tag = r.stage > game.stage ? 'stage ' + C().roman(r.stage - 1) : '✦' + cost;
+          /* locked despite right stage AND affordable means it's gated on something the player can act on
+             (genesis needs calm open ground) — name it, so the grey button isn't a silent mystery */
+          const gateWhy = (!chk.ok && r.stage <= game.stage && game.order >= cost) ? chk.why : null;
           html += `<div class="evonode riteNode ${cls}" data-id="${id}">
             <div class="en-top"><span class="en-name">${r.glyph} ${r.name}</span><span class="en-cost">${tag}</span></div>
-            <div class="en-desc">${r.desc}</div></div>`;
+            <div class="en-desc">${r.desc}${gateWhy ? ` <em>— ${gateWhy}</em>` : ''}</div></div>`;
         }
         box.innerHTML = html; box.appendChild(x);
         box.querySelectorAll('.evonode.buyable').forEach(n => {
