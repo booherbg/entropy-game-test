@@ -991,6 +991,8 @@
       if (this.over) return { ok: false, why: 'the run has ended' };
       if (r.stage > this.stage) return { ok: false, why: 'not yet — stage ' + this.C.roman(r.stage - 1) };
       if (this.order < this.riteCost(id)) return { ok: false, why: 'not enough order' };
+      const gate = r.gate && r.gate(this); /* rite-specific target check — e.g. genesis needs calm open ground */
+      if (gate) return { ok: false, why: gate };
       return { ok: true };
     }
     invokeRite(id) {

@@ -195,6 +195,8 @@
     genesis: {
       name: 'genesis', stage: 2, glyph: '❋',
       cost: g => 44 + 12 * g.stage,
+      /* gate: no calm open ground means the effect would no-op — don't let the player pay for nothing */
+      gate: g => { for (const c of g.cells.values()) if (!c.pat && c.e < 0.5) return null; return 'no calm ground to seed'; },
       desc: 'seed life freely: a ring of moss and a young frond spring up around the calmest open ground.',
       effect: (g, ev) => {
         let best = null;

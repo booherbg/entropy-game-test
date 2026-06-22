@@ -781,6 +781,23 @@ function main() {
     ok(!nan && !crash && eMax <= 1.0001 && ran >= 100, 'the base garden tends stably over a long run — no NaN, entropy bounded, no crash (300 turns at sustained stage 6)', `ran=${ran} nan=${nan} crash=${crash} eMax=${eMax.toFixed(3)} orderMax=${orderMax.toFixed(0)}`);
   }
 
+  /* rites — the board-scale activations charge order, THEN run their effect (core.js:999 before :1002). Most
+     always do something, but genesis no-ops when there's no calm open ground — so without a gate the player
+     pays full price (44+) for nothing. Regression guard for that fix (a real bug, found 2026-06-22). */
+  console.log('\n[rites]');
+  {
+    const g = new Game('rite-noop', { mode: 'garden' });
+    g.stage = 2; g.order = 200;
+    for (const c of g.cells.values()) { if (!c.pat) c.e = 0.9; } // no calm open cell anywhere
+    const o0 = g.order, can = g.canRite('genesis'); g.invokeRite('genesis');
+    ok(!can.ok && g.order === o0, 'genesis is gated when no calm open ground exists — never pay for a no-op', `canRite=${can.ok} charged=${o0 - g.order}`);
+    const g2 = new Game('rite-ok', { mode: 'garden' }); g2.stage = 2; g2.order = 200;
+    const open = [...g2.cells.values()].find(c => !c.pat); if (open) open.e = 0.1; // guarantee calm open ground
+    const n0 = [...g2.cells.values()].filter(c => c.pat).length; g2.invokeRite('genesis');
+    const n1 = [...g2.cells.values()].filter(c => c.pat).length;
+    ok(n1 > n0, 'genesis still seeds life when calm ground exists', `planted +${n1 - n0}`);
+  }
+
   console.log('\n' + (failures ? `${failures} FAILURE(S)` : 'ALL PASS'));
   process.exit(failures ? 1 : 0);
 }
