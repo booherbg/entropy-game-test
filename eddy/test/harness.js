@@ -42,5 +42,28 @@ const FE = require('../js/field.js');
   ok(same, 'same seed → identical field after diffusion');
 })();
 
+const GEN = require('../js/generators.js');
+
+(function testGeneratorConservationAndShape() {
+  const f = E.makeField(E.makeRng(1));
+  const base = f.total(E.LUM);
+  const g = { x: 80, y: 50, el: E.LUM, rate: 10, proj: 'radial', radius: 12 };
+  E.depositGenerators(f, [g]);
+  approx(f.total(E.LUM) - base, 10, 1e-4, 'radial generator adds exactly its rate (finite)');
+  ok(f.get(E.idx(80, 50), E.LUM) > f.get(E.idx(80, 62), E.LUM), 'radial: more at the centre than the edge');
+})();
+
+(function testGeneratorOverlapAdds() {
+  const f = E.makeField(E.makeRng(1));
+  const c = E.idx(80, 50);
+  const lumBefore = f.get(c, E.LUM), minBefore = f.get(c, E.MIN);
+  E.depositGenerators(f, [
+    { x: 80, y: 50, el: E.LUM, rate: 10, proj: 'radial', radius: 14 },
+    { x: 80, y: 50, el: E.MIN, rate: 10, proj: 'radial', radius: 14 },
+  ]);
+  ok(f.get(c, E.LUM) > lumBefore && f.get(c, E.MIN) > minBefore,
+     'overlap: the cell gains BOTH elements → a blend (combinatorial niche)');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);
