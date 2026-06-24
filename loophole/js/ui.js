@@ -36,6 +36,7 @@
       if (!store.meta.quotes) store.meta.quotes = []; /* v0.3: collectible voices */
       if (!store.meta.flora) store.meta.flora = []; /* v0.4: the journal of life witnessed */
       if (!store.meta.fauna) store.meta.fauna = []; /* v0.4: the beasts your meadows summoned */
+      if (!store.meta.hints) store.meta.hints = []; /* an older save without hints[] must not throw when a lore toast checks it (froze the turn loop) */
       /* a run snapshot from before v0.2 can't be read — the board changed shape. keep the murmurs. */
       if (store.run && (store.run.v < 2 || store.run.v > LP.SAVE_V)) store.run = null; /* v2 and v3 both load (fromJSON is version-aware); only unreadable v1 / future formats are dropped */
     }
@@ -841,18 +842,28 @@
   function endTurn() {
     if (!game || game.over || processing || overlayOpen) return;
     unpinTip();
+    selectTool(null); /* advancing the turn drops the held tool — so a post-turn scroll can't drag-paint by accident */
     processing = true;
-    AU.breath();
     $('endturn').classList.add('breathing');
-    prevC = game.coherence();
-    const evs = game.endTurn();
-    handleEvents(evs);
-    updateHUD();
-    R.dirty();
-    save();
-    /* a voice surfaces on a slow cadence, so the chorus keeps arriving even in a calm garden */
-    if (game.turn >= 12 && game.turn % 12 === 0) surfaceQuote();
-    setTimeout(() => { processing = false; $('endturn').classList.remove('breathing'); }, 320);
+    /* the whole turn pipeline is guarded: a thrown exception must NEVER leave `processing` stuck
+       true (that bricks every click until a refresh). finally always frees it; the catch surfaces
+       the fault instead of hiding it, and the core sim already advanced, so recovery is safe. */
+    try {
+      AU.breath();
+      prevC = game.coherence();
+      const evs = game.endTurn();
+      handleEvents(evs);
+      updateHUD();
+      R.dirty();
+      save();
+      /* a voice surfaces on a slow cadence, so the chorus keeps arriving even in a calm garden */
+      if (game.turn >= 12 && game.turn % 12 === 0) surfaceQuote();
+    } catch (err) {
+      console.error('[loophole] turn pipeline error (recovered, the garden continues):', err);
+      try { updateHUD(); R.dirty(); } catch (_) { /* even the recovery is optional */ }
+    } finally {
+      setTimeout(() => { processing = false; $('endturn').classList.remove('breathing'); }, 320);
+    }
   }
 
   /* draw the eye to the rail when something lands there (e.g. a forager find) */
