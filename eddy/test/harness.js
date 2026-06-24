@@ -65,5 +65,18 @@ const GEN = require('../js/generators.js');
      'overlap: the cell gains BOTH elements → a blend (combinatorial niche)');
 })();
 
+const LIFE = require('../js/life.js');
+
+(function testPrimerLatchesToLocalBlend() {
+  const f = E.makeField(E.makeRng(3));
+  const c = E.idx(40, 40);
+  f.add(c, E.MIN, 50); // make this spot strongly mineral
+  const life = E.makeLife(E.makeRng(3));
+  const ent = life.spawnFromPrimer(f, 40, 40);
+  ok(ent && ent.alive, 'primer spawns a living entity');
+  ok(ent.diet[E.MIN] > ent.diet[E.LUM] && ent.diet[E.MIN] > ent.diet[E.HUM],
+     'latched: diet favours the locally abundant element (mineral)');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);
