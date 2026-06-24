@@ -15,5 +15,32 @@ const E = require('../js/rng.js');
   ok(r3() !== a[0], 'different seed → different stream');
 })();
 
+require('../js/grid.js'); require('../js/field.js');
+
+const FE = require('../js/field.js');
+
+(function testFieldConservationAndSpread() {
+  const f = E.makeField(E.makeRng(7));
+  // seed a single hot cell of lumen so there is something to spread
+  for (let i = 0; i < E.W * E.H; i++) { f.el[i * E.NEL + E.LUM] = 0; }
+  const c = (E.H >> 1) * E.W + (E.W >> 1);
+  f.el[c * E.NEL + E.LUM] = 100;
+  const before = f.total(E.LUM);
+  const centerBefore = f.el[c * E.NEL + E.LUM];
+  for (let s = 0; s < 25; s++) f.diffuse();
+  approx(f.total(E.LUM), before, 1e-3, 'diffusion conserves total lumen');
+  ok(f.el[c * E.NEL + E.LUM] < centerBefore, 'diffusion lowers the peak (spreads)');
+  // a neighbour gained some
+  ok(f.el[(c + 1) * E.NEL + E.LUM] > 0, 'diffusion spread lumen to a neighbour');
+})();
+
+(function testFieldDeterminism() {
+  const f1 = E.makeField(E.makeRng(7)), f2 = E.makeField(E.makeRng(7));
+  for (let s = 0; s < 10; s++) { f1.diffuse(); f2.diffuse(); }
+  let same = true;
+  for (let i = 0; i < f1.el.length; i++) if (f1.el[i] !== f2.el[i]) { same = false; break; }
+  ok(same, 'same seed → identical field after diffusion');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);
