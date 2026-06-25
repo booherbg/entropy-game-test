@@ -234,5 +234,17 @@ require('../js/persist.js');
   ok(meanX > 74 && meanX < 86, 'the blend species lives BETWEEN the springs — born of the overlap, not either source');
 })();
 
+(function testGeneratorDepletion() {
+  const f = E.makeField(E.makeRng(1));
+  const base = f.total(E.LUM);
+  const g = { x: 80, y: 50, el: E.LUM, rate: 10, proj: 'radial', radius: 12, reservoir: 25 };
+  for (let t = 0; t < 10; t++) E.depositGenerators(f, [g]); // would emit 100 if infinite; reservoir is 25
+  approx(f.total(E.LUM) - base, 25, 1e-4, 'a finite spring emits exactly its reservoir total, then runs dry (conserved)');
+  ok(g.reservoir <= 1e-9, 'the reservoir is spent');
+  const afterDry = f.total(E.LUM);
+  E.depositGenerators(f, [g]);
+  approx(f.total(E.LUM), afterDry, 1e-9, 'a dry spring emits nothing — where & when you place a source is now a real decision');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);

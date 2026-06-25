@@ -27,9 +27,16 @@
   }
   E.depositGenerators = function (field, gens) {
     for (const g of gens) {
+      let emit = g.rate;
+      if (g.reservoir !== undefined) {     // a finite spring: emits until it runs dry, then stops
+        if (g.reservoir <= 1e-9) continue;
+        emit = Math.min(g.rate, g.reservoir);
+        g.reservoir -= emit;
+      }
+      if (emit <= 0) continue;
       const { out, sum } = (g.proj === 'vein' ? veinWeights(g) : radialWeights(g));
       if (sum <= 0) continue;
-      for (const [i, w] of out) field.add(i, g.el, g.rate * (w / sum)); // Σ deposits == rate
+      for (const [i, w] of out) field.add(i, g.el, emit * (w / sum)); // Σ deposits == emit
     }
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = E;

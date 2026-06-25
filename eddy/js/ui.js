@@ -39,7 +39,7 @@
       btn.proj.textContent = proj;
       btn.element.style.opacity = btn.proj.style.opacity = (tool === 'generator' ? '1' : '0.4');
       if (hint) hint.textContent =
-        tool === 'generator' ? `click to place a ${ELN[element]} ${proj} generator (finite source)` :
+        tool === 'generator' ? `click to place a ${ELN[element]} ${proj} spring — finite, it runs dry; tend the flow` :
         tool === 'primer'    ? 'click a surplus patch to seed life — it latches to the local blend' :
         tool === 'inspect'   ? 'click near a creature to read what it is and why' : '';
     }
@@ -49,7 +49,8 @@
       const cell = E.UI.cellFromPixel(ev.clientX - r.left, ev.clientY - r.top, r.width, r.height);
       const s = main.getSim ? main.getSim() : sim;
       if (tool === 'generator') {
-        s.addGenerator({ x: cell.x, y: cell.y, el: element, rate: 8, proj: proj, radius: 16, angle: 0.5, length: 30 });
+        // a finite spring: it runs dry, so where & when you place it is a real decision (steward the flow)
+        s.addGenerator({ x: cell.x, y: cell.y, el: element, rate: 8, proj: proj, radius: 16, angle: 0.5, length: 30, reservoir: 4000 });
       } else if (tool === 'primer') {
         s.dropPrimer(cell.x, cell.y);
       } else if (tool === 'inspect' && E.UI.inspectAt) {
