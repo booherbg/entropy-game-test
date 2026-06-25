@@ -6,6 +6,19 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · the world, seen — it is legible, not mush
+
+Without a browser, the loop built a pure-JS renderer that paints a sim state to a PNG using the shader's
+exact color math. The image settles the make-or-break question the parent game *failed*: **this world
+is legible.** Three springs make three resource blooms — gold lumen, blue mineral, a green humus vein —
+each fading to gray where no source feeds it (entropy, on the screen). Life reads as distinct,
+diet-colored dots gathered in their niches: gold eaters in the gold, blue in the blue, green by the
+humus. And one detail nobody drew — the lumen colony has **grazed the center of its own bloom dark**, a
+bright ring of plenty around an eaten-down middle. Consumption, made visible; cause you can read off the
+picture. This is the depth the whole redesign was for: not a field of cells, but a world of things you
+can see and explain. (The headless render mirrors the shader faithfully; the live WebGL page still wants
+a real browser to confirm the GL code itself runs.)
+
 ## 2026-06-25 · two springs, a third creature — richness from the overlap
 
 Place a lumen spring and a mineral spring close enough that their fields overlap, and seed life *only*
