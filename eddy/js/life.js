@@ -11,9 +11,15 @@
       const s = v[0] + v[1] + v[2] || 1;
       return new Float32Array([v[0] / s, v[1] / s, v[2] / s]);
     }
-    function spawnFromPrimer(field, x, y) {
+    function spawnFromPrimer(field, x, y, starter) {
       const i = E.idx(x, y);
-      const diet = localBlend(field, i);              // latch: eat what's in surplus here
+      if (starter > 0) {                              // a player's primer carries its own substrate, so the seeding takes
+        const d = localBlend(field, i);               // biased toward whatever's locally present
+        field.add(i, E.LUM, starter * d[E.LUM]);
+        field.add(i, E.MIN, starter * d[E.MIN]);
+        field.add(i, E.HUM, starter * d[E.HUM]);
+      }
+      const diet = localBlend(field, i);              // latch: eat what's in surplus here (incl. the starter)
       const ent = { id: nextId++, x, y, diet, biomass: 0.5, age: 0, gen: 1, alive: true };
       list.push(ent);
       return ent;

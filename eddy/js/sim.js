@@ -23,7 +23,7 @@
       E.fertilityStep(field, life, rng);
     }
     function addGenerator(g) { gens.push(g); }
-    function dropPrimer(x, y) { return life.spawnFromPrimer(field, x | 0, y | 0); }
+    function dropPrimer(x, y) { return life.spawnFromPrimer(field, x | 0, y | 0, 10); } // a player's seed brings starter substrate
 
     function stats() {
       const live = life.list.filter(e => e.alive);
