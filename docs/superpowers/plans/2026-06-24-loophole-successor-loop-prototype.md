@@ -448,6 +448,8 @@ git commit -m "feat(eddy): life entities + primer that latches to the local blen
 ```
 Then add `step` to the returned object: `return { list, spawnFromPrimer, step, _rng: rng };`
 
+> **Conservation note (load-bearing):** upkeep must put the spent biomass *somewhere*, or matter is destroyed and the death test fails. Respire it back to the field as humus: `const cost = Math.min(UPKEEP, ent.biomass); ent.biomass -= cost; field.add(i, E.HUM, cost);`. Then death adds any remaining biomass to humus. The full life cycle (eat → retain → excrete → upkeep → split → die) then conserves matter exactly.
+
 - [ ] **Step 4: Run → PASS** (conservation, biomass gain, humus excreted).
 - [ ] **Step 5: Commit**
 
@@ -475,9 +477,10 @@ git commit -m "feat(eddy): Mode-1 metabolism — eat, retain ratio, excrete humu
   const life = E.makeLife(E.makeRng(8));
   const ent = life.spawnFromPrimer(f, 40, 40);
   ent.biomass = 0.03; // about to starve
-  const totalBefore = f.total(E.LUM) + f.total(E.MIN) + f.total(E.HUM) + ent.biomass;
   // empty its cell so it cannot eat, forcing starvation
   for (let k = 0; k < E.NEL; k++) f.add(c, k, -f.get(c, k));
+  // baseline AFTER the artificial emptying — only the death step's biomass→humus is under test
+  const totalBefore = f.total(E.LUM) + f.total(E.MIN) + f.total(E.HUM) + ent.biomass;
   life.step(f); life.step(f);
   ok(!ent.alive, 'a starved entity dies');
   const totalAfter = f.total(E.LUM) + f.total(E.MIN) + f.total(E.HUM)
