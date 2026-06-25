@@ -60,5 +60,43 @@
     refresh();
   };
 
+  // inspector: read the nearest living thing to a clicked cell — what it is, eats, makes, why.
+  let murmurN = 0;
+  E.UI.inspectAt = function (sim, cell) {
+    const box = document.getElementById('inspector'); if (!box) return;
+    let best = null, bestD = 16; // within ~4 cells
+    for (const e of sim.life.list) {
+      if (!e.alive) continue;
+      const d = (e.x - cell.x) * (e.x - cell.x) + (e.y - cell.y) * (e.y - cell.y);
+      if (d < bestD) { bestD = d; best = e; }
+    }
+    if (!best) { box.classList.remove('show'); return; }
+    const e = best;
+    const elName = ['lumen', 'mineral', 'humus'], cls = ['lum', 'min', 'hum'], col = ['gold', 'blue', 'green'];
+    const order = [0, 1, 2].sort((a, b) => e.diet[b] - e.diet[a]);
+    const dom = order[0];
+    const eats = order.filter(k => e.diet[k] > 0.15)
+      .map(k => `<span class="chip ${cls[k]}">${elName[k]}</span>`).join('');
+    const state = e.biomass > 1.2 ? 'thriving' : (e.biomass > 0.4 ? 'holding' : 'starving');
+    box.innerHTML =
+      `<h3>${E.Content.nameFor(e.diet)}</h3>` +
+      `<div class="meta">gen ${e.gen} · ${state}</div>` +
+      `<div class="row"><span class="k">eats</span>${eats || '—'}</div>` +
+      `<div class="row"><span class="k">makes</span><span class="chip hum">humus</span> + motion</div>` +
+      `<div class="why">it adapted to the ${elName[dom]} you fed here — that is why it reads ${col[dom]}. ` +
+      `starve that source and it pales, shrinks, and dies back into the soil.</div>`;
+    box.classList.add('show');
+    surfaceMurmur();
+  };
+
+  function surfaceMurmur() {
+    const m = document.getElementById('murmur'); if (!m || !E.Content || !E.Content.murmur) return;
+    const q = E.Content.murmur(murmurN++);
+    m.innerHTML = q.q + (q.by ? `<span class="by">— ${q.by}</span>` : '<span class="by">— the voice that gathered them</span>');
+    m.style.opacity = '0.62';
+    clearTimeout(surfaceMurmur._t);
+    surfaceMurmur._t = setTimeout(() => { m.style.opacity = '0.18'; }, 9000);
+  }
+
   if (typeof module !== 'undefined' && module.exports) module.exports = E;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
