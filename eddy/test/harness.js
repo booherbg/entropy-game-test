@@ -78,5 +78,22 @@ const LIFE = require('../js/life.js');
      'latched: diet favours the locally abundant element (mineral)');
 })();
 
+(function testMetabolismConserves() {
+  const f = E.makeField(E.makeRng(5));
+  const c = E.idx(40, 40);
+  f.add(c, E.LUM, 20);
+  const life = E.makeLife(E.makeRng(5));
+  const ent = life.spawnFromPrimer(f, 40, 40); // lumen-eater
+  const fieldBefore = f.total(E.LUM) + f.total(E.MIN) + f.total(E.HUM);
+  const bioBefore = ent.biomass;
+  life.step(f);
+  const fieldAfter = f.total(E.LUM) + f.total(E.MIN) + f.total(E.HUM);
+  const bioAfter = ent.biomass;
+  approx((fieldAfter - fieldBefore) + (bioAfter - bioBefore), 0, 1e-4,
+         'matter conserved: field loss == biomass gain (Mode-1)');
+  ok(bioAfter > bioBefore, 'a fed entity gains biomass');
+  ok(f.get(c, E.HUM) > 0, 'it excreted humus into its cell (waste = future food)');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);
