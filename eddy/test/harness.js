@@ -122,5 +122,15 @@ const LIFE = require('../js/life.js');
   ok(life.list.filter(e => e.alive).length > 1, 'a well-fed colony self-replicates');
 })();
 
+const FERT = require('../js/fertility.js');
+(function testFertilitySparksLifeInSurplus() {
+  const f = E.makeField(E.makeRng(2));
+  for (let n = 0; n < E.W * E.H; n++) { f.add(n, E.LUM, 8); } // very fertile everywhere
+  const life = E.makeLife(E.makeRng(2));
+  let spawned = false;
+  for (let s = 0; s < 20 && !spawned; s++) { E.fertilityStep(f, life, life._rng); spawned = life.list.length > 0; }
+  ok(spawned, 'rich surplus eventually sparks life unbidden (ambient fertility)');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);
