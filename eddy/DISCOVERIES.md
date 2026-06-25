@@ -6,6 +6,36 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · the soul, measured — the world sits at the edge of chaos
+
+The foundations doc asked for a *measurable* soul: not "it feels alive," but a number that says whether this
+world is Wolfram **Class 4** — the living class between frozen order (1/2) and chaos (3), where Langton put
+the edge and Kauffman put life. So I measured it. Five seeds, four thousand ticks each, three springs and a
+handful of seeded hunters; sample the diversity every twenty ticks and tally where the extinctions fall.
+The verdict held on every seed: **mean diversity ~87, never dipping below 58, never frozen to a
+monoculture, never collapsing.** Persistent and structured — alive, by the number.
+
+But the measurement taught the builder two honest lessons before it would say so. **First**, a stable
+diversity *count* proves nothing on its own — *a dead world also has a flat count*. The tell that separates
+frozen from alive is **turnover**: beneath that steady ~87 the world runs **~68 extinctions per run**, each
+balanced by a birth — species churning constantly under a calm surface, the way a real ecology holds its
+richness while its membership turns over. **Second**, and humbling: my first pass reported a diversity of
+*zero* as if the world had momentarily died and rebounded — a perfect avalanche. It hadn't. It was the
+**cold start** — the impatient-seed problem already in this notebook: the test seeded life on bare ground,
+so the world sat empty until ~tick 300 waiting on a fertility spark. Pre-build the gradient first (as the
+game's own opening does) and the artifact vanishes; the established world never falls below 58. *To measure
+the soul you must measure the living world, not the cry of its birth.*
+
+And the signature that makes "edge of chaos" more than a slogan — **Bak's self-organized criticality.** If
+extinctions arrived at a steady drip, the busiest tenth of time-windows would hold about a tenth of them.
+Instead the **top 10% of windows hold 44%** — a **3.4× concentration**, consistent across all five seeds:
+long quiet stretches punctuated by cascades (fifteen-to-twenty-three species lost in a single window against
+a mean of four). The world is not dying at a constant rate; it is **avalanching** — most days nothing, then
+a collapse that takes a guild with it, then quiet again. That is the sandpile, the punctuated equilibrium,
+the heavy tail — the fingerprint of a system that has tuned *itself* to its own critical point. Nobody set
+a dial to 87 species or to 44%. The rules — flow in, dissipate, adapt, die back — found the edge on their
+own. (`eddy/test/criticality.js`, reproducible, deterministic.)
+
 ## 2026-06-25 · the world moves — hunters roam, a real third behavior
 
 Mobility, scaled by the \`pred\` trait: producers stay rooted (plant colonies), hunters roam toward prey
