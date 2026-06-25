@@ -1,0 +1,87 @@
+;(function (root) {
+  'use strict';
+  const E = root.E = root.E || {};
+  E.Render = E.Render || { lens: 'world' };
+
+  let prog = null, vao = null, tex = null, texBuf = null, uField = null, uLens = null, glRef = null;
+
+  const VS = `#version 300 es
+in vec2 pos; out vec2 uv;
+void main(){ uv = vec2(pos.x*0.5+0.5, 0.5-pos.y*0.5); gl_Position = vec4(pos,0.0,1.0); }`;
+
+  // element triple → color. proportions set hue; dominance sets saturation
+  // (balanced = gray = disorder); total sets brightness (concentrated = vivid = order).
+  const FS = `#version 300 es
+precision highp float;
+in vec2 uv; out vec4 frag;
+uniform sampler2D field; uniform int lens;
+void main(){
+  vec3 e = texture(field, uv).rgb;
+  float t = e.r + e.g + e.b + 1e-4;
+  if (lens == 1) { frag = vec4(clamp(e,0.0,1.5)/1.5, 1.0); return; } // raw-field lens
+  vec3 p = e / t;
+  vec3 gold = vec3(0.92,0.71,0.27), blue = vec3(0.27,0.55,0.85), green = vec3(0.35,0.69,0.33);
+  vec3 hue = p.r*gold + p.g*blue + p.b*green;
+  float dom = max(max(p.r,p.g),p.b);
+  float sat = clamp((dom-0.3333)/0.6667, 0.0, 1.0);
+  vec3 gray = vec3(0.17,0.18,0.20);
+  float bright = clamp(0.18 + 0.82*min(t,1.5)/1.5, 0.10, 1.0);
+  frag = vec4(mix(gray, hue, sat) * bright, 1.0);
+}`;
+
+  function compile(gl, type, src) {
+    const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error('shader: ' + gl.getShaderInfoLog(s));
+    return s;
+  }
+
+  E.Render.init = function (gl) {
+    glRef = gl;
+    prog = gl.createProgram();
+    gl.attachShader(prog, compile(gl, gl.VERTEX_SHADER, VS));
+    gl.attachShader(prog, compile(gl, gl.FRAGMENT_SHADER, FS));
+    gl.bindAttribLocation(prog, 0, 'pos');
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error('link: ' + gl.getProgramInfoLog(prog));
+    uField = gl.getUniformLocation(prog, 'field');
+    uLens = gl.getUniformLocation(prog, 'lens');
+
+    vao = gl.createVertexArray(); gl.bindVertexArray(vao);
+    const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+    gl.bindVertexArray(null);
+
+    tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    texBuf = new Float32Array(E.W * E.H * 4);
+
+    if (E.Render._initEntities) E.Render._initEntities(gl); // Task 12
+  };
+
+  function uploadField(gl, field) {
+    const el = field.el, va = field.variant, buf = texBuf, N = E.W * E.H;
+    for (let i = 0; i < N; i++) { buf[i*4] = el[i*3]; buf[i*4+1] = el[i*3+1]; buf[i*4+2] = el[i*3+2]; buf[i*4+3] = va[i]; }
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, E.W, E.H, 0, gl.RGBA, gl.FLOAT, buf);
+  }
+
+  E.Render.draw = function (sim, gl) {
+    gl = gl || glRef; if (!gl || !prog) return;
+    gl.clearColor(0.055, 0.062, 0.078, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.useProgram(prog);
+    uploadField(gl, sim.field);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.uniform1i(uField, 0);
+    gl.uniform1i(uLens, E.Render.lens === 'rawfield' ? 1 : 0);
+    gl.bindVertexArray(vao);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    gl.bindVertexArray(null);
+    if (E.Render._drawEntities) E.Render._drawEntities(sim, gl); // Task 12
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = E;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
