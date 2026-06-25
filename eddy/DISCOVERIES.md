@@ -6,6 +6,24 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · life eats life — a hunter that evolves, and why it can't yet starve right
+
+Gave organisms a heritable \`pred\` trait and one predation primitive (a more-predatory entity bites a
+less-predatory neighbour; the rest of the kill returns to humus — conserved). Seed a hunter into a
+colony and it works: the hunters persist, reproduce, and their \`pred\` climbs on its own from 0.7 toward
+**1.0** — predation evolving *upward* under selection, unbidden. They show as crimson among the
+producers; "the wonder" has its first visible instance — a hunter↔prey relationship the code never
+authored.
+
+But three tunings taught the hard limit the canon warned of. **(1)** Predation won't evolve from zero —
+the climb is an *adaptive valley*: a faintly-predatory mutant pays a cost before the bite pays off, so
+selection pushes it back down (it must be *seeded*). **(2)** A *true obligate* predator — made a poor
+producer so it must hunt — **starves**, because it is stationary: it eats out its local patch and can't
+follow the prey. So v1 is donor-controlled grazing/omnivory (stable, gentle), not the dramatic
+predator-prey crash-and-recovery. The missing piece is plainly **mobility** — predators that roam down a
+prey-gradient (the parent's roaming grazer, which did *not* collapse). Build that, and the obligate
+hunter (the field-eating trade-off is already wired, just switched off) comes alive.
+
 ## 2026-06-25 · scale is cheap — the sim is not the bottleneck
 
 The spec promised bigger maps; the CPU sim can pay for them. A populated world ticks in **0.8 ms** at
