@@ -4,7 +4,7 @@
 
   E.makeLife = function (rng) {
     const list = [];
-    let nextId = 1;
+    let nextId = 1, _dissipated = 0;
 
     function localBlend(field, i) {
       const v = [field.get(i, E.LUM), field.get(i, E.MIN), field.get(i, E.HUM)];
@@ -66,7 +66,7 @@
         metabolize(field, ent);
         const i = E.idx(ent.x | 0, ent.y | 0);
         const cost = Math.min(UPKEEP, ent.biomass);
-        ent.biomass -= cost; field.add(i, E.HUM, cost);   // upkeep respired back to the field (conserved)
+        ent.biomass -= cost; _dissipated += cost;          // upkeep dissipates — maintenance energy leaves as heat (the 2nd-law sink, bounds the world by flow)
         if (ent.biomass >= REPRO) reproduce(field, ent);
         if (ent.biomass <= 1e-6) { field.add(i, E.HUM, Math.max(0, ent.biomass)); ent.alive = false; }
         ent.age++;
@@ -78,7 +78,7 @@
       }
     }
 
-    return { list, spawnFromPrimer, step, _rng: rng };
+    return { list, spawnFromPrimer, step, _rng: rng, dissipated: function () { return _dissipated; } };
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = E;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

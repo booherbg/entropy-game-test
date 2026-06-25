@@ -89,8 +89,8 @@ const LIFE = require('../js/life.js');
   life.step(f);
   const fieldAfter = f.total(E.LUM) + f.total(E.MIN) + f.total(E.HUM);
   const bioAfter = ent.biomass;
-  approx((fieldAfter - fieldBefore) + (bioAfter - bioBefore), 0, 1e-4,
-         'matter conserved: field loss == biomass gain (Mode-1)');
+  approx((fieldAfter - fieldBefore) + (bioAfter - bioBefore) + life.dissipated(), 0, 1e-4,
+         'books balance with the sink: field loss == biomass gain + dissipated upkeep (Mode-1)');
   ok(bioAfter > bioBefore, 'a fed entity gains biomass');
   ok(f.get(c, E.HUM) > 0, 'it excreted humus into its cell (waste = future food)');
 })();
@@ -110,7 +110,10 @@ const LIFE = require('../js/life.js');
   ok(!ent.alive, 'a starved entity dies');
   const totalAfter = f.total(E.LUM) + f.total(E.MIN) + f.total(E.HUM)
                    + life.list.filter(e => e.alive).reduce((s, e) => s + e.biomass, 0);
-  approx(totalAfter, totalBefore, 1e-3, 'death returns biomass to the field (conserved)');
+  // the books balance WITH the sink: upkeep dissipates (energy leaves as heat), death returns
+  // any remainder to humus — nothing vanishes unaccounted.
+  approx(totalAfter + life.dissipated(), totalBefore, 1e-3,
+         'books balance with the dissipation sink (field + biomass + dissipated == before)');
 })();
 
 (function testReplication() {
@@ -197,6 +200,21 @@ require('../js/persist.js');
     console.log(`   [sweep] ${seed} → ${s.alive} / ${peakSpecies} / ${(s.fieldTotal - t0).toFixed(0)} ${inBand ? 'OK' : 'OUT-OF-BAND'}`);
   }
   ok(allInBand, 'every seed ends in the live band (edge of chaos holds across seeds)');
+})();
+
+(function testLongRunDiversityHolds() {
+  const sim = E.makeSim(7);
+  sim.addGenerator({ x: 60, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+  sim.addGenerator({ x: 100, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 16 });
+  sim.dropPrimer(60, 50); sim.dropPrimer(100, 50);
+  for (let t = 0; t < 1500; t++) sim.tick();
+  const live = sim.life.list.filter(e => e.alive);
+  const guild = [0, 0, 0];
+  for (const e of live) { let d = 0; for (let k = 1; k < 3; k++) if (e.diet[k] > e.diet[d]) d = k; guild[d]++; }
+  const guilds = guild.filter(g => g > 0).length;
+  console.log(`   [long-run 1500] alive=${live.length} guilds(L/M/H)=${guild.join('/')}`);
+  ok(live.length > 0 && live.length < 600, 'long run stays bounded by flow — no monoculture explosion (the dissipation sink holds)');
+  ok(guilds >= 2, 'long run keeps ≥2 trophic guilds — the dissipative cycle stays diverse');
 })();
 
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
