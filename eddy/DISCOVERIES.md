@@ -6,6 +6,24 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · the soil overshoots, then settles — a founder bloom, not a slow death
+
+Every playtest showed soil booming then draining, and it worried me: was the mature world slowly hollowing
+out the ground it had built? Ran it to **6000 ticks** to see where it lands. It lands. Soil booms to ~1920
+in the founder bloom (t400), draws down for ~4000 ticks, and **settles to a plateau near 470 — then holds,
+even ticks back up.** Not a hollowing; an **overshoot-and-settle.**
+
+The why is succession in miniature. Soil's equilibrium is roughly *five times the local humus surplus* (it
+locks at 5%/tick, releases at 1%). The pioneer bloom — much early death, few decomposers yet — over-accretes
+a transient store; then the decomposer guild matures (~35 steady) and mineralizes the humus, and soil
+relaxes from the overshoot to the level the standing surplus can actually sustain. Pioneers hoard, the
+mature system reaches equilibrium — the same arc a real recovering ecosystem walks. And underneath it, the
+reassurance a left-running world needs: at 6000 ticks everything is steady — **~140 alive, ~35 decomposers,
+burn ~21, soil ~470 — no drift, no death.** The dissipative balance holds for the long haul, not just the
+first thousand ticks. (Honest caveat, already on the books: with *infinite* springs the raw field still
+creeps up, ~6500→7360 — springs over-supply; the game's *finite* springs are the cap. It's the **living**
+layer — life, soil, burn — that sits at steady state.)
+
 ## 2026-06-25 · the hunter earns its keep — predation that makes the web richer (Paine's keystone)
 
 The bake-off had just caught the ⚔ tool being decorative: seeding hunters scored the same as not. The canon
@@ -284,15 +302,12 @@ dominant and raises diversity, Paine 1966), but only *while the pack persists*; 
 fades. The remaining arc: a predator that lives by the kill well enough to hold its own guild down, so the
 keystone effect stays without the player re-seeding (needs a bigger/faster prey base — the long-standing
 predator-prey balance problem).*
-*4. **The soil boom-then-drawdown** (seen in every playtest & the bake-off): soil peaks mid-run then declines
-even with infinite springs — the mature world consumes its own accreted legacy faster than it lays it down.
-Probe whether this is a healthy boom/lean cycle or a slow hollowing, and whether it should be felt as a
-mechanic (a maturing world living off its past).*
-*5. Mode-2 foundation is in (soil accretes & conserves). Remaining: the full biogenic legacy —
-energy-aware soil release so accreted ground can revive a dead patch, not just feed the matter guilds.*
-*6. More graduation features: compounds & the co-evolution layer, the rules/incentive layer.*
+*4. Mode-2 foundation is in (soil accretes & conserves, and settles to a stable plateau over 6000 ticks).
+Remaining: the full biogenic legacy — energy-aware soil release so accreted ground can revive a dead patch,
+not just feed the matter guilds.*
+*5. More graduation features: compounds & the co-evolution layer, the rules/incentive layer.*
 *(Answered 2026-06-25: the food web self-extends; the dissipative model keeps it diverse & bounded; two
 overlapping springs breed a persistent blend species; the world renders legibly; finite springs make
 placement a consequential decision; the world measures at the edge of chaos (Class 4 + SOC); player
-choices move the score by 3.8× — it is not boring; and the hunter is now a keystone lever that raises
-diversity, not decoration.)*
+choices move the score by 3.8× — it is not boring; the hunter is now a keystone lever that raises
+diversity, not decoration; and the soil settles to a stable plateau (overshoot-and-settle, not hollowing).)*
