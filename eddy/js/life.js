@@ -29,7 +29,7 @@
 
     // Mode-1 metabolism: eat a diet-weighted bite, keep a fixed ratio as biomass,
     // excrete the surplus as humus. Matter is conserved: field loss == biomass gain.
-    const EAT = 0.4, RETAIN = 0.5, EAT_TRADEOFF = 0.0; // >0 makes predators poor producers (a real niche) — but needs mobility to not starve; off until then
+    const EAT = 0.4, RETAIN = 0.5, EAT_TRADEOFF = 0.0; // obligate predators (>0) starve even with mobility — prey base too small; grazing/omnivory for now
     function metabolize(field, ent) {
       const i = E.idx(ent.x | 0, ent.y | 0);
       // take a diet-weighted bite of each element — but predators are poor producers (they must hunt
@@ -52,7 +52,7 @@
     }
     // reproduction, mutation toward the local blend, and death → mineralization.
     const REPRO = 2.0, MUT = 0.25, UPKEEP = 0.15, LIFE_CAP = 4000;
-    const PRED_BITE = 0.5, PRED_RETAIN = 0.7, PREY_FLOOR = 0.2, SATIETY = 1.8, MUT_PRED = 0.06;
+    const PRED_BITE = 0.8, PRED_RETAIN = 0.7, PREY_FLOOR = 0.2, SATIETY = 1.8, MUT_PRED = 0.06, MOVE_MIN = 0.2;
     function neighborCell(ent) {
       const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
       const d = dirs[(rng() * 4) | 0];
@@ -76,6 +76,26 @@
     // less-predatory neighbour's biomass — predator gains, the rest returns to humus (conserved).
     // predation/parasitism/mutualism are the same op; this is the take-and-kill sign. `pred` is not
     // authored — it drifts at reproduction and selection shapes it (Holland's Echo / Ray's Tierra).
+    // mobility: hunters roam toward prey (down a prey-gradient), producers stay rooted. movement
+    // scales with the pred trait, so the world's motion IS the hunters following the herd — and an
+    // obligate predator can now follow prey instead of eating out its patch and starving.
+    function move() {
+      const occ = new Map();
+      for (const e of list) { if (!e.alive) continue; const k = E.idx(e.x | 0, e.y | 0); let a = occ.get(k); if (!a) { a = []; occ.set(k, a); } a.push(e); }
+      const dirs = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
+      for (const h of list) {
+        if (!h.alive || h.pred < MOVE_MIN) continue;
+        const cx = h.x | 0, cy = h.y | 0;
+        let best = -1, bx = cx, by = cy;
+        for (const [dx, dy] of dirs) {
+          const nx = cx + dx, ny = cy + dy; if (nx < 0 || ny < 0 || nx >= E.W || ny >= E.H) continue;
+          const a = occ.get(E.idx(nx, ny)); let score = 0;
+          if (a) for (const e of a) if (e !== h && e.alive && e.pred < h.pred - 0.05 && e.biomass > PREY_FLOOR) score += e.biomass;
+          if (score > best) { best = score; bx = nx; by = ny; } // ties keep current (dirs[0]) → stay-bias
+        }
+        h.x = bx; h.y = by;
+      }
+    }
     function predate(field) {
       const occ = new Map();
       for (const e of list) { if (!e.alive) continue; const k = E.idx(e.x | 0, e.y | 0); let a = occ.get(k); if (!a) { a = []; occ.set(k, a); } a.push(e); }
@@ -100,6 +120,7 @@
       }
     }
     function step(field) {
+      move();
       predate(field);
       for (const ent of list) {
         if (!ent.alive) continue;
