@@ -17,7 +17,9 @@ function snapshot(sim) {
     byName[n].c++; byName[n].gs += e.gen;
   }
   const species = Object.values(byName).sort((a, b) => b.c - a.c);
-  return { alive: live.length, guild, species, maxGen: live.reduce((m, e) => Math.max(m, e.gen), 0), soil: sim.field.soilTotal() };
+  const preds = live.filter(e => (e.pred || 0) > 0.3).length;
+  const maxPred = live.reduce((m, e) => Math.max(m, e.pred || 0), 0);
+  return { alive: live.length, guild, species, preds, maxPred, maxGen: live.reduce((m, e) => Math.max(m, e.gen), 0), soil: sim.field.soilTotal() };
 }
 
 const scenarios = {
@@ -39,6 +41,12 @@ const scenarios = {
     sim.addGenerator({ x: 100, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 16 });
     sim.dropPrimer(60, 50); sim.dropPrimer(100, 50);
   },
+  // predator: a garden, then hunters are introduced at tick 400 (see the loop)
+  predator(sim) {
+    sim.addGenerator({ x: 55, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+    sim.addGenerator({ x: 95, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 16 });
+    sim.dropPrimer(55, 50); sim.dropPrimer(95, 50);
+  },
 };
 
 const which = process.argv[2] || 'garden';
@@ -49,10 +57,17 @@ const marks = [50, 150, 350, 700, 1200, 2000];
 const snapAt = [350, 2000];
 let prevSpecies = new Set();
 console.log(`\n=== PLAYTEST: ${which} ===`);
-console.log('tick |alive| L / M / H |species|gen| soil | new species this window');
-let t = 0;
+console.log('tick |alive| L / M / H |species|gen| soil |preds maxP| new species');
+let t = 0, seededPred = false;
 for (const m of marks) {
-  while (t < m) { sim.tick(); t++; }
+  while (t < m) {
+    sim.tick(); t++;
+    if (which === 'predator' && !seededPred && t >= 400) { // introduce hunters into the lumen colony
+      for (let i = 0; i < 5; i++) sim.dropPredator(54 + (i % 3), 49 + ((i / 3) | 0));
+      seededPred = true;
+      console.log('  >> 5 predators seeded into the lumen colony at tick ' + t);
+    }
+  }
   const s = snapshot(sim);
   const names = new Set(s.species.map(x => x.n));
   const fresh = [...names].filter(n => !prevSpecies.has(n));
@@ -61,7 +76,7 @@ for (const m of marks) {
     String(t).padStart(4) + ' |' + String(s.alive).padStart(4) + ' |' +
     s.guild.map(x => String(x).padStart(3)).join('/') + '|' +
     String(s.species.length).padStart(6) + ' |' + String(s.maxGen).padStart(3) + '|' +
-    String(Math.round(s.soil)).padStart(5) + ' | ' + (fresh.length ? fresh.slice(0, 5).join(', ') : '—')
+    String(Math.round(s.soil)).padStart(5) + ' |' + String(s.preds).padStart(4) + ' ' + s.maxPred.toFixed(2) + '| ' + (fresh.length ? fresh.slice(0, 4).join(', ') : '—')
   );
   if (snapAt.includes(m)) {
     const { rgb, w, h } = renderWorld(E, sim, 6);

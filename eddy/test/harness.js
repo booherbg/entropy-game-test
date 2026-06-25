@@ -256,5 +256,18 @@ require('../js/persist.js');
   approx(f.total(E.HUM) + f.soilTotal(), before, 1e-2, 'soil is conserved — humus locked into ground == humus drawn from the field (no matter created)');
 })();
 
+(function testPredationConserves() {
+  const f = E.makeField(E.makeRng(20));
+  const life = E.makeLife(E.makeRng(20));
+  const pred = life.spawnFromPrimer(f, 50, 50); pred.pred = 0.8; pred.biomass = 1.0;
+  const prey = life.spawnFromPrimer(f, 50, 50); prey.pred = 0.0; prey.biomass = 1.0;
+  const tot = () => f.total(E.LUM) + f.total(E.MIN) + f.total(E.HUM) + life.list.filter(e => e.alive).reduce((s, e) => s + e.biomass, 0);
+  const before = tot();
+  life.step(f);
+  ok(prey.biomass < 1.0, 'predator bit the prey (prey biomass fell)');
+  ok(pred.biomass > 0.9, 'the predator is fed by the kill');
+  approx(tot() + life.dissipated(), before, 1e-2, 'predation conserves matter with the sink (field + biomass + dissipated == before)');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);

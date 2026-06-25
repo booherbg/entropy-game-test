@@ -45,7 +45,9 @@ function renderWorld(E, sim, S) {
   for (const e of sim.life.list) {
     if (!e.alive) continue;
     const c = E.Render.dietColor(e.diet);
-    const R = Math.min(255, (c[0] * 255 | 0) + 25), G = Math.min(255, (c[1] * 255 | 0) + 30), B = Math.min(255, (c[2] * 255 | 0) + 25);
+    const p = (e.pred || 0) * 0.85; // predators tint toward crimson — the drama, made visible
+    const cr = c[0] * (1 - p) + 0.92 * p, cg = c[1] * (1 - p) + 0.16 * p, cb = c[2] * (1 - p) + 0.16 * p;
+    const R = Math.min(255, (cr * 255 | 0) + 25), G = Math.min(255, (cg * 255 | 0) + 30), B = Math.min(255, (cb * 255 | 0) + 25);
     const cx = Math.round((e.x + 0.5) * S), cy = Math.round((e.y + 0.5) * S);
     for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
       const d2 = dx * dx + dy * dy; if (d2 > r * r) continue;

@@ -26,13 +26,14 @@
     btn.element   = mkBtn('lumen',       () => { element = (element + 1) % 3; refresh(); });
     btn.proj      = mkBtn('radial',      () => { proj = (proj === 'radial' ? 'vein' : 'radial'); refresh(); });
     btn.primer    = mkBtn('✦ primer',    () => { tool = 'primer'; refresh(); });
+    btn.hunter    = mkBtn('⚔ hunter',    () => { tool = 'hunter'; refresh(); });
     btn.inspect   = mkBtn('◌ inspect',   () => { tool = 'inspect'; refresh(); });
     btn.lens      = mkBtn('◉ lens',      () => { E.Render.lens = (E.Render.lens === 'world' ? 'rawfield' : 'world'); refresh(); });
     btn.play      = mkBtn('❚❚ pause',    () => { main.setPlaying(!main.isPlaying()); refresh(); });
     btn.fresh     = mkBtn('✛ new',       () => { if (main.newWorld) main.newWorld(); });
 
     function refresh() {
-      ['generator', 'primer', 'inspect'].forEach(k => btn[k].classList.toggle('on', tool === k));
+      ['generator', 'primer', 'hunter', 'inspect'].forEach(k => btn[k].classList.toggle('on', tool === k));
       btn.lens.classList.toggle('on', E.Render.lens === 'rawfield');
       btn.play.textContent = main.isPlaying() ? '❚❚ pause' : '▶ play';
       btn.element.textContent = ELN[element];
@@ -41,6 +42,7 @@
       if (hint) hint.textContent =
         tool === 'generator' ? `click to place a ${ELN[element]} ${proj} spring — finite, it runs dry; tend the flow` :
         tool === 'primer'    ? 'click a surplus patch to seed life — it latches to the local blend' :
+        tool === 'hunter'    ? 'click inside a living colony to seed a hunter — it eats other life (crimson)' :
         tool === 'inspect'   ? 'click near a creature to read what it is and why' : '';
     }
 
@@ -53,6 +55,8 @@
         s.addGenerator({ x: cell.x, y: cell.y, el: element, rate: 8, proj: proj, radius: 16, angle: 0.5, length: 30, reservoir: 4000, r0: 4000 });
       } else if (tool === 'primer') {
         s.dropPrimer(cell.x, cell.y);
+      } else if (tool === 'hunter') {
+        s.dropPredator(cell.x, cell.y);
       } else if (tool === 'inspect' && E.UI.inspectAt) {
         E.UI.inspectAt(s, cell); // Task 14
       }

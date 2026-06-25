@@ -11,7 +11,7 @@
       const s = v[0] + v[1] + v[2] || 1;
       return new Float32Array([v[0] / s, v[1] / s, v[2] / s]);
     }
-    function spawnFromPrimer(field, x, y, starter) {
+    function spawnFromPrimer(field, x, y, starter, pred0) {
       const i = E.idx(x, y);
       if (starter > 0) {                              // a player's primer carries its own substrate, so the seeding takes
         const d = localBlend(field, i);               // biased toward whatever's locally present
@@ -20,20 +20,24 @@
         field.add(i, E.HUM, starter * d[E.HUM]);
       }
       const diet = localBlend(field, i);              // latch: eat what's in surplus here (incl. the starter)
-      const ent = { id: nextId++, x, y, diet, biomass: 0.5, age: 0, gen: 1, alive: true };
+      // pred0>0 seeds a predator (it lives by hunting, not the field) — a player decision; its
+      // descendants' pred still drifts, so the predator/prey arms race can evolve from there.
+      const ent = { id: nextId++, x, y, diet, biomass: pred0 ? 1.0 : 0.5, age: 0, gen: 1, alive: true, pred: pred0 || 0 };
       list.push(ent);
       return ent;
     }
 
     // Mode-1 metabolism: eat a diet-weighted bite, keep a fixed ratio as biomass,
     // excrete the surplus as humus. Matter is conserved: field loss == biomass gain.
-    const EAT = 0.4, RETAIN = 0.5;
+    const EAT = 0.4, RETAIN = 0.5, EAT_TRADEOFF = 0.0; // >0 makes predators poor producers (a real niche) — but needs mobility to not starve; off until then
     function metabolize(field, ent) {
       const i = E.idx(ent.x | 0, ent.y | 0);
-      // take a diet-weighted bite of each element
-      const tL = Math.min(EAT * ent.diet[E.LUM], field.get(i, E.LUM));
-      const tM = Math.min(EAT * ent.diet[E.MIN], field.get(i, E.MIN));
-      const tH = Math.min(EAT * ent.diet[E.HUM], field.get(i, E.HUM));
+      // take a diet-weighted bite of each element — but predators are poor producers (they must hunt
+      // to live), which is what keeps the predator/producer niche split from diffusing away.
+      const eat = EAT * (1 - (ent.pred || 0) * EAT_TRADEOFF);
+      const tL = Math.min(eat * ent.diet[E.LUM], field.get(i, E.LUM));
+      const tM = Math.min(eat * ent.diet[E.MIN], field.get(i, E.MIN));
+      const tH = Math.min(eat * ent.diet[E.HUM], field.get(i, E.HUM));
       field.add(i, E.LUM, -tL); field.add(i, E.MIN, -tM); field.add(i, E.HUM, -tH);
       const eaten = tL + tM + tH;
       ent.biomass += eaten * RETAIN;                 // keep its ratio as biomass
@@ -48,6 +52,7 @@
     }
     // reproduction, mutation toward the local blend, and death → mineralization.
     const REPRO = 2.0, MUT = 0.25, UPKEEP = 0.15, LIFE_CAP = 4000;
+    const PRED_BITE = 0.5, PRED_RETAIN = 0.7, PREY_FLOOR = 0.2, SATIETY = 1.8, MUT_PRED = 0.06;
     function neighborCell(ent) {
       const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
       const d = dirs[(rng() * 4) | 0];
@@ -63,10 +68,39 @@
       let s = 0;
       for (let k = 0; k < E.NEL; k++) { diet[k] = ent.diet[k] * (1 - MUT) + local[k] * MUT; s += diet[k]; }
       for (let k = 0; k < E.NEL; k++) diet[k] /= (s || 1); // renormalize
+      const pred = Math.max(0, Math.min(1, ent.pred + (rng() * 2 - 1) * MUT_PRED)); // predatory trait drifts; selection shapes it
       ent.biomass *= 0.5;                                  // split biomass with the child (conserved)
-      list.push({ id: nextId++, x: nx, y: ny, diet, biomass: ent.biomass, age: 0, gen: ent.gen + 1, alive: true });
+      list.push({ id: nextId++, x: nx, y: ny, diet, biomass: ent.biomass, age: 0, gen: ent.gen + 1, alive: true, pred });
+    }
+    // life eats life: tag-matched exchange (v1 = predation). a predatory entity takes a bite of a
+    // less-predatory neighbour's biomass — predator gains, the rest returns to humus (conserved).
+    // predation/parasitism/mutualism are the same op; this is the take-and-kill sign. `pred` is not
+    // authored — it drifts at reproduction and selection shapes it (Holland's Echo / Ray's Tierra).
+    function predate(field) {
+      const occ = new Map();
+      for (const e of list) { if (!e.alive) continue; const k = E.idx(e.x | 0, e.y | 0); let a = occ.get(k); if (!a) { a = []; occ.set(k, a); } a.push(e); }
+      const dirs = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
+      for (const pr of list) {
+        if (!pr.alive || pr.pred <= 0.02 || pr.biomass >= SATIETY) continue; // sated or barely predatory → skip
+        const cx = pr.x | 0, cy = pr.y | 0;
+        let prey = null;
+        for (const [dx, dy] of dirs) {
+          const nx = cx + dx, ny = cy + dy; if (nx < 0 || ny < 0 || nx >= E.W || ny >= E.H) continue;
+          const a = occ.get(E.idx(nx, ny)); if (!a) continue;
+          for (const e of a) { if (e !== pr && e.alive && e.pred < pr.pred - 0.05 && e.biomass > PREY_FLOOR) { prey = e; break; } }
+          if (prey) break;
+        }
+        if (!prey) continue;
+        const bite = Math.min(PRED_BITE * pr.pred, prey.biomass - PREY_FLOOR);
+        if (bite <= 0) continue;
+        prey.biomass -= bite;
+        pr.biomass += bite * PRED_RETAIN;
+        field.add(E.idx(cx, cy), E.HUM, bite * (1 - PRED_RETAIN)); // the kill's waste, conserved
+        if (prey.biomass <= 1e-6) { field.add(E.idx(prey.x | 0, prey.y | 0), E.HUM, Math.max(0, prey.biomass)); prey.alive = false; }
+      }
     }
     function step(field) {
+      predate(field);
       for (const ent of list) {
         if (!ent.alive) continue;
         metabolize(field, ent);

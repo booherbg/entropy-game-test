@@ -24,6 +24,7 @@
     }
     function addGenerator(g) { gens.push(g); }
     function dropPrimer(x, y) { return life.spawnFromPrimer(field, x | 0, y | 0, 10); } // a player's seed brings starter substrate
+    function dropPredator(x, y) { return life.spawnFromPrimer(field, x | 0, y | 0, 0, 0.7); } // seed a hunter into a living patch
 
     function stats() {
       const live = life.list.filter(e => e.alive);
@@ -41,7 +42,7 @@
       return h >>> 0;
     }
 
-    return { field, life, gens, tick, addGenerator, dropPrimer, stats, hash,
+    return { field, life, gens, tick, addGenerator, dropPrimer, dropPredator, stats, hash,
              serialize() { return E.serializeSim(field, life, gens, seed); } };
   };
 
@@ -54,7 +55,7 @@
       field: { el: Array.from(field.el), variant: Array.from(field.variant), soil: Array.from(field.soil) },
       life: life.list.filter(e => e.alive).map(e => ({
         id: e.id, x: e.x, y: e.y, diet: Array.from(e.diet),
-        biomass: e.biomass, age: e.age, gen: e.gen,
+        biomass: e.biomass, age: e.age, gen: e.gen, pred: e.pred,
       })),
     };
   };
@@ -67,7 +68,7 @@
     for (const e of obj.life) {
       life.list.push({
         id: e.id, x: e.x, y: e.y, diet: new Float32Array(e.diet),
-        biomass: e.biomass, age: e.age, gen: e.gen, alive: true,
+        biomass: e.biomass, age: e.age, gen: e.gen, alive: true, pred: e.pred || 0,
       });
     }
     const gens = (obj.gens || []).map(g => Object.assign({}, g));
