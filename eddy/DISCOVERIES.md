@@ -6,6 +6,33 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · the blight that wouldn't bite — a contagion needs a body to spread in
+
+Reached for the antagonist the report calls the #1 lever, and framed it on the most beautiful thesis
+available: **diversity as protection** (Elton's diversity–stability; the epidemiological *dilution effect*).
+A blight as a contact contagion — leaping between look-alike neighbours (transmission ∝ diet similarity),
+rotting them to humus — should sweep a uniform monoculture and *stall* where diets differ, so a diverse
+world survives what a monoculture cannot. The Weaver aspect would finally have teeth: variety as a shield.
+
+It conserved to floating point — the accounting was never the problem. But it **wouldn't bite**: loosed on
+a monoculture it culled ~12% and the world shrugged it off; recovery outran it. Two reasons, both worth
+keeping. **(1) A contact contagion is density-limited.** Against a sparse, *reproducing* population the
+survivors recolonise as fast as it spreads, so it settles to a small cull and burns out — birth beats
+transmission, R₀ never holds. **(2) The dilution effect assumes mixing.** It needs dissimilar neighbours
+*interspersed* — but this world's niches are spatially **segregated** (a lumen patch is all lumen-eaters),
+so every local neighbourhood is uniform no matter how diverse the *whole* is. Diversity *between* patches
+cannot dilute a plague that only ever spreads *within* one. The thesis came out faintly right (the
+monoculture's denser core caught more) but far too weak to feel, and pushing virulence higher only risks it
+leaping the firebreaks into the diverse world too.
+
+So diversity-as-shield can't ride on neighbour-similarity in a patchy world — the substrate is wrong. The
+honest next attempt is a **region-rot on the field itself**: a spreading stain that damages all life in the
+cells it covers and advances faster through ground held by a *single* diet, stalling at the seams between
+guilds. That firebreaks on the map's *actual* structure (which is genuinely diverse), it's legible — you'd
+watch it crawl and watch a mixed border hold it — and it doesn't need a contagion to out-run birth.
+Reverted the contact-blight (it conserved, but didn't earn its complexity). The build wasn't wasted: it
+mapped the wall. Same shape as the obligate predator — a real mechanism waiting on the right substrate.
+
 ## 2026-06-25 · the soil overshoots, then settles — a founder bloom, not a slow death
 
 Every playtest showed soil booming then draining, and it worried me: was the mature world slowly hollowing
@@ -297,15 +324,19 @@ from noise.
 *2. **The impatient-seed problem** (above): the auto-opening is fixed (pre-builds the gradient), but a
 *player's* primer on bare ground still starves — decide the feel (starter substrate that lands as food,
 vs. teach patience) so player seeding reliably has a consequence.*
-*3. **The obligate predator that sustains itself** — keystone predation now works (a hunter crops the
-dominant and raises diversity, Paine 1966), but only *while the pack persists*; a fire-and-forget hunter
-fades. The remaining arc: a predator that lives by the kill well enough to hold its own guild down, so the
-keystone effect stays without the player re-seeding (needs a bigger/faster prey base — the long-standing
-predator-prey balance problem).*
-*4. Mode-2 foundation is in (soil accretes & conserves, and settles to a stable plateau over 6000 ticks).
+*3. **An antagonist that pushes back — as a region-rot, not a contact contagion.** The contact-blight was
+built and reverted (above): a creature-to-creature plague is density-limited and can't express
+diversity-as-shield in a spatially-segregated world. The path: a spreading **rot on the field** that
+damages life in covered cells, advances faster through single-diet ground, and stalls at guild seams
+(legible firebreaks on the map's real structure). This is the felt-tension lever.*
+*4. **The obligate predator that sustains itself** — keystone predation works (a hunter crops the dominant
+and raises diversity, Paine 1966), but only *while the pack persists*; a fire-and-forget hunter fades. The
+remaining arc: a predator that lives by the kill well enough to hold its own guild down (needs a
+bigger/faster prey base — the long-standing predator-prey balance problem).*
+*5. Mode-2 foundation is in (soil accretes & conserves, and settles to a stable plateau over 6000 ticks).
 Remaining: the full biogenic legacy — energy-aware soil release so accreted ground can revive a dead patch,
 not just feed the matter guilds.*
-*5. More graduation features: compounds & the co-evolution layer, the rules/incentive layer.*
+*6. More graduation features: compounds & the co-evolution layer, the rules/incentive layer.*
 *(Answered 2026-06-25: the food web self-extends; the dissipative model keeps it diverse & bounded; two
 overlapping springs breed a persistent blend species; the world renders legibly; finite springs make
 placement a consequential decision; the world measures at the edge of chaos (Class 4 + SOC); player
