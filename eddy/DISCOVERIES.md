@@ -6,6 +6,16 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · two springs, a third creature — richness from the overlap
+
+Place a lumen spring and a mineral spring close enough that their fields overlap, and seed life *only*
+at the two sources — never between them. Wait. The overlap fills on its own: by the end a **blend-diet
+species lives in the band between the springs** (mean position x≈80, dead center between sources at 72
+and 88), eating the lumen+mineral mixture that exists nowhere else. Two simple sources, three niches —
+the pure-lumen edge, the pure-mineral edge, and a creature that is neither, born only of their
+interference. Richness is not authored here; it is **manufactured combinatorially** by *where* the
+springs are put. The map's diversity is a function of its geometry — exactly the worry, answered.
+
 ## 2026-06-25 · the loophole is a leak — a world must live on a flow
 
 The monoculture had a deeper teacher in it. A *perfectly conserving* world cannot hold a diverse web:
@@ -91,7 +101,9 @@ from noise.
 *1. **Blaine's visual verification** — open `eddy/index.html`: does the field render (gradients bloom,
 gray when idle), do entities read as distinct things, do the tools work? The loop cannot check this
 (no headless browser here).*
-*2. Does the overlap of two generators breed a genuinely distinct blend-diet species (the combinatorial
-niche), and does it persist long-run? Watch, and write it here.*
-*(Answered 2026-06-25: the food web self-extends — humus-eaters arise from waste — and the dissipative
-model, upkeep leaving as heat, keeps the web diverse and bounded indefinitely.)*
+*2. Graduation features, once the feel is confirmed: Mode-2 accumulation (life builds its own ground),
+compounds & the co-evolution layer, generator depletion (springs run dry → real stakes), the
+rules/incentive layer.*
+*(Answered 2026-06-25: the food web self-extends — humus-eaters from waste; the dissipative model
+[upkeep leaving as heat] keeps it diverse & bounded indefinitely; and two overlapping springs breed a
+persistent blend-diet species in their overlap — richness from few parts.)*

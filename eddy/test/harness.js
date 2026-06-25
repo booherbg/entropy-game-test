@@ -217,5 +217,22 @@ require('../js/persist.js');
   ok(guilds >= 2, 'long run keeps ≥2 trophic guilds — the dissipative cycle stays diverse');
 })();
 
+(function testCombinatorialOverlapNiche() {
+  // two overlapping springs, seeded ONLY at the pure sources — does a blend species fill the overlap?
+  const sim = E.makeSim(7);
+  sim.addGenerator({ x: 72, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 18 });
+  sim.addGenerator({ x: 88, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 18 });
+  sim.dropPrimer(72, 50); sim.dropPrimer(88, 50);
+  for (let t = 0; t < 900; t++) sim.tick();
+  let blend = 0, sumX = 0;
+  for (const e of sim.life.list) {
+    if (e.alive && e.diet[E.LUM] > 0.28 && e.diet[E.MIN] > 0.28) { blend++; sumX += e.x; }
+  }
+  const meanX = blend ? sumX / blend : -1;
+  console.log(`   [overlap] blend-eaters=${blend} meanX=${meanX.toFixed(1)} (springs at x=72 & x=88)`);
+  ok(blend >= 3, 'a blend-diet species fills the overlap (the combinatorial niche — richness from few parts)');
+  ok(meanX > 74 && meanX < 86, 'the blend species lives BETWEEN the springs — born of the overlap, not either source');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);
