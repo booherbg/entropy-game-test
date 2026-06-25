@@ -30,6 +30,14 @@
     requestAnimationFrame(frame);
   }
 
+  function freshSim() {
+    const s = E.makeSim(((typeof Date !== 'undefined' && Date.now) ? Date.now() : 1) >>> 0);
+    const gx = (E.W * 0.4) | 0, gy = (E.H * 0.5) | 0;   // a gentle opening: one lumen spring + a primer
+    s.addGenerator({ x: gx, y: gy, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+    s.dropPrimer(gx, gy);
+    return s;
+  }
+
   function boot() {
     const c = document.getElementById('gl');
     E.Main.canvas = c;
@@ -40,13 +48,7 @@
     }
     resize();
     sim = (E.Persist && E.Persist.load) ? E.Persist.load() : null;
-    if (!sim) {
-      sim = E.makeSim(((typeof Date !== 'undefined' && Date.now) ? Date.now() : 1) >>> 0);
-      // a gentle opening so a fresh world isn't bare: one lumen spring + a primer in it
-      const gx = (E.W * 0.4) | 0, gy = (E.H * 0.5) | 0;
-      sim.addGenerator({ x: gx, y: gy, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
-      sim.dropPrimer(gx, gy);
-    }
+    if (!sim) sim = freshSim();
     E.Main.sim = sim;
     if (E.Render && E.Render.init) E.Render.init(gl);
     if (E.UI && E.UI.init) E.UI.init(c, sim, E.Main);
@@ -56,6 +58,8 @@
       else if (e.key === 's' && !playing) { stepOnce = true; }
     });
     window.addEventListener('resize', resize);
+    setInterval(function () { if (E.Persist) E.Persist.save(sim); }, 5000);
+    window.addEventListener('beforeunload', function () { if (E.Persist) E.Persist.save(sim); });
     requestAnimationFrame(frame);
   }
 
@@ -63,6 +67,7 @@
   E.Main.setPlaying = (v) => { playing = !!v; };
   E.Main.getSim = () => sim;
   E.Main.replaceSim = (s) => { sim = s; E.Main.sim = s; acc = 0; };
+  E.Main.newWorld = () => { if (E.Persist) E.Persist.clear(); E.Main.replaceSim(freshSim()); if (E.UI && E.UI._refresh) E.UI._refresh(); };
 
   // browser-only boot; load-safe under Node (require defines E.Main without booting)
   if (typeof document !== 'undefined') {

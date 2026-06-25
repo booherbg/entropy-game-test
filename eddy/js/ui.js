@@ -29,6 +29,7 @@
     btn.inspect   = mkBtn('◌ inspect',   () => { tool = 'inspect'; refresh(); });
     btn.lens      = mkBtn('◉ lens',      () => { E.Render.lens = (E.Render.lens === 'world' ? 'rawfield' : 'world'); refresh(); });
     btn.play      = mkBtn('❚❚ pause',    () => { main.setPlaying(!main.isPlaying()); refresh(); });
+    btn.fresh     = mkBtn('✛ new',       () => { if (main.newWorld) main.newWorld(); });
 
     function refresh() {
       ['generator', 'primer', 'inspect'].forEach(k => btn[k].classList.toggle('on', tool === k));
