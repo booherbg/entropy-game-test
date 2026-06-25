@@ -95,5 +95,32 @@ const LIFE = require('../js/life.js');
   ok(f.get(c, E.HUM) > 0, 'it excreted humus into its cell (waste = future food)');
 })();
 
+(function testDeathMineralizesAndConserves() {
+  const f = E.makeField(E.makeRng(8));
+  const c = E.idx(40, 40);
+  const life = E.makeLife(E.makeRng(8));
+  const ent = life.spawnFromPrimer(f, 40, 40);
+  ent.biomass = 0.03; // about to starve
+  // empty its cell so it cannot eat, forcing starvation
+  for (let k = 0; k < E.NEL; k++) f.add(c, k, -f.get(c, k));
+  // measure the baseline AFTER the artificial emptying, so only the death step's
+  // matter movement (biomass → humus) is under test
+  const totalBefore = f.total(E.LUM) + f.total(E.MIN) + f.total(E.HUM) + ent.biomass;
+  life.step(f); life.step(f);
+  ok(!ent.alive, 'a starved entity dies');
+  const totalAfter = f.total(E.LUM) + f.total(E.MIN) + f.total(E.HUM)
+                   + life.list.filter(e => e.alive).reduce((s, e) => s + e.biomass, 0);
+  approx(totalAfter, totalBefore, 1e-3, 'death returns biomass to the field (conserved)');
+})();
+
+(function testReplication() {
+  const f = E.makeField(E.makeRng(9));
+  for (let n = 0; n < E.W * E.H; n++) f.add(n, E.LUM, 5); // rich in lumen everywhere
+  const life = E.makeLife(E.makeRng(9));
+  life.spawnFromPrimer(f, 80, 50);
+  for (let s = 0; s < 30; s++) life.step(f);
+  ok(life.list.filter(e => e.alive).length > 1, 'a well-fed colony self-replicates');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);
