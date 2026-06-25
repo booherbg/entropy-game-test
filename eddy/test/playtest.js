@@ -2,7 +2,7 @@
 // Actually play it: run a scenario, report the living world over time (census, species, the food web,
 // emergence events), and save snapshots to look at. Usage: node eddy/test/playtest.js <scenario>
 const fs = require('fs');
-['rng', 'grid', 'field', 'generators', 'life', 'fertility', 'sim', 'content', 'render'].forEach(f => require('../js/' + f + '.js'));
+['rng', 'grid', 'field', 'generators', 'life', 'fertility', 'sim', 'content', 'chronicle', 'render'].forEach(f => require('../js/' + f + '.js'));
 const E = globalThis.E;
 const { encodePNG, renderWorld } = require('./pngutil.js');
 
@@ -52,6 +52,7 @@ const scenarios = {
 const which = process.argv[2] || 'garden';
 const sim = E.makeSim(7);
 scenarios[which](sim);
+const chr = E.makeChronicle();
 
 const marks = [50, 150, 350, 700, 1200, 2000];
 const snapAt = [350, 2000];
@@ -62,6 +63,7 @@ let t = 0, seededPred = false;
 for (const m of marks) {
   while (t < m) {
     sim.tick(); t++;
+    if (t % 20 === 0) chr.observe(sim, t);
     if (which === 'predator' && !seededPred && t >= 400) { // introduce hunters into the lumen colony
       for (let i = 0; i < 5; i++) sim.dropPredator(54 + (i % 3), 49 + ((i / 3) | 0));
       seededPred = true;
@@ -90,4 +92,7 @@ for (const sp of fin.species.slice(0, 12)) {
   const d = sp; const diet = (() => { const e = sim.life.list.find(x => x.alive && E.Content.nameFor(x.diet) === sp.n); return e ? [...e.diet].map(v => v.toFixed(2)).join('/') : '?'; })();
   console.log('  ' + sp.n.padEnd(14) + ' ' + diet + '  x' + String(sp.c).padStart(3) + '  gen~' + Math.round(sp.gs / sp.c));
 }
+console.log('\nthe chronicle — what the world narrated (' + chr.codex.size + ' species witnessed):');
+for (const e of chr.milestones) console.log('  ★ t' + e.tick + '  ' + e.text);
+for (const e of chr.recent(8).reverse()) console.log('  · t' + e.tick + ' [' + e.kind + '] ' + e.text);
 console.log(`saved snapshots: shots/play-${which}-*.png\n`);

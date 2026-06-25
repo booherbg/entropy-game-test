@@ -45,7 +45,9 @@
 
   function renderChronicle() {
     const el = document.getElementById('chronicle'); if (!el) return;
-    el.innerHTML = chronicle.recent(6).map(e => `<div class="ev ${e.kind}">${e.text}</div>`).join('');
+    const ms = chronicle.milestones.map(e => `<div class="ev milestone">★ ${e.text}</div>`).join('');
+    const rec = chronicle.recent(5).filter(e => e.kind !== 'milestone').map(e => `<div class="ev ${e.kind}">${e.text}</div>`).join('');
+    el.innerHTML = ms + rec;
   }
 
   function boot() {

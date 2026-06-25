@@ -285,7 +285,7 @@ require('../js/content.js'); require('../js/chronicle.js');
   console.log(`   [chronicle] ${chr.codex.size} species witnessed, ${births} births, ${chr.events.filter(e => e.kind === 'milestone').length} milestones, ${chr.aliveCount()} alive now`);
   ok(births >= 3, 'the chronicle witnesses species being born');
   ok(chr.codex.size >= 3, 'the codex records the species witnessed');
-  ok(chr.events.some(e => e.kind === 'milestone'), 'a milestone fires (first hunters / first decomposer)');
+  ok(chr.milestones.length >= 1, 'a milestone is recorded (first hunters / first decomposer)');
 })();
 
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);

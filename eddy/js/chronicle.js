@@ -7,11 +7,16 @@
   // the food web stop being numbers and become a felt, narrated history. Pure logic (uses Content.nameFor).
   E.makeChronicle = function () {
     const codex = new Map();  // name -> { name, diet, pred, firstTick, lastTick, peak, count, alive }
-    const events = [];        // { tick, kind, text }  (kind: born | extinct | milestone)
+    const events = [];        // { tick, kind, text }  (kind: born | extinct | milestone) — recent feed, capped
+    const milestones = [];    // rare, important — kept uncapped and pinned
     let sawHunter = false, sawDecomposer = false;
     const ELN = ['lumen', 'mineral', 'humus'];
 
-    function emit(tick, kind, text) { events.push({ tick, kind, text }); if (events.length > 80) events.shift(); }
+    function emit(tick, kind, text) {
+      const ev = { tick, kind, text };
+      events.push(ev); if (events.length > 80) events.shift();
+      if (kind === 'milestone') milestones.push(ev);
+    }
 
     function observe(sim, tick) {
       const cur = new Map();
@@ -45,7 +50,7 @@
     }
     function recent(n) { return events.slice(-(n || 6)).reverse(); }
     function aliveCount() { let a = 0; for (const r of codex.values()) if (r.alive) a++; return a; }
-    return { observe, events, codex, recent, aliveCount };
+    return { observe, events, milestones, codex, recent, aliveCount };
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = E;
