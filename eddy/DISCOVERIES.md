@@ -6,6 +6,20 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · a seed on bare ground starves — the loop wants patience
+
+Adding finite springs revealed a fragility in the *opening*, not in depletion. Drop a primer the instant
+you place a spring and it dies within a few ticks: the gradient hasn't built yet, so the new life is on
+near-bare ground and upkeep outruns the trickle. The world still *arrives* — fertility sparks life a few
+hundred ticks later, once surplus has pooled past its threshold — but the **seeded** creature fizzles.
+The intended loop already knew this: *place a spring, watch the surplus pool, then seed.* The storyboard
+had it right. **Fixed for the opening:** a fresh world now pre-builds its gradient (40 ticks of the
+spring) before it seeds, so the first colony takes at once (min-alive 0→never-zero; it grows to ~11)
+instead of the world sitting dead for hundreds of ticks. Still open for the feel: should a *player's*
+primer dropped on bare ground also carry its own **starter substrate** — a paid investment that lands as
+food, so any seeding takes — or should the UI just teach patience (it already hints "click a surplus
+patch")? A decision should have a consequence; the impatient one still quietly has none.
+
 ## 2026-06-25 · the world, seen — it is legible, not mush
 
 Without a browser, the loop built a pure-JS renderer that paints a sim state to a PNG using the shader's
@@ -111,12 +125,12 @@ from noise.
 ---
 
 *Open threads for the loop, in priority order:*
-*1. **Blaine's visual verification** — open `eddy/index.html`: does the field render (gradients bloom,
-gray when idle), do entities read as distinct things, do the tools work? The loop cannot check this
-(no headless browser here).*
-*2. Graduation features, once the feel is confirmed: Mode-2 accumulation (life builds its own ground),
-compounds & the co-evolution layer, generator depletion (springs run dry → real stakes), the
-rules/incentive layer.*
-*(Answered 2026-06-25: the food web self-extends — humus-eaters from waste; the dissipative model
-[upkeep leaving as heat] keeps it diverse & bounded indefinitely; and two overlapping springs breed a
-persistent blend-diet species in their overlap — richness from few parts.)*
+*1. **Blaine's visual verification** — open `eddy/index.html` (the loop can't; no headless browser).*
+*2. **The impatient-seed problem** (above): the auto-opening is fixed (pre-builds the gradient), but a
+*player's* primer on bare ground still starves — decide the feel (starter substrate that lands as food,
+vs. teach patience) so player seeding reliably has a consequence.*
+*3. More graduation features: Mode-2 accumulation (life builds its own ground / the biogenic arc),
+compounds & the co-evolution layer, the rules/incentive layer.*
+*(Answered 2026-06-25: the food web self-extends; the dissipative model keeps it diverse & bounded; two
+overlapping springs breed a persistent blend species; the world renders legibly; and finite springs make
+placement a consequential decision.)*
