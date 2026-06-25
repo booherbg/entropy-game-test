@@ -665,6 +665,8 @@ const SIM = require('../js/sim.js');
 ```
 
 > **Tuning note (do not skip):** the live-band test is the heart of the proof. If it fails (collapse or explosion), tune `EAT/RETAIN/REPRO/UPKEEP` (life) and generator `rate` — this is the edge-of-chaos search the spec calls for. Record what band works in `DISCOVERIES.md`. Add `serializeSim` as a stub returning `{seed,gens, …}` now; Task 9 fills it.
+>
+> **TUNED (2026-06-25, first build):** the default scenario (two rate-8 radial generators) first exploded to the cap. Stable band found at `UPKEEP 0.15` (was 0.05; upkeep sets carrying capacity) + fertility `MAX_SPAWN 1` / prob factor `0.01` (was 3 / 0.02). Result: ~49 alive, 6 coexisting diets, deterministic, no collapse/explosion. The Task 6 replication unit test was enriched to `LUM 50` because that isolated test has no diffusion to refill the cell at the slower (higher-upkeep) growth rate.
 
 - [ ] **Step 4: Run → PASS** (determinism + live band). Tune constants until the band test passes; commit the working values.
 - [ ] **Step 5: Commit**
