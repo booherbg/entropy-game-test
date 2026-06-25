@@ -161,5 +161,24 @@ const SIM = require('../js/sim.js');
   ok(end.speciesApprox >= 2, 'diversity persists — at least two diets coexist (edge of chaos)');
 })();
 
+require('../js/persist.js');
+(function testSerializeRoundTrip() {
+  const sim = E.makeSim(11);
+  sim.addGenerator({ x: 70, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 14 });
+  sim.dropPrimer(70, 50);
+  for (let t = 0; t < 50; t++) sim.tick();
+  const snap = sim.serialize();
+  const restored = E.deserializeSim(JSON.parse(JSON.stringify(snap)));
+  let same = true;
+  for (let i = 0; i < restored.field.el.length; i++) if (restored.field.el[i] !== sim.field.el[i]) { same = false; break; }
+  ok(same, 'field survives serialize → deserialize exactly');
+  ok(restored.life.list.filter(e => e.alive).length === sim.life.list.filter(e => e.alive).length,
+     'life count round-trips');
+  // a rehydrated sim is playable
+  const sim2 = E.makeSim(0, JSON.parse(JSON.stringify(snap)));
+  sim2.tick();
+  ok(sim2.stats().alive >= 0 && sim2.gens.length === 1, 'a restored sim rehydrates and ticks');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);

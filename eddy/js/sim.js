@@ -2,12 +2,18 @@
   'use strict';
   const E = root.E = root.E || {};
 
-  E.makeSim = function (seed) {
-    seed = seed >>> 0;
+  E.makeSim = function (seed, snapshot) {
+    seed = (snapshot ? snapshot.seed : seed) >>> 0;
     const rng = E.makeRng(seed);
-    const field = E.makeField(E.makeRng((seed ^ 0x9e3779b9) >>> 0));
-    const life = E.makeLife(E.makeRng((seed ^ 0x85ebca6b) >>> 0));
-    const gens = [];
+    let field, life, gens;
+    if (snapshot) {
+      const d = E.deserializeSim(snapshot);
+      field = d.field; life = d.life; gens = d.gens;
+    } else {
+      field = E.makeField(E.makeRng((seed ^ 0x9e3779b9) >>> 0));
+      life = E.makeLife(E.makeRng((seed ^ 0x85ebca6b) >>> 0));
+      gens = [];
+    }
 
     function tick() {
       field.diffuse();
@@ -38,8 +44,33 @@
              serialize() { return E.serializeSim(field, life, gens, seed); } };
   };
 
-  // stub; Task 9 replaces this with a full deterministic serializer.
-  E.serializeSim = E.serializeSim || function (field, life, gens, seed) { return { seed: seed, gens: gens.slice() }; };
+  // Field floats are Float32 — exactly representable in the JSON Float64 round-trip,
+  // so set()-ing them back into a Float32Array reproduces the originals bit-for-bit.
+  E.serializeSim = function (field, life, gens, seed) {
+    return {
+      v: 1, seed: seed >>> 0,
+      gens: gens.map(g => Object.assign({}, g)),
+      field: { el: Array.from(field.el), variant: Array.from(field.variant) },
+      life: life.list.filter(e => e.alive).map(e => ({
+        id: e.id, x: e.x, y: e.y, diet: Array.from(e.diet),
+        biomass: e.biomass, age: e.age, gen: e.gen,
+      })),
+    };
+  };
+  E.deserializeSim = function (obj) {
+    const field = E.makeField(E.makeRng(1));   // rng only seeds the init we immediately overwrite
+    field.el.set(obj.field.el);
+    field.variant.set(obj.field.variant);
+    const life = E.makeLife(E.makeRng(1));
+    for (const e of obj.life) {
+      life.list.push({
+        id: e.id, x: e.x, y: e.y, diet: new Float32Array(e.diet),
+        biomass: e.biomass, age: e.age, gen: e.gen, alive: true,
+      });
+    }
+    const gens = (obj.gens || []).map(g => Object.assign({}, g));
+    return { field, life, gens };
+  };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = E;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
