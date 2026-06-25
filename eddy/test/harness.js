@@ -288,6 +288,22 @@ require('../js/content.js'); require('../js/chronicle.js');
   ok(chr.milestones.length >= 1, 'a milestone is recorded (first hunters / first decomposer)');
 })();
 
+(function testChronicleNamesCascades() {
+  // the SOC avalanches the criticality analysis measured should be NARRATED — a big extinction wave
+  // above the world's churn becomes a 'cascade' event (the first, a pinned milestone). seed 23 to 2000.
+  const sim = E.makeSim(23);
+  sim.addGenerator({ x: 55, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+  sim.addGenerator({ x: 95, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 16 });
+  sim.addGenerator({ x: 75, y: 30, el: E.HUM, rate: 5, proj: 'vein', angle: 0.4, length: 30 });
+  for (let k = 0; k < 40; k++) { sim.field.diffuse(); E.depositGenerators(sim.field, sim.gens); }
+  sim.dropPrimer(55, 50); sim.dropPrimer(95, 50);
+  const chr = E.makeChronicle();
+  for (let t = 1; t <= 2000; t++) { sim.tick(); if (t % 20 === 0) chr.observe(sim, t); }
+  const cascades = chr.events.filter(e => e.kind === 'cascade' || (e.kind === 'milestone' && /cascade/.test(e.text)));
+  console.log(`   [chronicle] cascades narrated: ${cascades.length}${cascades.length ? ' — e.g. "' + cascades[0].text + '"' : ''}`);
+  ok(cascades.length >= 1, 'a cascade (an extinction avalanche above baseline) is named — the SOC drama, made felt');
+})();
+
 require('../js/score.js');
 (function testScoreReflectsFlourishing() {
   const sim = E.makeSim(7);

@@ -9,7 +9,9 @@
     const codex = new Map();  // name -> { name, diet, pred, firstTick, lastTick, peak, count, alive }
     const events = [];        // { tick, kind, text }  (kind: born | extinct | milestone) — recent feed, capped
     const milestones = [];    // rare, important — kept uncapped and pinned
-    let sawHunter = false, sawDecomposer = false;
+    let sawHunter = false, sawDecomposer = false, sawCascade = false;
+    const extHist = [];                          // extinctions per observation, to spot a wave above baseline
+    const CASCADE_MIN = 8, CASCADE_MULT = 1.3;   // a cascade = >=8 lost at once AND >1.3x the recent rate (baseline churn ~5/obs)
     const ELN = ['lumen', 'mineral', 'humus'];
 
     function emit(tick, kind, text) {
@@ -40,10 +42,19 @@
           if (c.count > rec.peak) rec.peak = c.count;
         }
       }
-      // extinctions
+      // extinctions — counted this observation, so an unusual WAVE can be named
+      let extNow = 0;
       for (const rec of codex.values()) {
-        if (rec.alive && !cur.has(rec.name)) { rec.alive = false; rec.count = 0; emit(tick, 'extinct', `${rec.name} went extinct — witnessed ticks ${rec.firstTick}–${tick}`); }
+        if (rec.alive && !cur.has(rec.name)) { rec.alive = false; rec.count = 0; extNow++; emit(tick, 'extinct', `${rec.name} went extinct — witnessed ticks ${rec.firstTick}–${tick}`); }
       }
+      // a cascade: an extinction wave well above the recent baseline — the self-organized-criticality
+      // avalanches the criticality analysis measured, now surfaced so the drama is felt, not just real.
+      const base = extHist.length ? extHist.reduce((a, b) => a + b, 0) / extHist.length : 0;
+      if (extNow >= CASCADE_MIN && extNow >= CASCADE_MULT * Math.max(1, base)) {
+        if (!sawCascade) { sawCascade = true; emit(tick, 'milestone', `the first cascade — ${extNow} lifeforms fell in one wave (extinctions come in avalanches: the edge of chaos)`); }
+        else emit(tick, 'cascade', `a cascade — ${extNow} lifeforms fell together`);
+      }
+      extHist.push(extNow); if (extHist.length > 8) extHist.shift();
       // milestones (once each)
       if (!sawHunter) { for (const [, c] of cur) if (c.predSum / c.count > 0.4) { sawHunter = true; emit(tick, 'milestone', 'the first hunters — life has begun to eat life'); break; } }
       if (!sawDecomposer) { for (const [, c] of cur) { const d = c.diet; if (d[E.HUM] > d[E.LUM] && d[E.HUM] > d[E.MIN]) { sawDecomposer = true; emit(tick, 'milestone', 'a decomposer arose from the waste — the food web extends itself'); break; } } }
