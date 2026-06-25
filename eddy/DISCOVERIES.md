@@ -6,6 +6,36 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · is it boring? no — a considered hand is worth 3.8×
+
+The honest test of a god-game: would the world be any different if you hadn't bothered to think? So I ran
+six stewardship strategies to 2000 ticks each and scored them on the game's own *flourish* (seed-averaged
+over three worlds). The spread settles it — **flourish 121→457, a 3.8× gap between the laziest hand and the
+most considered; diversity 2.3→15, a 6.4× gap.** Choices are worth multiples, not percentage points.
+
+What the ranking teaches:
+- **The layout sets the diversity ceiling.** One lumen spring tops out at ~2 niches; three elements plus a
+  humus vein reaches ~15. So the worry the criticality entry raised — that diversity *saturates* — was only
+  half-true: it saturates *for a given board*, but the board is yours to draw. The Weaver is a real goal;
+  you raise its ceiling by widening the palette.
+- **Overlap pays — in the score, not just the census.** Two springs placed close (fields interpenetrating)
+  out-flourish two placed apart at the same spend (200 vs 184): the blend-band between them is its own
+  habitat. The "two springs breed a third niche" discovery shows up where the game rewards it.
+- **The humus vein is the big unlock.** Adding the third element (triad over overlap) jumps flourish
+  200→290 — a decomposer guild is worth more than another producer.
+
+And two honest asterisks, because a number that flatters is worse than none:
+- **Mosaic wins partly by spending more.** Six springs out-flourish three — but six springs is six times the
+  cost the in-game economy charges, which this bake-off did *not* (it used free, infinite springs to isolate
+  *layout* from *budget*). The real game's spring price is exactly what turns "place more" back into a
+  decision; among equal-ish spends, placement and palette — not count — carry the result.
+- **The hunter is, for now, flavour not strategy.** Seeding predators scores the same as not (284 vs 290) —
+  they roam crimson and persist, but they don't move flourishing. A clean backlog thread: make predation a
+  *lever* (a hunter cropping a dominant guild should *open* niches and lift diversity), not a decoration.
+
+The core answer is the one the loop needed: the world is not boring. It rewards a considered hand, by
+multiples, on its own terms. (`eddy/test/strategy.js`.)
+
 ## 2026-06-25 · the soul, measured — the world sits at the edge of chaos (and a number that lied)
 
 The foundations doc asked for a *measurable* soul: not "it feels alive," but a number that says whether this
@@ -225,9 +255,17 @@ from noise.
 *2. **The impatient-seed problem** (above): the auto-opening is fixed (pre-builds the gradient), but a
 *player's* primer on bare ground still starves — decide the feel (starter substrate that lands as food,
 vs. teach patience) so player seeding reliably has a consequence.*
-*3. Mode-2 foundation is in (soil accretes & conserves). Remaining: the full biogenic legacy —
+*3. **Make the hunter a lever, not flavour** (strategy bake-off, above): seeding predators is score-neutral
+(284 vs 290). A hunter that crops a dominant guild should *open* niches and raise diversity, so the ⚔ tool
+becomes a real strategic choice rather than decoration.*
+*4. **The soil boom-then-drawdown** (seen in every playtest & the bake-off): soil peaks mid-run then declines
+even with infinite springs — the mature world consumes its own accreted legacy faster than it lays it down.
+Probe whether this is a healthy boom/lean cycle or a slow hollowing, and whether it should be felt as a
+mechanic (a maturing world living off its past).*
+*5. Mode-2 foundation is in (soil accretes & conserves). Remaining: the full biogenic legacy —
 energy-aware soil release so accreted ground can revive a dead patch, not just feed the matter guilds.*
-*4. More graduation features: compounds & the co-evolution layer, the rules/incentive layer.*
+*6. More graduation features: compounds & the co-evolution layer, the rules/incentive layer.*
 *(Answered 2026-06-25: the food web self-extends; the dissipative model keeps it diverse & bounded; two
-overlapping springs breed a persistent blend species; the world renders legibly; and finite springs make
-placement a consequential decision.)*
+overlapping springs breed a persistent blend species; the world renders legibly; finite springs make
+placement a consequential decision; the world measures at the edge of chaos (Class 4 + SOC); and player
+choices move the score by 3.8× — it is not boring.)*
