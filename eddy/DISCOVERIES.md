@@ -6,6 +6,20 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · life builds its own ground — but matter is not energy
+
+Mode-2: where life's excreted humus piles up, a fraction accretes into persistent **soil** that slowly
+releases back. Over 1,500 ticks the colonies lay down a real biogenic layer (~130 units) where they
+thrived — niche construction; the substrate shifting from geological to *made*. Conserved: humus locked
+into ground exactly equals humus drawn from the field — the soil cannot conjure matter, only store it.
+
+And the honest wall the build hit: soil is **matter**, and a producer runs on **energy**. When a spring
+dries, the soil life accreted can keep feeding the matter-cycling guilds — the decomposers, the mineral
+line — but it cannot bring back the lumen-eaters, because lumen *is* the gradient, and that dissipated
+when the spring went quiet. The accumulated ground is a real legacy, but a partial one: it remembers
+the bodies, not the sunlight. A fuller biogenic revival would need soil to release along an
+energy-aware path — a thread, not a wall.
+
 ## 2026-06-25 · a seed on bare ground starves — the loop wants patience
 
 Adding finite springs revealed a fragility in the *opening*, not in depletion. Drop a primer the instant
@@ -129,8 +143,9 @@ from noise.
 *2. **The impatient-seed problem** (above): the auto-opening is fixed (pre-builds the gradient), but a
 *player's* primer on bare ground still starves — decide the feel (starter substrate that lands as food,
 vs. teach patience) so player seeding reliably has a consequence.*
-*3. More graduation features: Mode-2 accumulation (life builds its own ground / the biogenic arc),
-compounds & the co-evolution layer, the rules/incentive layer.*
+*3. Mode-2 foundation is in (soil accretes & conserves). Remaining: the full biogenic legacy —
+energy-aware soil release so accreted ground can revive a dead patch, not just feed the matter guilds.*
+*4. More graduation features: compounds & the co-evolution layer, the rules/incentive layer.*
 *(Answered 2026-06-25: the food web self-extends; the dissipative model keeps it diverse & bounded; two
 overlapping springs breed a persistent blend species; the world renders legibly; and finite springs make
 placement a consequential decision.)*
