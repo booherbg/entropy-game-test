@@ -6,6 +6,16 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · scale is cheap — the sim is not the bottleneck
+
+The spec promised bigger maps; the CPU sim can pay for them. A populated world ticks in **0.8 ms** at
+the current 160×100, **3.1 ms** at 4× (320×200), and **7 ms** at 9× (480×300) — all far under the
+~60 ms real-time budget. Diffusion is O(cells) and that is the floor; even a nine-times-larger world
+runs near 140 ticks a second headless. So a much larger map (the terraforming-scale vision) is a free
+choice whenever the feel calls for it — the WebGL render carries the pixels, the deterministic sim
+carries the rest, and neither strains. (Caveat already known: a bigger map spreads material thinner, so
+life establishes slower — which the pre-built opening and the starter-primer already soften.)
+
 ## 2026-06-25 · life builds its own ground — but matter is not energy
 
 Mode-2: where life's excreted humus piles up, a fraction accretes into persistent **soil** that slowly
