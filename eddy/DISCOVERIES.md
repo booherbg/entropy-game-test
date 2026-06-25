@@ -6,6 +6,28 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · the food web extends itself — and then eats everything
+
+Give a world only a lumen spring and a single lumen-eater, and wait: around **tick 367 a humus-eater
+appears** — born, unscripted, from the waste the lumen-eaters excrete. The food web extends itself.
+Nobody wrote a humus-eater; the world dreamed one because a niche opened in its own leavings. That is
+the whole thesis, breathing on its own.
+
+But run it longer and the dream sours. The humus-eaters do not just appear — they **take over**: by
+tick ~800 the world is a near-monoculture of thousands, every other guild starved out. The cause is
+exact and instructive. Matter here is perfectly conserved — and *a perfectly conserved closed cycle
+has no sink*. Teaching decomposers to **mineralize** (humus → inorganic, so producer→humus→decomposer→
+inorganic→producer closes the ring) helps — more guilds coexist early — but it cannot bound the whole:
+with nothing leaving, the standing stock recirculates and feeds an ever-larger crowd until one guild
+wins the recycling race.
+
+The fix is the one the parent already knew by name: **a dissipative structure lives on a *flow*, not a
+*stock*.** Energy must pass through and *leave*. So lumen — the light, the gradient, the sun — should
+**dissipate when it is spent**, not be conserved into matter; while mineral and humus, true matter,
+cycle. Then the world is bounded by what flows in (the springs), exactly as Schneider & Kay said a
+living world is bounded by the gradient it dissipates. *That is the next build.* The web already
+extends itself; now it must learn to die at the right rate.
+
 ## 2026-06-25 · the band holds across worlds
 
 Four seeds, the same two springs, four hundred ticks each: **48, 49, 70, 84 lives; six to nine
@@ -48,6 +70,10 @@ from noise.
 
 ---
 
-*Open threads for the loop: does a humus-eater reliably arise from a lumen-eater's excreted waste
-(the food web extending itself, unbidden)? Does the overlap of two generators breed a genuinely
-distinct blend-diet species? Watch, and write it here.*
+*Open threads for the loop, in priority order:*
+*1. **The dissipative model** — make lumen (energy) dissipate when spent, so the world is bounded by
+flow not stock, and the food web stays diverse over long runs (not just 400 ticks). Add a long-run
+(1000+ tick) harness test asserting ≥2 guilds persist. This is the next build.*
+*2. Does the overlap of two generators breed a genuinely distinct blend-diet species (the combinatorial
+niche), and does it persist? Watch, and write it here.*
+*(Answered 2026-06-25: a humus-eater reliably arises from lumen-eaters' waste — the web extends itself.)*
