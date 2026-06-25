@@ -3,7 +3,7 @@
   const E = root.E = root.E || {};
   E.Main = {};
 
-  let gl = null, sim = null, playing = true, stepOnce = false, last = 0, acc = 0;
+  let gl = null, sim = null, playing = true, stepOnce = false, last = 0, acc = 0, simTicks = 0, chronicle = null;
   const TICK_MS = 60; // sim cadence; render runs every frame
 
   function resize() {
@@ -20,13 +20,15 @@
     if (playing) acc += dt;
     let ticks = 0;
     while (((playing && acc >= TICK_MS) || stepOnce)) {
-      sim.tick(); acc -= TICK_MS; stepOnce = false;
+      sim.tick(); simTicks++; acc -= TICK_MS; stepOnce = false;
+      if (chronicle && simTicks % 20 === 0) chronicle.observe(sim, simTicks);
       if (++ticks > 8) { acc = 0; break; } // don't spiral after a tab-away
     }
     resize();
     if (E.Render && E.Render.draw) E.Render.draw(sim, gl);
     const ro = document.getElementById('readout');
-    if (ro) { const s = sim.stats(); ro.textContent = `${playing ? '▶' : '❚❚'}  alive ${s.alive} · diets ${s.speciesApprox}`; }
+    if (ro) { const s = sim.stats(); ro.textContent = `${playing ? '▶' : '❚❚'}  alive ${s.alive} · diets ${s.speciesApprox}` + (chronicle ? ` · witnessed ${chronicle.codex.size}` : ''); }
+    if (chronicle) renderChronicle();
     requestAnimationFrame(frame);
   }
 
@@ -41,6 +43,11 @@
     return s;
   }
 
+  function renderChronicle() {
+    const el = document.getElementById('chronicle'); if (!el) return;
+    el.innerHTML = chronicle.recent(6).map(e => `<div class="ev ${e.kind}">${e.text}</div>`).join('');
+  }
+
   function boot() {
     const c = document.getElementById('gl');
     E.Main.canvas = c;
@@ -53,6 +60,7 @@
     sim = (E.Persist && E.Persist.load) ? E.Persist.load() : null;
     if (!sim) sim = freshSim();
     E.Main.sim = sim;
+    chronicle = (E.makeChronicle ? E.makeChronicle() : null);
     if (E.Render && E.Render.init) E.Render.init(gl);
     if (E.UI && E.UI.init) E.UI.init(c, sim, E.Main);
 
@@ -69,7 +77,7 @@
   E.Main.isPlaying = () => playing;
   E.Main.setPlaying = (v) => { playing = !!v; };
   E.Main.getSim = () => sim;
-  E.Main.replaceSim = (s) => { sim = s; E.Main.sim = s; acc = 0; };
+  E.Main.replaceSim = (s) => { sim = s; E.Main.sim = s; acc = 0; simTicks = 0; chronicle = (E.makeChronicle ? E.makeChronicle() : null); };
   E.Main.newWorld = () => { if (E.Persist) E.Persist.clear(); E.Main.replaceSim(freshSim()); if (E.UI && E.UI._refresh) E.UI._refresh(); };
 
   // browser-only boot; load-safe under Node (require defines E.Main without booting)

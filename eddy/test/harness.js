@@ -269,5 +269,24 @@ require('../js/persist.js');
   approx(tot() + life.dissipated(), before, 1e-2, 'predation conserves matter with the sink (field + biomass + dissipated == before)');
 })();
 
+require('../js/content.js'); require('../js/chronicle.js');
+(function testChronicleWitnessesEmergence() {
+  const sim = E.makeSim(7);
+  sim.addGenerator({ x: 60, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+  sim.addGenerator({ x: 100, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 16 });
+  sim.dropPrimer(60, 50); sim.dropPrimer(100, 50);
+  const chr = E.makeChronicle();
+  for (let t = 1; t <= 800; t++) {
+    sim.tick();
+    if (t === 400) for (let i = 0; i < 6; i++) sim.dropPredator(54 + i % 3, 49 + (i / 3 | 0));
+    if (t % 20 === 0) chr.observe(sim, t);
+  }
+  const births = chr.events.filter(e => e.kind === 'born').length;
+  console.log(`   [chronicle] ${chr.codex.size} species witnessed, ${births} births, ${chr.events.filter(e => e.kind === 'milestone').length} milestones, ${chr.aliveCount()} alive now`);
+  ok(births >= 3, 'the chronicle witnesses species being born');
+  ok(chr.codex.size >= 3, 'the codex records the species witnessed');
+  ok(chr.events.some(e => e.kind === 'milestone'), 'a milestone fires (first hunters / first decomposer)');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);
