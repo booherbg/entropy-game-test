@@ -6,6 +6,22 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · the world moves — hunters roam, a real third behavior
+
+Mobility, scaled by the \`pred\` trait: producers stay rooted (plant colonies), hunters roam toward prey
+(the fullest neighbouring patch of edible life). It changed everything for the hunters — instead of
+starving in place they *follow* the prey, so a seeded handful (5) surges past two dozen and holds (~16),
+\`pred\` near 0.85, threading crimson through the colonies and out across the gray between them. The world
+is no longer three static clouds; it has motion, and the motion *means* something (a hunt). Class-4 at
+last: persistent, mobile, interacting structures.
+
+The dramatic version still resists. A *true obligate* predator — made a poor producer so it must hunt —
+starves even WITH mobility, because these prey colonies are small and slow: a hunter that lives only by
+the kill exhausts them, and there's no herd over the next hill. So today's hunters are roaming
+grazer-omnivores (they also sip the field), which is why they persist *and* why they don't crash the
+world. The crash-and-recovery drama wants a bigger, faster prey base — a balance problem for later, not
+a mechanism we're missing.
+
 ## 2026-06-25 · life eats life — a hunter that evolves, and why it can't yet starve right
 
 Gave organisms a heritable \`pred\` trait and one predation primitive (a more-predatory entity bites a
