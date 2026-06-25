@@ -19,6 +19,7 @@
       field.diffuse();
       E.depositGenerators(field, gens);
       life.step(field);
+      field.soilStep();
       E.fertilityStep(field, life, rng);
     }
     function addGenerator(g) { gens.push(g); }
@@ -50,7 +51,7 @@
     return {
       v: 1, seed: seed >>> 0,
       gens: gens.map(g => Object.assign({}, g)),
-      field: { el: Array.from(field.el), variant: Array.from(field.variant) },
+      field: { el: Array.from(field.el), variant: Array.from(field.variant), soil: Array.from(field.soil) },
       life: life.list.filter(e => e.alive).map(e => ({
         id: e.id, x: e.x, y: e.y, diet: Array.from(e.diet),
         biomass: e.biomass, age: e.age, gen: e.gen,
@@ -61,6 +62,7 @@
     const field = E.makeField(E.makeRng(1));   // rng only seeds the init we immediately overwrite
     field.el.set(obj.field.el);
     field.variant.set(obj.field.variant);
+    if (obj.field.soil) field.soil.set(obj.field.soil);
     const life = E.makeLife(E.makeRng(1));
     for (const e of obj.life) {
       life.list.push({

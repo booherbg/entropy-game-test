@@ -48,8 +48,10 @@ for (let t = 0; t < ticks; t++) sim.tick();
 const W = E.W, H = E.H, S = 6, IW = W * S, IH = H * S;
 const rgb = new Uint8Array(IW * IH * 3);
 for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-  const i = (y * W + x) * E.NEL;
-  const c = fieldColor(sim.field.el[i], sim.field.el[i + 1], sim.field.el[i + 2]);
+  const ci = y * W + x, i = ci * E.NEL;
+  let c = fieldColor(sim.field.el[i], sim.field.el[i + 1], sim.field.el[i + 2]);
+  const st = Math.min((sim.field.soil ? sim.field.soil[ci] : 0) * 0.7, 0.55); // biogenic ground: earthy tint where life built soil
+  if (st > 0) { const br = [0.24, 0.17, 0.10]; c = [c[0] * (1 - st) + br[0] * st, c[1] * (1 - st) + br[1] * st, c[2] * (1 - st) + br[2] * st]; }
   const R = Math.round(c[0] * 255), G = Math.round(c[1] * 255), B = Math.round(c[2] * 255);
   for (let dy = 0; dy < S; dy++) for (let dx = 0; dx < S; dx++) {
     const o = (((y * S + dy) * IW) + (x * S + dx)) * 3; rgb[o] = R; rgb[o + 1] = G; rgb[o + 2] = B;

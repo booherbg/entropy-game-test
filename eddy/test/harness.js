@@ -246,5 +246,15 @@ require('../js/persist.js');
   approx(f.total(E.LUM), afterDry, 1e-9, 'a dry spring emits nothing — where & when you place a source is now a real decision');
 })();
 
+(function testSoilAccretesAndConserves() {
+  const f = E.makeField(E.makeRng(4));
+  const c = E.idx(50, 50);
+  for (let n = 0; n < E.W * E.H; n++) f.add(n, E.HUM, 0.4); // humus piled up everywhere (life's legacy)
+  const before = f.total(E.HUM) + f.soilTotal();
+  for (let t = 0; t < 60; t++) f.soilStep();
+  ok(f.soilTotal() > 0, 'soil accretes where humus piles up — life builds its own ground (niche construction)');
+  approx(f.total(E.HUM) + f.soilTotal(), before, 1e-2, 'soil is conserved — humus locked into ground == humus drawn from the field (no matter created)');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);
