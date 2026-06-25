@@ -36,7 +36,7 @@
       field.add(i, E.HUM, eaten * (1 - RETAIN)); // excrete the surplus as humus (conserved)
     }
     // reproduction, mutation toward the local blend, and death → mineralization.
-    const REPRO = 2.0, MUT = 0.25, UPKEEP = 0.05, LIFE_CAP = 4000;
+    const REPRO = 2.0, MUT = 0.25, UPKEEP = 0.15, LIFE_CAP = 4000;
     function neighborCell(ent) {
       const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
       const d = dirs[(rng() * 4) | 0];

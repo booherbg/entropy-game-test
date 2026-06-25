@@ -115,10 +115,11 @@ const LIFE = require('../js/life.js');
 
 (function testReplication() {
   const f = E.makeField(E.makeRng(9));
-  for (let n = 0; n < E.W * E.H; n++) f.add(n, E.LUM, 5); // rich in lumen everywhere
+  // very rich so the parent stays fed across the window (this isolated test has no diffusion refill)
+  for (let n = 0; n < E.W * E.H; n++) f.add(n, E.LUM, 50);
   const life = E.makeLife(E.makeRng(9));
   life.spawnFromPrimer(f, 80, 50);
-  for (let s = 0; s < 30; s++) life.step(f);
+  for (let s = 0; s < 50; s++) life.step(f);
   ok(life.list.filter(e => e.alive).length > 1, 'a well-fed colony self-replicates');
 })();
 
@@ -130,6 +131,34 @@ const FERT = require('../js/fertility.js');
   let spawned = false;
   for (let s = 0; s < 20 && !spawned; s++) { E.fertilityStep(f, life, life._rng); spawned = life.list.length > 0; }
   ok(spawned, 'rich surplus eventually sparks life unbidden (ambient fertility)');
+})();
+
+const SIM = require('../js/sim.js');
+
+(function testDeterministicWorld() {
+  function run() {
+    const sim = E.makeSim(424242);
+    sim.addGenerator({ x: 60, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+    sim.addGenerator({ x: 100, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 16 });
+    sim.dropPrimer(60, 50);
+    for (let t = 0; t < 200; t++) sim.tick();
+    return sim.hash();
+  }
+  ok(run() === run(), 'same seed + same moves → identical world (determinism invariant)');
+})();
+
+(function testLiveBand() {
+  const sim = E.makeSim(7);
+  sim.addGenerator({ x: 60, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+  sim.addGenerator({ x: 100, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 16 });
+  sim.dropPrimer(60, 50); sim.dropPrimer(100, 50);
+  let minAlive = Infinity, maxAlive = 0;
+  for (let t = 0; t < 400; t++) { sim.tick(); const a = sim.stats().alive; minAlive = Math.min(minAlive, a); maxAlive = Math.max(maxAlive, a); }
+  const end = sim.stats();
+  console.log(`   [live-band] end.alive=${end.alive} species=${end.speciesApprox} peakAlive=${maxAlive} minAlive=${minAlive} fieldTotal=${end.fieldTotal.toFixed(0)}`);
+  ok(end.alive > 0, 'world does NOT collapse to nothing');
+  ok(end.alive < 4000, 'world does NOT explode to the cap (goo)');
+  ok(end.speciesApprox >= 2, 'diversity persists — at least two diets coexist (edge of chaos)');
 })();
 
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
