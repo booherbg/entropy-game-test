@@ -1,0 +1,50 @@
+;(function (root) {
+  'use strict';
+  const E = root.E = root.E || {};
+
+  // The advisor — SimCity's counsellor, reading the world and surfacing the single most useful thing to
+  // know right now. Pure logic (node-testable); returns the highest-priority insight as { level, text }.
+  // It distills the game's strategy into legible guidance — tend a fading spring, crop a crowding guild
+  // with a hunter (keystone), overlap springs to breed a blend, widen the palette for diversity — and,
+  // when all is well, reads the emergence back to the player. level: 'warn' | 'tip' | 'good'.
+  const ELN = ['lumen', 'mineral', 'humus'];
+
+  E.advise = function (sim) {
+    const live = sim.life.list.filter(e => e.alive);
+    const n = live.length;
+    if (n < 5) return { level: 'tip', text: 'the world is nearly bare — place a spring, let surplus pool a while, then seed into the glow.' };
+
+    // which guild (dominant element of each diet) holds the most lives
+    const guild = [0, 0, 0];
+    for (const e of live) { let d = 0; for (let k = 1; k < 3; k++) if (e.diet[k] > e.diet[d]) d = k; guild[d]++; }
+    const domG = guild.indexOf(Math.max(guild[0], guild[1], guild[2]));
+    const domFrac = guild[domG] / n;
+    const guildsPresent = guild.reduce((c, g) => c + (g > 0 ? 1 : 0), 0);
+    const diversity = new Set(live.map(E.speciesKey)).size; // niches, the shared key
+    const hunters = live.reduce((c, e) => c + ((e.pred || 0) > 0.4 ? 1 : 0), 0);
+
+    // 1. a finite spring fading — its niche will go with it (warn)
+    for (const g of sim.gens) {
+      if (g.r0 && isFinite(g.r0) && g.reservoir / g.r0 < 0.18) {
+        return { level: 'warn', text: `the ${ELN[g.el]} spring is running dry — its niche will fade. tend a new source before it goes quiet.` };
+      }
+    }
+    // 2. one guild crowding the web → the keystone lesson (a hunter opens room) or widen the palette
+    if (domFrac > 0.7 && diversity < 12) {
+      return hunters < 3
+        ? { level: 'tip', text: `the ${ELN[domG]} guild is crowding the web (${Math.round(domFrac * 100)}%) — a hunter dropped in would crop the crowd and open room for rarer niches.` }
+        : { level: 'tip', text: `the ${ELN[domG]} guild dominates — set a spring of a different element to seed new niches.` };
+    }
+    // 3. much life but few niches → the overlap lesson
+    if (diversity < 6 && n > 30) {
+      return { level: 'tip', text: 'much life, few niches — set two different springs close, so their fields overlap and a blend-eater arises between them.' };
+    }
+    // 4. all is well — read the emergence back (good)
+    if (diversity >= 10 && guildsPresent === 3) {
+      return { level: 'good', text: `a rich, balanced web — ${diversity} niches across all three guilds${hunters ? ', hunters threading through' : ''}. the loophole is holding.` };
+    }
+    return { level: 'good', text: `${diversity} niches, ${n} lives — the web is finding its shape.` };
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = E;
+})(typeof globalThis !== 'undefined' ? globalThis : this);

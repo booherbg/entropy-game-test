@@ -345,5 +345,37 @@ require('../js/economy.js');
   ok(hunt > noHunt, 'keystone predation raises diversity — cropping the dominant frees rarer niches (Paine 1966)');
 })();
 
+require('../js/advisor.js');
+(function testAdvisorReadsTheWorld() {
+  const valid = a => a && ['warn', 'tip', 'good'].includes(a.level) && typeof a.text === 'string' && a.text.length > 0;
+  // empty world → place-a-spring tip
+  const a0 = E.advise(E.makeSim(7));
+  ok(valid(a0) && /bare|spring/.test(a0.text), 'advisor on an empty world says to place a spring');
+  // one-element world to maturity → that guild crowds → a tip naming it (the keystone/palette lesson)
+  const mono = E.makeSim(7);
+  mono.addGenerator({ x: 80, y: 50, el: E.LUM, rate: 10, proj: 'radial', radius: 18 });
+  for (let k = 0; k < 40; k++) { mono.field.diffuse(); E.depositGenerators(mono.field, mono.gens); }
+  mono.dropPrimer(80, 50);
+  for (let t = 0; t < 900; t++) mono.tick();
+  const am = E.advise(mono);
+  console.log(`   [advisor] mono → ${am.level}: ${am.text}`);
+  ok(valid(am) && am.level === 'tip' && /lumen/.test(am.text), 'advisor flags a one-element world as crowded (a tip)');
+  // full garden to maturity → balanced web → a 'good' reading of the emergence
+  const gar = E.makeSim(7);
+  gar.addGenerator({ x: 55, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+  gar.addGenerator({ x: 95, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 16 });
+  gar.addGenerator({ x: 75, y: 30, el: E.HUM, rate: 5, proj: 'vein', angle: 0.4, length: 30 });
+  for (let k = 0; k < 40; k++) { gar.field.diffuse(); E.depositGenerators(gar.field, gar.gens); }
+  gar.dropPrimer(55, 50); gar.dropPrimer(95, 50);
+  for (let t = 0; t < 1200; t++) gar.tick();
+  const ag = E.advise(gar);
+  console.log(`   [advisor] garden → ${ag.level}: ${ag.text}`);
+  ok(valid(ag) && ag.level === 'good', 'advisor reads a mature garden as flourishing (good)');
+  // an established world whose finite spring is nearly dry → a warning (highest priority over tips)
+  gar.gens[0].r0 = 4000; gar.gens[0].reservoir = 4000 * 0.1;
+  const aw = E.advise(gar);
+  ok(valid(aw) && aw.level === 'warn' && /dry|fade|quiet/.test(aw.text), 'advisor warns when a spring runs dry (its niche will fade)');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);

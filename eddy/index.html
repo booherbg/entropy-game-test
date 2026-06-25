@@ -58,6 +58,13 @@
   #score .big { font-size: 24px; color: #f0b870; line-height: 1.1; }
   #score .m { opacity: .5; font-size: 11px; margin-top: 2px; }
   #score .m b { color: #e8e4da; opacity: 1; }
+
+  /* the advisor — a quiet counsellor, bottom-right, coloured by urgency */
+  #advisor { position: absolute; right: 14px; bottom: 14px; max-width: 38%; font-size: 12.5px;
+    text-align: right; line-height: 1.5; z-index: 4; pointer-events: none; opacity: .8; transition: opacity .6s; }
+  #advisor .lead { display: block; opacity: .5; font-size: 10.5px; text-transform: uppercase;
+    letter-spacing: 1.2px; margin-bottom: 2px; }
+  #advisor.warn { color: #e8a85a; } #advisor.tip { color: #8fc0e8; } #advisor.good { color: #9fd98f; }
 </style>
 </head>
 <body>
@@ -73,6 +80,7 @@
     <div id="score"></div>
     <div id="chronicle"></div>
     <div id="murmur"></div>
+    <div id="advisor"></div>
     <div id="inspector"></div>
   </div>
 
@@ -88,6 +96,7 @@
   <script src="js/content.js"></script>
   <script src="js/chronicle.js"></script>
   <script src="js/score.js"></script>
+  <script src="js/advisor.js"></script>
   <script src="js/economy.js"></script>
   <script src="js/render.js"></script>
   <script src="js/ui.js"></script>

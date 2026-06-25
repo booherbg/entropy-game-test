@@ -4,6 +4,7 @@
   E.Main = {};
 
   let gl = null, sim = null, playing = true, stepOnce = false, last = 0, acc = 0, simTicks = 0, chronicle = null, aspect = 0, economy = null;
+  let advice = null, lastAdviceTick = -999;
   const TICK_MS = 60; // sim cadence; render runs every frame
 
   function resize() {
@@ -31,6 +32,8 @@
     if (ro) { const s = sim.stats(); ro.textContent = `${playing ? '▶' : '❚❚'}  alive ${s.alive} · diets ${s.speciesApprox}` + (chronicle ? ` · witnessed ${chronicle.codex.size}` : ''); }
     if (chronicle) renderChronicle();
     if (E.score) renderScore();
+    if (E.advise && (!advice || simTicks - lastAdviceTick >= 60)) { advice = E.advise(sim); lastAdviceTick = simTicks; }
+    renderAdvisor();
     requestAnimationFrame(frame);
   }
 
@@ -50,6 +53,12 @@
     const ms = chronicle.milestones.map(e => `<div class="ev milestone">★ ${e.text}</div>`).join('');
     const rec = chronicle.recent(5).filter(e => e.kind !== 'milestone').map(e => `<div class="ev ${e.kind}">${e.text}</div>`).join('');
     el.innerHTML = ms + rec;
+  }
+
+  function renderAdvisor() {
+    const el = document.getElementById('advisor'); if (!el || !advice) return;
+    el.className = advice.level;
+    el.innerHTML = '<span class="lead">the advisor</span>' + advice.text;
   }
 
   function renderScore() {
@@ -91,7 +100,7 @@
   E.Main.isPlaying = () => playing;
   E.Main.setPlaying = (v) => { playing = !!v; };
   E.Main.getSim = () => sim;
-  E.Main.replaceSim = (s) => { sim = s; E.Main.sim = s; acc = 0; simTicks = 0; chronicle = (E.makeChronicle ? E.makeChronicle() : null); economy = (E.makeEconomy ? E.makeEconomy() : null); };
+  E.Main.replaceSim = (s) => { sim = s; E.Main.sim = s; acc = 0; simTicks = 0; advice = null; lastAdviceTick = -999; chronicle = (E.makeChronicle ? E.makeChronicle() : null); economy = (E.makeEconomy ? E.makeEconomy() : null); };
   E.Main.newWorld = () => { if (E.Persist) E.Persist.clear(); E.Main.replaceSim(freshSim()); if (E.UI && E.UI._refresh) E.UI._refresh(); };
   E.Main.cycleAspect = () => { aspect = (aspect + 1) % ((E.ASPECTS && E.ASPECTS.length) || 1); };
   E.Main.aspectName = () => (E.ASPECTS ? E.ASPECTS[aspect % E.ASPECTS.length].name : '');
