@@ -130,8 +130,9 @@ void main(){ vec2 d = gl_PointCoord - vec2(0.5); float r = length(d); if (r > 0.
     const list = sim.life.list; let n = 0;
     for (let k = 0; k < list.length && n < ECAP; k++) {
       const e = list[k]; if (!e.alive) continue;
-      const c = E.Render.dietColor(e.diet), o = n * 5;
-      entBuf[o] = e.x; entBuf[o+1] = e.y; entBuf[o+2] = c[0]; entBuf[o+3] = c[1]; entBuf[o+4] = c[2];
+      const c = E.Render.dietColor(e.diet), p = (e.pred || 0) * 0.85, o = n * 5; // predators tint crimson
+      entBuf[o] = e.x; entBuf[o+1] = e.y;
+      entBuf[o+2] = c[0] * (1 - p) + 0.92 * p; entBuf[o+3] = c[1] * (1 - p) + 0.16 * p; entBuf[o+4] = c[2] * (1 - p) + 0.16 * p;
       n++;
     }
     if (n === 0) return;
