@@ -24,16 +24,21 @@
     const EAT = 0.4, RETAIN = 0.5;
     function metabolize(field, ent) {
       const i = E.idx(ent.x | 0, ent.y | 0);
-      let eaten = 0;
-      for (let k = 0; k < E.NEL; k++) {
-        const want = EAT * ent.diet[k];
-        const have = field.get(i, k);
-        const take = Math.min(want, have);
-        field.add(i, k, -take);            // deplete the field
-        eaten += take;
-      }
-      ent.biomass += eaten * RETAIN;        // keep its ratio as biomass
-      field.add(i, E.HUM, eaten * (1 - RETAIN)); // excrete the surplus as humus (conserved)
+      // take a diet-weighted bite of each element
+      const tL = Math.min(EAT * ent.diet[E.LUM], field.get(i, E.LUM));
+      const tM = Math.min(EAT * ent.diet[E.MIN], field.get(i, E.MIN));
+      const tH = Math.min(EAT * ent.diet[E.HUM], field.get(i, E.HUM));
+      field.add(i, E.LUM, -tL); field.add(i, E.MIN, -tM); field.add(i, E.HUM, -tH);
+      const eaten = tL + tM + tH;
+      ent.biomass += eaten * RETAIN;                 // keep its ratio as biomass
+      const ex = 1 - RETAIN;
+      // the nutrient cycle, conserved: eating energy/structure (lumen+mineral) excretes organic
+      // waste (humus); eating humus MINERALIZES it back to inorganic (lumen+mineral) — like a
+      // real decomposer. this closes producer→humus→decomposer→inorganic→producer and stops the
+      // humus loop from being a free pasture a monoculture can farm.
+      field.add(i, E.HUM, (tL + tM) * ex);
+      field.add(i, E.LUM, tH * ex * 0.5);
+      field.add(i, E.MIN, tH * ex * 0.5);
     }
     // reproduction, mutation toward the local blend, and death → mineralization.
     const REPRO = 2.0, MUT = 0.25, UPKEEP = 0.15, LIFE_CAP = 4000;
