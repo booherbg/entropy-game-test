@@ -6,6 +6,32 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · the rot arrives — an antagonist that pushes back, and makes diversity a *shield*
+
+The blight was reverted with a promise (below): the antagonist wanted a different substrate — the **field**,
+not the creatures. Built it, and it landed. The rot is a **typed fire** on the field: a stain of one guild's
+*type* that feeds on that guild's living fuel (spreads full), bridges bare ground weakly carrying its type,
+and is all but **blocked by a different guild** (wrong fuel → it can't catch, and starves on the far side of
+the seam). So a **monoculture is one open field the fire crosses end to end; a diverse world is a quilt of
+firebreaks** that pens it into a single patch. Diversity stops being mere richness and becomes **resilience**
+— Elton's diversity–stability hypothesis, the portfolio effect, fire-ecology's firebreaks, all at once.
+
+The numbers say it plainly, locked in the harness: light a rot in a **monoculture** and it culls **89%** —
+near-total; light the same rot in a **diverse** garden and it takes **39%**, one guild, then dies at the
+seams while the others hold. The headless render shows it true: the gold lumen colony eaten down to nothing
+under a dark stain, while the blue mineral and green humus colonies sit pristine a few cells away, untouched.
+*You can see the firebreak.* The Weaver aspect finally has teeth — a varied world isn't just prettier, it
+*survives* what a uniform one cannot.
+
+The design turn that made it work was **the type**. A rot with no identity launders through bare ground and
+re-ignites in any patch — no firebreak. Give the fire a fuel-*type* (the guild it's burning) and a
+wrong-guild cell becomes a wall: the fire can't feed there, decays fast, and stops. That one bit of state
+turned diversity from incidental into *load-bearing*. And it's honest all the way down: the biomass the rot
+destroys returns as humus (conserved); a world with no rot runs the step as a no-op (the measured Class-4
+edge-of-chaos is untouched until a rot is lit); it's visible as a creeping stain, narrated by the chronicle,
+and wieldable by the player as a ☣ controlled burn. This is the redemption of the blight's negative result —
+same mechanism, right substrate. The map's structure was the firebreak all along.
+
 ## 2026-06-25 · the blight that wouldn't bite — a contagion needs a body to spread in
 
 Reached for the antagonist the report calls the #1 lever, and framed it on the most beautiful thesis
@@ -328,11 +354,11 @@ is not a bug, it is the dissipative thesis ("a world lives on a flow, not a stoc
 and let surplus pool before seeding. The model teaches patience by itself, and the advisor now says it
 aloud ("the world is nearly bare — place a spring, let surplus pool, then seed"). Teach-patience was the
 right answer; it needed no code, only legibility — which the advisor supplies.*
-*3. **An antagonist that pushes back — as a region-rot, not a contact contagion.** The contact-blight was
-built and reverted (above): a creature-to-creature plague is density-limited and can't express
-diversity-as-shield in a spatially-segregated world. The path: a spreading **rot on the field** that
-damages life in covered cells, advances faster through single-diet ground, and stalls at guild seams
-(legible firebreaks on the map's real structure). This is the felt-tension lever.*
+*3. **The antagonist SHIPPED — the rot** (above): a typed fire on the field that sweeps a monoculture (89%
+culled) but firebreaks at guild seams in a diverse world (39%, one patch). Conserved, no-op baseline,
+visible as a dark stain, narrated, a ☣ player tool. Remaining: **spontaneous ignition** so it strikes
+unbidden — rarely lighting in a dense MONOCULTURE patch (uniformity = vulnerability), gated so a healthy
+diverse world stays undisturbed (keeps the measured Class-4 baseline clean).*
 *4. **The obligate predator that sustains itself** — keystone predation works (a hunter crops the dominant
 and raises diversity, Paine 1966), but only *while the pack persists*; a fire-and-forget hunter fades. The
 remaining arc: a predator that lives by the kill well enough to hold its own guild down (needs a
@@ -346,5 +372,6 @@ overlapping springs breed a persistent blend species; the world renders legibly;
 placement a consequential decision; the world measures at the edge of chaos (Class 4 + SOC); player
 choices move the score by 3.8× — it is not boring; the hunter is now a keystone lever that raises
 diversity, not decoration; the soil settles to a stable plateau (overshoot-and-settle, not hollowing); the
-SOC cascades are now narrated as felt events; and the impatient-primer "problem" was the dissipative thesis
-working all along — a packet can't sustain life without a flow, and the advisor now teaches that.)*
+SOC cascades are now narrated as felt events; the impatient-primer "problem" was the dissipative thesis
+working all along — a packet can't sustain life without a flow, and the advisor now teaches that; and the
+antagonist arrived — the rot, a typed fire that makes diversity a literal firebreak (89% vs 39% culled).)*

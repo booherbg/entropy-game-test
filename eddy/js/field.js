@@ -9,6 +9,8 @@
     const variant = new Float32Array(N);
     const scratch = new Float32Array(N * E.NEL);
     const soil = new Float32Array(N); // matter life has accreted into the ground (niche construction)
+    const rot = new Float32Array(N);     // a disturbance INTENSITY (not matter) — the rot covering a cell
+    const rotType = new Int8Array(N).fill(-1); // which guild the rot is BURNING (its fuel-type); -1 = none
     // a calm, dull ambient blend everywhere (this is the "gray" the world relaxes toward)
     for (let i = 0; i < N; i++) {
       el[i * E.NEL + E.LUM] = 0.05 + rng() * 0.03;
@@ -41,7 +43,8 @@
       }
     }
     function soilTotal() { let s = 0; for (let i = 0; i < N; i++) s += soil[i]; return s; }
-    return { el, variant, soil, total, diffuse, soilStep, soilTotal,
+    function rotTotal() { let s = 0; for (let i = 0; i < N; i++) s += rot[i]; return s; }
+    return { el, variant, soil, rot, rotType, total, diffuse, soilStep, soilTotal, rotTotal,
       get(i, k) { return el[i * E.NEL + k]; },
       add(i, k, amt) { el[i * E.NEL + k] += amt; },
     };

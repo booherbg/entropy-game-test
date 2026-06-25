@@ -16,7 +16,8 @@ precision highp float;
 in vec2 uv; out vec4 frag;
 uniform sampler2D field; uniform int lens;
 void main(){
-  vec3 e = texture(field, uv).rgb;
+  vec4 s = texture(field, uv);
+  vec3 e = s.rgb; float rot = s.a;
   float t = e.r + e.g + e.b + 1e-4;
   if (lens == 1) { frag = vec4(clamp(e,0.0,1.5)/1.5, 1.0); return; } // raw-field lens
   vec3 p = e / t;
@@ -26,7 +27,9 @@ void main(){
   float sat = clamp((dom-0.3333)/0.6667, 0.0, 1.0);
   vec3 gray = vec3(0.17,0.18,0.20);
   float bright = clamp(0.18 + 0.82*min(t,1.5)/1.5, 0.10, 1.0);
-  frag = vec4(mix(gray, hue, sat) * bright, 1.0);
+  vec3 col = mix(gray, hue, sat) * bright;
+  col = mix(col, vec3(0.14,0.05,0.06), clamp(rot/1.5, 0.0, 0.82)); // the rot — a dark stain creeping over the world
+  frag = vec4(col, 1.0);
 }`;
 
   function compile(gl, type, src) {
@@ -63,8 +66,9 @@ void main(){
   };
 
   function uploadField(gl, field) {
-    const el = field.el, va = field.variant, buf = texBuf, N = E.W * E.H;
-    for (let i = 0; i < N; i++) { buf[i*4] = el[i*3]; buf[i*4+1] = el[i*3+1]; buf[i*4+2] = el[i*3+2]; buf[i*4+3] = va[i]; }
+    const el = field.el, rot = field.rot, buf = texBuf, N = E.W * E.H;
+    // alpha carries the rot intensity to the shader (the field shader doesn't use variant) → a dark stain
+    for (let i = 0; i < N; i++) { buf[i*4] = el[i*3]; buf[i*4+1] = el[i*3+1]; buf[i*4+2] = el[i*3+2]; buf[i*4+3] = rot[i]; }
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, E.W, E.H, 0, gl.RGBA, gl.FLOAT, buf);
   }

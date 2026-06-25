@@ -393,5 +393,32 @@ require('../js/advisor.js');
   ok(valid(aw) && aw.level === 'warn' && /dry|fade|quiet/.test(aw.text), 'advisor warns when a spring runs dry (its niche will fade)');
 })();
 
+(function testRotConservesAndFirebreaks() {
+  // the rot is the antagonist: it destroys biomass into humus (conserved) and SWEEPS a uniform world, but
+  // is FIREBROKEN by diversity — a fire of one guild's type can't cross into another (Elton: variety shields).
+  // (a) conservation in a closed system (no springs)
+  const f = E.makeField(E.makeRng(3)), life = E.makeLife(E.makeRng(3));
+  for (let i = 0; i < 160; i++) { const x = 70 + (i % 14), y = 44 + ((i / 14) | 0); f.add(E.idx(x, y), E.LUM, 1.4); }
+  for (let i = 0; i < 40; i++) { const e = life.spawnFromPrimer(f, 70 + (i % 14), 44 + ((i / 14) | 0), 0); e.biomass = 1.0; }
+  const tot = () => { let s = 0; for (let i = 0; i < E.W * E.H; i++) s += f.el[i * 3] + f.el[i * 3 + 1] + f.el[i * 3 + 2]; for (const e of life.list) if (e.alive) s += e.biomass; return s + life.dissipated() + f.soilTotal(); };
+  const before = tot(); life.seedRot(f, 76, 46, 6); for (let t = 0; t < 120; t++) life.step(f);
+  approx(tot(), before, 1e-2, 'the rot conserves matter — the biomass it destroys reappears as humus');
+  // (b) firebreak: a monoculture is swept far harder than a diverse, patchy world
+  function culled(setup, sx, sy) {
+    const s = E.makeSim(7); setup(s);
+    for (let k = 0; k < 40; k++) { s.field.diffuse(); E.depositGenerators(s.field, s.gens); }
+    for (const g of s.gens) s.dropPrimer(g.x, g.y);
+    for (let t = 0; t < 800; t++) s.tick();
+    const a0 = s.life.list.reduce((n, e) => n + (e.alive ? 1 : 0), 0);
+    s.dropRot(sx, sy); s.dropRot(sx + 1, sy); s.dropRot(sx, sy + 1);
+    let lo = a0; for (let t = 0; t < 240; t++) { s.tick(); lo = Math.min(lo, s.life.list.reduce((n, e) => n + (e.alive ? 1 : 0), 0)); }
+    return (a0 - lo) / a0 * 100;
+  }
+  const mono = culled(s => s.addGenerator({ x: 80, y: 50, el: E.LUM, rate: 14, proj: 'radial', radius: 14 }), 80, 50);
+  const div = culled(s => { s.addGenerator({ x: 68, y: 50, el: E.LUM, rate: 9, proj: 'radial', radius: 13 }); s.addGenerator({ x: 92, y: 50, el: E.MIN, rate: 9, proj: 'radial', radius: 13 }); s.addGenerator({ x: 80, y: 33, el: E.HUM, rate: 6, proj: 'vein', angle: 0.4, length: 26 }); }, 68, 50);
+  console.log(`   [rot] monoculture ${mono.toFixed(0)}% culled vs diverse ${div.toFixed(0)}% — diversity is a firebreak`);
+  ok(mono > div + 15, 'the rot sweeps a monoculture but diversity firebreaks it (Elton: variety is a shield)');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);

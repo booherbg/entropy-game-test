@@ -60,6 +60,15 @@
     // reproduction, mutation toward the local blend, and death → mineralization.
     const REPRO = 2.0, MUT = 0.25, UPKEEP = 0.15, LIFE_CAP = 4000;
     const PRED_BITE = 0.8, PRED_RETAIN = 0.7, PREY_FLOOR = 0.2, SATIETY = 1.8, MUT_PRED = 0.06, MOVE_MIN = 0.2;
+    // the rot — an antagonist that pushes back. a disturbance INTENSITY on the field (not matter) that
+    // damages the life in its cells (biomass → humus, conserved) and spreads cell-to-cell — FREELY through
+    // ground held by one guild, but barely across a guild SEAM. so a uniform monoculture is one open field
+    // it sweeps end to end, while a diverse world is a quilt of firebreaks that contains it to a patch.
+    // diversity-as-shield (Elton's diversity–stability), expressed on the map's real structure. zero rot ⇒
+    // rotStep is a no-op, so the measured baseline world is untouched until a rot is lit.
+    const ROT_DAMAGE = 0.3, ROT_SPREAD = 0.45, ROT_MIN = 0.05, ROT_CAP = 2.0;
+    const ROT_DECAY_FUEL = 0.08, ROT_DECAY_BARE = 0.5; // rot is FIRE — it burns out fast where its fuel-type isn't
+    const ROT_SAME = 1.0, ROT_CROSS = 0.02, ROT_EMPTY = 0.22; // spread into matching fuel / a wrong-guild seam (firebreak) / bare bridge
     function neighborCell(ent) {
       const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
       const d = dirs[(rng() * 4) | 0];
@@ -136,9 +145,57 @@
         if (prey.biomass <= 1e-6) { field.add(E.idx(prey.x | 0, prey.y | 0), E.HUM, Math.max(0, prey.biomass)); prey.alive = false; }
       }
     }
+    function seedRot(field, x, y, amt) { field.rot[E.idx(x | 0, y | 0)] += (amt || 4); } // light a rot at a cell
+    function rotStep(field) {
+      const rot = field.rot, rotType = field.rotType, N = E.W * E.H;
+      let any = false; for (let i = 0; i < N; i++) if (rot[i] > ROT_MIN) { any = true; break; }
+      if (!any) return; // no rot → no-op (baseline untouched; pure deterministic field op, no rng)
+      // per-cell dominant guild from the current life — the FUEL map. -1 = no life.
+      const dom = new Int8Array(N).fill(-1), cellD = new Map();
+      for (const e of list) {
+        if (!e.alive) continue;
+        const k = E.idx(e.x | 0, e.y | 0); let a = cellD.get(k); if (!a) { a = [0, 0, 0]; cellD.set(k, a); }
+        a[0] += e.diet[0]; a[1] += e.diet[1]; a[2] += e.diet[2];
+      }
+      for (const [k, a] of cellD) { let d = 0; if (a[1] > a[d]) d = 1; if (a[2] > a[d]) d = 2; dom[k] = d; }
+      // a freshly-lit cell takes the local guild as its fire-TYPE (what it burns); default lumen if bare
+      for (let i = 0; i < N; i++) if (rot[i] > ROT_MIN && rotType[i] < 0) rotType[i] = dom[i] >= 0 ? dom[i] : 0;
+      // 1. damage all life standing in rotted cells (biomass → humus, conserved)
+      for (const e of list) {
+        if (!e.alive) continue;
+        const k = E.idx(e.x | 0, e.y | 0), r = rot[k]; if (r <= ROT_MIN) continue;
+        const loss = Math.min(ROT_DAMAGE * r, e.biomass); e.biomass -= loss; field.add(k, E.HUM, loss);
+        if (e.biomass <= 1e-6) { field.add(k, E.HUM, Math.max(0, e.biomass)); e.alive = false; }
+      }
+      // 2. spread (gather then apply). a fire of type T feeds on T-fuel (full), bridges bare ground weakly
+      // carrying its type, and is all but BLOCKED by a different guild — the firebreak diversity builds.
+      const add = new Float32Array(N), addType = new Int8Array(N).fill(-1), best = new Float32Array(N);
+      for (let i = 0; i < N; i++) {
+        const r = rot[i]; if (r <= ROT_MIN) continue;
+        const T = rotType[i], x = i % E.W, y = (i / E.W) | 0;
+        const spreadTo = (ni) => {
+          const dn = dom[ni], mult = dn === T ? ROT_SAME : (dn < 0 ? ROT_EMPTY : ROT_CROSS);
+          const c = r * ROT_SPREAD * mult; if (c <= 0) return;
+          add[ni] += c; if (c > best[ni]) { best[ni] = c; addType[ni] = T; }
+        };
+        if (x > 0) spreadTo(i - 1); if (x < E.W - 1) spreadTo(i + 1);
+        if (y > 0) spreadTo(i - E.W); if (y < E.H - 1) spreadTo(i + E.W);
+      }
+      // 3. decay (FAST unless the cell's living fuel matches the fire's type) + apply spread, capped.
+      for (let i = 0; i < N; i++) {
+        if (rot[i] <= 0 && add[i] <= 0) continue;
+        const T = rotType[i] >= 0 ? rotType[i] : addType[i];
+        const fueled = T >= 0 && dom[i] === T;
+        let v = rot[i] * (1 - (fueled ? ROT_DECAY_FUEL : ROT_DECAY_BARE)) + add[i];
+        if (v > ROT_CAP) v = ROT_CAP;
+        if (v < 1e-4) { v = 0; rotType[i] = -1; } else if (rotType[i] < 0) rotType[i] = addType[i];
+        rot[i] = v;
+      }
+    }
     function step(field) {
       move();
       predate(field);
+      rotStep(field);
       for (const ent of list) {
         if (!ent.alive) continue;
         metabolize(field, ent);
@@ -156,7 +213,7 @@
       }
     }
 
-    return { list, spawnFromPrimer, step, _rng: rng, dissipated: function () { return _dissipated; } };
+    return { list, spawnFromPrimer, seedRot, step, _rng: rng, dissipated: function () { return _dissipated; } };
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = E;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

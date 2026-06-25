@@ -27,6 +27,7 @@
     function addGenerator(g) { gens.push(g); }
     function dropPrimer(x, y) { return life.spawnFromPrimer(field, x | 0, y | 0, 10); } // a player's seed brings starter substrate
     function dropPredator(x, y) { return life.spawnFromPrimer(field, x | 0, y | 0, 0, 0.7); } // seed a hunter into a living patch
+    function dropRot(x, y) { return life.seedRot(field, x | 0, y | 0, 5); } // light a rot — it sweeps a uniform patch, stalls at guild seams
 
     function stats() {
       const live = life.list.filter(e => e.alive);
@@ -44,7 +45,7 @@
       return h >>> 0;
     }
 
-    return { field, life, gens, tick, addGenerator, dropPrimer, dropPredator, stats, hash,
+    return { field, life, gens, tick, addGenerator, dropPrimer, dropPredator, dropRot, stats, hash,
              burnRate: function () { return burnRate; },
              serialize() { return E.serializeSim(field, life, gens, seed); } };
   };
@@ -55,7 +56,7 @@
     return {
       v: 1, seed: seed >>> 0,
       gens: gens.map(g => Object.assign({}, g)),
-      field: { el: Array.from(field.el), variant: Array.from(field.variant), soil: Array.from(field.soil) },
+      field: { el: Array.from(field.el), variant: Array.from(field.variant), soil: Array.from(field.soil), rot: Array.from(field.rot), rotType: Array.from(field.rotType) },
       life: life.list.filter(e => e.alive).map(e => ({
         id: e.id, x: e.x, y: e.y, diet: Array.from(e.diet),
         biomass: e.biomass, age: e.age, gen: e.gen, pred: e.pred,
@@ -67,6 +68,8 @@
     field.el.set(obj.field.el);
     field.variant.set(obj.field.variant);
     if (obj.field.soil) field.soil.set(obj.field.soil);
+    if (obj.field.rot) field.rot.set(obj.field.rot);
+    if (obj.field.rotType) field.rotType.set(obj.field.rotType);
     const life = E.makeLife(E.makeRng(1));
     for (const e of obj.life) {
       life.list.push({
