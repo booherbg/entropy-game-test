@@ -6,35 +6,43 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
-## 2026-06-25 · the soul, measured — the world sits at the edge of chaos
+## 2026-06-25 · the soul, measured — the world sits at the edge of chaos (and a number that lied)
 
 The foundations doc asked for a *measurable* soul: not "it feels alive," but a number that says whether this
 world is Wolfram **Class 4** — the living class between frozen order (1/2) and chaos (3), where Langton put
 the edge and Kauffman put life. So I measured it. Five seeds, four thousand ticks each, three springs and a
 handful of seeded hunters; sample the diversity every twenty ticks and tally where the extinctions fall.
-The verdict held on every seed: **mean diversity ~87, never dipping below 58, never frozen to a
-monoculture, never collapsing.** Persistent and structured — alive, by the number.
+The verdict held on every seed: **~13 niches alive (of ~30 possible), never dropping below 7, never frozen
+to a monoculture, never collapsing.** Persistent and structured — alive, by the number.
 
-But the measurement taught the builder two honest lessons before it would say so. **First**, a stable
-diversity *count* proves nothing on its own — *a dead world also has a flat count*. The tell that separates
-frozen from alive is **turnover**: beneath that steady ~87 the world runs **~68 extinctions per run**, each
-balanced by a birth — species churning constantly under a calm surface, the way a real ecology holds its
-richness while its membership turns over. **Second**, and humbling: my first pass reported a diversity of
-*zero* as if the world had momentarily died and rebounded — a perfect avalanche. It hadn't. It was the
-**cold start** — the impatient-seed problem already in this notebook: the test seeded life on bare ground,
-so the world sat empty until ~tick 300 waiting on a fertility spark. Pre-build the gradient first (as the
-game's own opening does) and the artifact vanishes; the established world never falls below 58. *To measure
-the soul you must measure the living world, not the cry of its birth.*
+But the measurement taught three lessons before it would say so, and the third is the one worth keeping.
+**First**, a stable diversity *count* proves nothing alone — *a dead world also has a flat count*. The tell
+that separates frozen from alive is **turnover**: beneath that steady ~13 the world runs **~24 extinctions
+per run**, each balanced by a birth — niches churning under a calm surface, the way a real ecology holds its
+richness while its membership turns over. **Second**, humbling: my first pass read a diversity of *zero* as
+a momentary total death-and-rebound — a perfect avalanche. It wasn't. It was the **cold start**, the
+impatient-seed problem already in this notebook: the test seeded on bare ground, so the world sat empty
+until ~tick 300 awaiting a fertility spark. Pre-build the gradient first (as the game's own opening does)
+and the artifact vanishes. *Measure the living world, not the cry of its birth.*
 
-And the signature that makes "edge of chaos" more than a slogan — **Bak's self-organized criticality.** If
-extinctions arrived at a steady drip, the busiest tenth of time-windows would hold about a tenth of them.
-Instead the **top 10% of windows hold 44%** — a **3.4× concentration**, consistent across all five seeds:
-long quiet stretches punctuated by cascades (fifteen-to-twenty-three species lost in a single window against
-a mean of four). The world is not dying at a constant rate; it is **avalanching** — most days nothing, then
-a collapse that takes a guild with it, then quiet again. That is the sandpile, the punctuated equilibrium,
-the heavy tail — the fingerprint of a system that has tuned *itself* to its own critical point. Nobody set
-a dial to 87 species or to 44%. The rules — flow in, dissipate, adapt, die back — found the edge on their
-own. (`eddy/test/criticality.js`, reproducible, deterministic.)
+**Third, and the real catch:** my first committed numbers were inflated, and the loop caught itself. I had
+counted species by their *procedural names* — but a name is a hash into ~150 buckets, so the count read a
+falsely-rich **87**, and the cascades looked **3.4×** heavy. Re-measured by the *meaningful* niche — diet
+quantized to quarters, the very key the player's diversity score uses, max ~30 ways of making a living — the
+honest figures are **~13 niches and 2.0×**. The signal *survived* the stricter metric; its **magnitude did
+not**. So the diversity headline the parent might have bragged on was partly an artifact of how finely you
+chose to name things — a humbling, on-thesis reminder that *what you measure decides what you find*, and that
+a reproducible world is one whose own builder can be caught and corrected by it.
+
+And the signature that makes "edge of chaos" more than a slogan still stands — **Bak's self-organized
+criticality.** If extinctions arrived at a steady drip, the busiest tenth of time-windows would hold about a
+tenth of them. Instead the **top 10% of windows hold ~27%** — **2.0× concentrated**, on every seed: long
+quiet stretches punctuated by cascades (up to five niches lost in a single window against a mean near one).
+The world is not dying at a constant rate; it **avalanches** — most days nothing, then a collapse that takes
+a guild, then quiet again. The sandpile, the punctuated equilibrium, the heavy tail: the fingerprint of a
+system that tuned *itself* to its critical point. Nobody set a dial to 13 niches or to 2×. The rules — flow
+in, dissipate, adapt, die back — found the edge on their own. (`eddy/test/criticality.js`, deterministic;
+species counted by the shared `E.speciesKey`, the same niche the Weaver aspect scores.)
 
 ## 2026-06-25 · the world moves — hunters roam, a real third behavior
 

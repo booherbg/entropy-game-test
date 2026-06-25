@@ -13,9 +13,16 @@
     { key: 'burning', name: 'burning', of: 'throughput' },
   ];
 
+  // a species' niche identity: diet quantized to quarters + a hunter flag. Coarse on purpose — it counts
+  // meaningfully-distinct ways of making a living (max ~30), not every micro-drift. The diversity the
+  // player pursues, and the unit the criticality analysis measures, are the same key.
+  E.speciesKey = function (e) {
+    return e.diet.map(v => Math.round(v * 4)).join(',') + ((e.pred || 0) > 0.4 ? 'h' : '');
+  };
+
   E.score = function (sim) {
     const live = sim.life.list.filter(e => e.alive);
-    const keys = new Set(live.map(e => e.diet.map(v => Math.round(v * 4)).join(',') + ((e.pred || 0) > 0.4 ? 'h' : '')));
+    const keys = new Set(live.map(E.speciesKey));
     const diversity = keys.size;
     let order = 0; for (const e of live) order += e.biomass;
     const throughput = sim.burnRate ? sim.burnRate() : 0;

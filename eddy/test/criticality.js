@@ -2,9 +2,15 @@
 // Measure the edge of chaos (the foundations doc's "measurable soul"): is this world Class-4 (alive) —
 // diversity persisting without freezing or churning, extinctions arriving in self-organized-criticality
 // cascades? Pure analysis, deterministic, swept across seeds so the verdict isn't a lucky world.
-// node eddy/test/criticality.js
-['rng', 'grid', 'field', 'generators', 'life', 'fertility', 'sim', 'content', 'chronicle'].forEach(f => require('../js/' + f + '.js'));
+//
+// Species are counted by E.speciesKey — diet quantized to quarters + a hunter flag — the SAME meaningful
+// niche the player's diversity score uses (max ~30 ways of making a living). An earlier version counted
+// the chronicle's procedural *names*, which bucket into ~150 hash slots and so inflate both the diversity
+// (it read ~87) and the cascade sizes; this measures real niches instead. node eddy/test/criticality.js
+['rng', 'grid', 'field', 'generators', 'life', 'fertility', 'sim', 'score'].forEach(f => require('../js/' + f + '.js'));
 const E = globalThis.E;
+
+const TICKS = 4000, WARM = 620; // drop the establishment ramp; measure the living world, not its birth
 
 function run(seed) {
   const sim = E.makeSim(seed);
@@ -16,42 +22,46 @@ function run(seed) {
   // fertility spark, a cold-start transient that has nothing to do with the established world's criticality.
   for (let k = 0; k < 40; k++) { sim.field.diffuse(); E.depositGenerators(sim.field, sim.gens); }
   sim.dropPrimer(55, 50); sim.dropPrimer(95, 50);
-  const chr = E.makeChronicle();
-  const div = [], TICKS = 4000;
+
+  const firstSeen = new Map(); // speciesKey -> tick first observed (for births/extinctions)
+  const div = [];              // warm-window diversity samples (niche count)
+  const win = {}; let totalExt = 0; // extinctions per 100-tick window
   for (let t = 1; t <= TICKS; t++) {
     sim.tick();
     if (t === 500) for (let i = 0; i < 4; i++) sim.dropPredator(54 + i % 3, 49 + (i / 3 | 0));
-    if (t % 20 === 0) { chr.observe(sim, t); div.push(chr.aliveCount()); }
+    if (t % 20 !== 0) continue;
+    const cur = new Set();
+    for (const e of sim.life.list) if (e.alive) cur.add(E.speciesKey(e));
+    const warm = t >= WARM;
+    if (warm) div.push(cur.size);
+    for (const k of cur) if (!firstSeen.has(k)) firstSeen.set(k, t);             // births
+    for (const k of Array.from(firstSeen.keys())) if (!cur.has(k)) {             // extinctions
+      firstSeen.delete(k);
+      if (warm) { const w = Math.floor(t / 100); win[w] = (win[w] || 0) + 1; totalExt++; }
+    }
   }
-  // diversity persistence — measured after establishment (drop the cold-start ramp) so cv reflects
-  // the living world, not the empty-to-alive transient. With the gradient pre-built the colony takes
-  // within ~60 ticks; t>=600 (drop 30 samples) is a safe margin and still leaves 170 samples.
-  const warm = div.slice(30); // ticks 620..4000
-  const mean = warm.reduce((a, b) => a + b, 0) / warm.length;
-  const std = Math.sqrt(warm.reduce((a, b) => a + (b - mean) ** 2, 0) / warm.length);
-  const cv = std / mean, dmin = Math.min.apply(null, warm), dmax = Math.max.apply(null, warm);
-  // extinction cascades from the codex (uncapped): extinctions per 100-tick window
-  const win = {}; let totalExt = 0;
-  for (const r of chr.codex.values()) if (!r.alive) { const w = Math.floor(r.lastTick / 100); win[w] = (win[w] || 0) + 1; totalExt++; }
+  const mean = div.reduce((a, b) => a + b, 0) / div.length;
+  const std = Math.sqrt(div.reduce((a, b) => a + (b - mean) ** 2, 0) / div.length);
+  const cv = std / mean, dmin = Math.min.apply(null, div), dmax = Math.max.apply(null, div);
   const sizes = Object.values(win).sort((a, b) => b - a);
   const maxCascade = sizes[0] || 0;
   const topK = Math.max(1, Math.ceil(sizes.length * 0.1));
   const big = sizes.slice(0, topK).reduce((a, b) => a + b, 0);
   const tailFrac = totalExt ? big / totalExt : 0;
-  const uniform = sizes.length ? topK / sizes.length : 0; // mass the top 10% of windows would hold if extinctions were uniform
+  const uniform = sizes.length ? topK / sizes.length : 0; // mass the top 10% of windows hold if extinctions were uniform
   return { seed, mean, cv, dmin, dmax, totalExt, windows: sizes.length, maxCascade, tailFrac, uniform };
 }
 
 const SEEDS = [7, 11, 23, 42, 101];
-console.log('=== eddy · criticality (4000 ticks each, warm window t>=620) ===');
-console.log('seed |  mean div |   cv  | range   | extinct | maxCasc | heavy-tail');
+console.log('=== eddy · criticality (4000 ticks each, warm window t>=' + WARM + ', niche-level species) ===');
+console.log('seed |  mean div |   cv  | range  | extinct | maxCasc | heavy-tail');
 const rows = SEEDS.map(run);
 for (const r of rows) {
   console.log(
     String(r.seed).padStart(4) + ' | ' +
-    r.mean.toFixed(0).padStart(9) + ' | ' +
+    r.mean.toFixed(1).padStart(9) + ' | ' +
     r.cv.toFixed(2).padStart(5) + ' | ' +
-    (r.dmin + '..' + r.dmax).padStart(7) + ' | ' +
+    (r.dmin + '..' + r.dmax).padStart(6) + ' | ' +
     String(r.totalExt).padStart(7) + ' | ' +
     String(r.maxCascade).padStart(7) + ' | ' +
     (r.tailFrac * 100).toFixed(0).padStart(8) + '%');
