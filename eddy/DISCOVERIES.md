@@ -6,6 +6,30 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · the hunter earns its keep — predation that makes the web richer (Paine's keystone)
+
+The bake-off had just caught the ⚔ tool being decorative: seeding hunters scored the same as not. The canon
+named the fix before I'd finished writing the complaint. **Robert Paine, 1966** — pull the predator (the
+starfish *Pisaster*) off a rocky shore and the diversity *collapses*, because one competitor (the mussel)
+crowds out everyone; the predator's *cropping of the dominant* is what holds the door open for the rest. A
+predator can be a **keystone** — its presence *raises* richness. Mine wasn't, because it bit the first prey
+it found, thinning all comers evenly. So I pointed the bite at the dominant: among the prey a hunter can
+reach, it now takes one of the **most abundant species** (counted by the same `speciesKey` the diversity
+score uses — one comparison added to the prey-selection loop). 
+
+And the shore answered. Under sustained hunting the niche count rises **13.6 → 15.5, +15%, on every seed**
+tried — locked now into the harness. The targeting is authored (I wrote "prefer the common one"); the
+*diversity gain is not* — it falls out of the ecology, exactly as Paine measured it in tide pools: relieve
+the pressure of the crowd and the rare make a living. The take-and-kill primitive, aimed, stops being a
+drain and becomes a **function** — top-down control that structures the web.
+
+The honest seam, and it points somewhere: the lift holds only **while the predator guild persists.** A
+single fire-and-forget hunter pack fades, and its keystone benefit fades with it (which is why the bake-off's
+one-shot seeding still read neutral, while *sustained* pressure clearly lifts). Right now persistence is the
+player's job — re-seed, keep the pack alive. The deeper answer is the arc still open in this notebook: an
+**obligate predator that sustains itself**, so the keystone holds without a hand on it. The lever works; now
+it wants a world that can hold it down on its own.
+
 ## 2026-06-25 · is it boring? no — a considered hand is worth 3.8×
 
 The honest test of a god-game: would the world be any different if you hadn't bothered to think? So I ran
@@ -255,9 +279,11 @@ from noise.
 *2. **The impatient-seed problem** (above): the auto-opening is fixed (pre-builds the gradient), but a
 *player's* primer on bare ground still starves — decide the feel (starter substrate that lands as food,
 vs. teach patience) so player seeding reliably has a consequence.*
-*3. **Make the hunter a lever, not flavour** (strategy bake-off, above): seeding predators is score-neutral
-(284 vs 290). A hunter that crops a dominant guild should *open* niches and raise diversity, so the ⚔ tool
-becomes a real strategic choice rather than decoration.*
+*3. **The obligate predator that sustains itself** — keystone predation now works (a hunter crops the
+dominant and raises diversity, Paine 1966), but only *while the pack persists*; a fire-and-forget hunter
+fades. The remaining arc: a predator that lives by the kill well enough to hold its own guild down, so the
+keystone effect stays without the player re-seeding (needs a bigger/faster prey base — the long-standing
+predator-prey balance problem).*
 *4. **The soil boom-then-drawdown** (seen in every playtest & the bake-off): soil peaks mid-run then declines
 even with infinite springs — the mature world consumes its own accreted legacy faster than it lays it down.
 Probe whether this is a healthy boom/lean cycle or a slow hollowing, and whether it should be felt as a
@@ -267,5 +293,6 @@ energy-aware soil release so accreted ground can revive a dead patch, not just f
 *6. More graduation features: compounds & the co-evolution layer, the rules/incentive layer.*
 *(Answered 2026-06-25: the food web self-extends; the dissipative model keeps it diverse & bounded; two
 overlapping springs breed a persistent blend species; the world renders legibly; finite springs make
-placement a consequential decision; the world measures at the edge of chaos (Class 4 + SOC); and player
-choices move the score by 3.8× — it is not boring.)*
+placement a consequential decision; the world measures at the edge of chaos (Class 4 + SOC); player
+choices move the score by 3.8× — it is not boring; and the hunter is now a keystone lever that raises
+diversity, not decoration.)*

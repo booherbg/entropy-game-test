@@ -48,7 +48,9 @@ const STRATS = {
   },
 };
 const HOOK = {
-  hunters(sim, t) { if (t === 400) for (let i = 0; i < 5; i++) sim.dropPredator(54 + i % 3, 49 + (i / 3 | 0)); },
+  // a player actively wielding the ⚔ tool — keeping a predator guild alive with periodic re-seeds, since a
+  // single fire-and-forget hunter pack fades (and its keystone diversity benefit fades with it).
+  hunters(sim, t) { if (t >= 400 && t % 300 === 0) for (let i = 0; i < 4; i++) sim.dropPredator(54 + i % 3, 49 + (i / 3 | 0)); },
 };
 
 const SEEDS = [7, 11, 23], TICKS = 2000;

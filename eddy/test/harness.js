@@ -320,5 +320,30 @@ require('../js/economy.js');
   ok(eco.flow() > 50, 'a flourishing world pays a flow dividend over time');
 })();
 
+(function testKeystonePredationRaisesDiversity() {
+  // Paine 1966: a predator that crops the dominant competitor raises diversity. Sustained hunting should
+  // lift the niche count vs the same world left unhunted. Averaged over two seeds (back-half mean) so the
+  // assertion locks in the mechanism, not a lucky world.
+  function backHalfDiversity(seed, hunt) {
+    const sim = E.makeSim(seed);
+    sim.addGenerator({ x: 55, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+    sim.addGenerator({ x: 95, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 16 });
+    sim.addGenerator({ x: 75, y: 30, el: E.HUM, rate: 5, proj: 'vein', angle: 0.4, length: 30 });
+    for (let k = 0; k < 40; k++) { sim.field.diffuse(); E.depositGenerators(sim.field, sim.gens); }
+    sim.dropPrimer(55, 50); sim.dropPrimer(95, 50);
+    let sum = 0, n = 0;
+    for (let t = 1; t <= 2000; t++) {
+      sim.tick();
+      if (hunt && t >= 400 && t % 300 === 0) for (let i = 0; i < 4; i++) sim.dropPredator(54 + i % 3, 49 + (i / 3 | 0));
+      if (t >= 1000 && t % 20 === 0) { const live = sim.life.list.filter(e => e.alive); sum += new Set(live.map(E.speciesKey)).size; n++; }
+    }
+    return sum / n;
+  }
+  const noHunt = backHalfDiversity(7, false) + backHalfDiversity(23, false);
+  const hunt = backHalfDiversity(7, true) + backHalfDiversity(23, true);
+  console.log(`   [keystone] sustained-hunters diversity ${(hunt / 2).toFixed(1)} vs unhunted ${(noHunt / 2).toFixed(1)}`);
+  ok(hunt > noHunt, 'keystone predation raises diversity — cropping the dominant frees rarer niches (Paine 1966)');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);

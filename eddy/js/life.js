@@ -2,6 +2,13 @@
   'use strict';
   const E = root.E = root.E || {};
 
+  // a species' niche identity: diet quantized to quarters + a hunter flag — coarse on purpose (it counts
+  // meaningfully-distinct ways of making a living, max ~30, not every micro-drift). Shared by the diversity
+  // score, the criticality analysis, and keystone predation, so all three mean the same thing by "species".
+  E.speciesKey = function (e) {
+    return e.diet.map(v => Math.round(v * 4)).join(',') + ((e.pred || 0) > 0.4 ? 'h' : '');
+  };
+
   E.makeLife = function (rng) {
     const list = [];
     let nextId = 1, _dissipated = 0;
@@ -97,18 +104,28 @@
       }
     }
     function predate(field) {
-      const occ = new Map();
-      for (const e of list) { if (!e.alive) continue; const k = E.idx(e.x | 0, e.y | 0); let a = occ.get(k); if (!a) { a = []; occ.set(k, a); } a.push(e); }
+      const occ = new Map(), pop = new Map();
+      for (const e of list) {
+        if (!e.alive) continue;
+        const k = E.idx(e.x | 0, e.y | 0); let a = occ.get(k); if (!a) { a = []; occ.set(k, a); } a.push(e);
+        const sk = E.speciesKey(e); pop.set(sk, (pop.get(sk) || 0) + 1); // species census, for keystone targeting
+      }
       const dirs = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
       for (const pr of list) {
         if (!pr.alive || pr.pred <= 0.02 || pr.biomass >= SATIETY) continue; // sated or barely predatory → skip
         const cx = pr.x | 0, cy = pr.y | 0;
-        let prey = null;
+        // keystone predation (Paine 1966): among reachable prey, take one of the most ABUNDANT species —
+        // cropping the competitive dominant frees resource for rarer niches, so hunting raises diversity
+        // rather than thinning everyone evenly. ties keep the first found → deterministic.
+        let prey = null, preyPop = -1;
         for (const [dx, dy] of dirs) {
           const nx = cx + dx, ny = cy + dy; if (nx < 0 || ny < 0 || nx >= E.W || ny >= E.H) continue;
           const a = occ.get(E.idx(nx, ny)); if (!a) continue;
-          for (const e of a) { if (e !== pr && e.alive && e.pred < pr.pred - 0.05 && e.biomass > PREY_FLOOR) { prey = e; break; } }
-          if (prey) break;
+          for (const e of a) {
+            if (e === pr || !e.alive || e.pred >= pr.pred - 0.05 || e.biomass <= PREY_FLOOR) continue;
+            const p = pop.get(E.speciesKey(e)) || 0;
+            if (p > preyPop) { preyPop = p; prey = e; }
+          }
         }
         if (!prey) continue;
         const bite = Math.min(PRED_BITE * pr.pred, prey.biomass - PREY_FLOOR);
