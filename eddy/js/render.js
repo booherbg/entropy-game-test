@@ -81,6 +81,7 @@ void main(){
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     gl.bindVertexArray(null);
     if (E.Render._drawEntities) E.Render._drawEntities(sim, gl); // Task 12
+    if (E.Render._drawGenerators) E.Render._drawGenerators(sim, gl);
   };
 
   // ── entities: distinct, diet-colored sprites that sit ABOVE the field ──
@@ -140,6 +141,29 @@ void main(){ vec2 d = gl_PointCoord - vec2(0.5); float r = length(d); if (r > 0.
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, entBuf.subarray(0, n * 5));
     gl.uniform2f(eGridU, E.W, E.H);
     gl.uniform1f(ePsizeU, Math.max(3, (gl.canvas.height / E.H) * 1.7));
+    gl.drawArrays(gl.POINTS, 0, n);
+    gl.bindVertexArray(null);
+  };
+
+  // springs as markers — element-colored, dimming as the reservoir runs dry (reuses the entity
+  // point-sprite program; larger than creatures so a spring reads as a placed source).
+  E.Render._drawGenerators = function (sim, gl) {
+    if (!eprog || !sim.gens || !sim.gens.length) return;
+    const COL = [[0.95, 0.78, 0.32], [0.42, 0.66, 0.96], [0.50, 0.84, 0.46]];
+    let n = 0;
+    for (const g of sim.gens) {
+      if (n >= ECAP) break;
+      const frac = (g.r0 && isFinite(g.r0)) ? Math.max(0, Math.min(1, g.reservoir / g.r0)) : 1;
+      const br = 0.3 + 0.7 * frac, c = COL[g.el] || [0.8, 0.8, 0.8], o = n * 5;
+      entBuf[o] = g.x; entBuf[o + 1] = g.y; entBuf[o + 2] = c[0] * br; entBuf[o + 3] = c[1] * br; entBuf[o + 4] = c[2] * br; n++;
+    }
+    if (!n) return;
+    gl.useProgram(eprog);
+    gl.bindVertexArray(evao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, ebuf);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, entBuf.subarray(0, n * 5));
+    gl.uniform2f(eGridU, E.W, E.H);
+    gl.uniform1f(ePsizeU, Math.max(7, (gl.canvas.height / E.H) * 3.0)); // bigger than creatures
     gl.drawArrays(gl.POINTS, 0, n);
     gl.bindVertexArray(null);
   };

@@ -50,7 +50,7 @@
       const s = main.getSim ? main.getSim() : sim;
       if (tool === 'generator') {
         // a finite spring: it runs dry, so where & when you place it is a real decision (steward the flow)
-        s.addGenerator({ x: cell.x, y: cell.y, el: element, rate: 8, proj: proj, radius: 16, angle: 0.5, length: 30, reservoir: 4000 });
+        s.addGenerator({ x: cell.x, y: cell.y, el: element, rate: 8, proj: proj, radius: 16, angle: 0.5, length: 30, reservoir: 4000, r0: 4000 });
       } else if (tool === 'primer') {
         s.dropPrimer(cell.x, cell.y);
       } else if (tool === 'inspect' && E.UI.inspectAt) {

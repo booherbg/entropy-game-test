@@ -39,9 +39,9 @@ function fieldColor(l, m, h) {
 const ticks = parseInt(process.argv[2] || '600', 10);
 const name = process.argv[3] || 'world';
 const sim = E.makeSim(7);
-sim.addGenerator({ x: 60, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
-sim.addGenerator({ x: 100, y: 52, el: E.MIN, rate: 8, proj: 'radial', radius: 16 });
-sim.addGenerator({ x: 82, y: 28, el: E.HUM, rate: 5, proj: 'vein', angle: 0.5, length: 34 });
+sim.addGenerator({ x: 60, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16, reservoir: 12000, r0: 12000 });
+sim.addGenerator({ x: 100, y: 52, el: E.MIN, rate: 8, proj: 'radial', radius: 16, reservoir: 9000, r0: 9000 });
+sim.addGenerator({ x: 82, y: 28, el: E.HUM, rate: 5, proj: 'vein', angle: 0.5, length: 34, reservoir: 4000, r0: 4000 });
 sim.dropPrimer(60, 50); sim.dropPrimer(100, 52);
 for (let t = 0; t < ticks; t++) sim.tick();
 
@@ -68,6 +68,20 @@ for (const e of sim.life.list) {
     const px = cx + dx, py = cy + dy; if (px < 0 || py < 0 || px >= IW || py >= IH) continue;
     const o = (py * IW + px) * 3, edge = d2 > (r - 1) * (r - 1);
     rgb[o] = edge ? 10 : R; rgb[o + 1] = edge ? 11 : G; rgb[o + 2] = edge ? 12 : B;
+  }
+}
+// generators as markers — element-colored diamonds that dim as the spring runs dry (depletion, legible)
+function genColor(el) { return [[242, 199, 82], [107, 168, 245], [128, 214, 118]][el] || [200, 200, 200]; }
+for (const g of sim.gens) {
+  const frac = (g.r0 && isFinite(g.r0)) ? Math.max(0, Math.min(1, g.reservoir / g.r0)) : 1;
+  const gc = genColor(g.el), br = 0.28 + 0.72 * frac;
+  const cx = Math.round((g.x + 0.5) * S), cy = Math.round((g.y + 0.5) * S), R = Math.round(S * 1.4);
+  for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
+    const md = Math.abs(dx) + Math.abs(dy); if (md > R) continue;
+    const px = cx + dx, py = cy + dy; if (px < 0 || py < 0 || px >= IW || py >= IH) continue;
+    const o = (py * IW + px) * 3, edge = md > R - 2;
+    if (edge) { rgb[o] = 235; rgb[o + 1] = 236; rgb[o + 2] = 242; }       // bright rim → reads as a placed thing
+    else { rgb[o] = (gc[0] * br) | 0; rgb[o + 1] = (gc[1] * br) | 0; rgb[o + 2] = (gc[2] * br) | 0; }
   }
 }
 fs.mkdirSync(__dirname + '/../shots', { recursive: true });
