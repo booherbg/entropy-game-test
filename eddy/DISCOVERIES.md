@@ -6,6 +6,16 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · the band holds across worlds
+
+Four seeds, the same two springs, four hundred ticks each: **48, 49, 70, 84 lives; six to nine
+coexisting diets; never zero, never the cap.** The edge of chaos is not a lucky seed — it is a
+property of the rules. One wrinkle worth watching: the **field keeps accumulating** (about +6,300 over
+each run) — the springs supply faster than fifty lives can drink, so the unspent material piles into a
+growing reserve. The population stays bounded (upkeep sees to that), but a source is outpacing its
+sink. Honest, for now. The eventual answer is life that builds on its own leavings (Mode-2
+accumulation) or springs that run dry — both already named for later.
+
 ## 2026-06-25 · matter cannot leave by the back door
 
 The first thing the simulation taught its builder was a correction. The plan let an organism's

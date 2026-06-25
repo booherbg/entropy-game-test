@@ -180,5 +180,24 @@ require('../js/persist.js');
   ok(sim2.stats().alive >= 0 && sim2.gens.length === 1, 'a restored sim rehydrates and ticks');
 })();
 
+(function testEdgeOfChaosSweep() {
+  console.log('   [sweep] seed → endAlive / peakSpecies / fieldDrift:');
+  let allInBand = true;
+  for (const seed of [1, 7, 42, 424242]) {
+    const sim = E.makeSim(seed);
+    sim.addGenerator({ x: 60, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+    sim.addGenerator({ x: 100, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 16 });
+    sim.dropPrimer(60, 50); sim.dropPrimer(100, 50);
+    const t0 = sim.stats().fieldTotal;
+    let peakSpecies = 0;
+    for (let t = 0; t < 400; t++) { sim.tick(); const sp = sim.stats().speciesApprox; if (sp > peakSpecies) peakSpecies = sp; }
+    const s = sim.stats();
+    const inBand = s.alive > 0 && s.alive < 4000 && s.speciesApprox >= 2;
+    allInBand = allInBand && inBand;
+    console.log(`   [sweep] ${seed} → ${s.alive} / ${peakSpecies} / ${(s.fieldTotal - t0).toFixed(0)} ${inBand ? 'OK' : 'OUT-OF-BAND'}`);
+  }
+  ok(allInBand, 'every seed ends in the live band (edge of chaos holds across seeds)');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);
