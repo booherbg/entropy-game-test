@@ -321,9 +321,13 @@ from noise.
 
 *Open threads for the loop, in priority order:*
 *1. **Blaine's visual verification** — open `eddy/index.html` (the loop can't; no headless browser).*
-*2. **The impatient-seed problem** (above): the auto-opening is fixed (pre-builds the gradient), but a
-*player's* primer on bare ground still starves — decide the feel (starter substrate that lands as food,
-vs. teach patience) so player seeding reliably has a consequence.*
+*2. **The impatient-seed problem — RESOLVED by the physics, made legible by the advisor.** Tried giving a
+player's primer its own starter substrate (even a generous 55-unit packet); found a one-time gift CANNOT
+sustain life on bare ground no matter how large — it diffuses away and upkeep starves the lone seed. That
+is not a bug, it is the dissipative thesis ("a world lives on a flow, not a stock"): you must place a spring
+and let surplus pool before seeding. The model teaches patience by itself, and the advisor now says it
+aloud ("the world is nearly bare — place a spring, let surplus pool, then seed"). Teach-patience was the
+right answer; it needed no code, only legibility — which the advisor supplies.*
 *3. **An antagonist that pushes back — as a region-rot, not a contact contagion.** The contact-blight was
 built and reverted (above): a creature-to-creature plague is density-limited and can't express
 diversity-as-shield in a spatially-segregated world. The path: a spreading **rot on the field** that
@@ -341,4 +345,6 @@ not just feed the matter guilds.*
 overlapping springs breed a persistent blend species; the world renders legibly; finite springs make
 placement a consequential decision; the world measures at the edge of chaos (Class 4 + SOC); player
 choices move the score by 3.8× — it is not boring; the hunter is now a keystone lever that raises
-diversity, not decoration; and the soil settles to a stable plateau (overshoot-and-settle, not hollowing).)*
+diversity, not decoration; the soil settles to a stable plateau (overshoot-and-settle, not hollowing); the
+SOC cascades are now narrated as felt events; and the impatient-primer "problem" was the dissipative thesis
+working all along — a packet can't sustain life without a flow, and the advisor now teaches that.)*
