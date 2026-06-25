@@ -15,12 +15,14 @@
       gens = [];
     }
 
+    let burnRate = 0, lastDiss = 0;
     function tick() {
       field.diffuse();
       E.depositGenerators(field, gens);
       life.step(field);
       field.soilStep();
       E.fertilityStep(field, life, rng);
+      const d = life.dissipated(); burnRate += ((d - lastDiss) - burnRate) * 0.1; lastDiss = d; // smoothed 2nd-law flux
     }
     function addGenerator(g) { gens.push(g); }
     function dropPrimer(x, y) { return life.spawnFromPrimer(field, x | 0, y | 0, 10); } // a player's seed brings starter substrate
@@ -43,6 +45,7 @@
     }
 
     return { field, life, gens, tick, addGenerator, dropPrimer, dropPredator, stats, hash,
+             burnRate: function () { return burnRate; },
              serialize() { return E.serializeSim(field, life, gens, seed); } };
   };
 

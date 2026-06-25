@@ -31,11 +31,13 @@
     btn.lens      = mkBtn('◉ lens',      () => { E.Render.lens = (E.Render.lens === 'world' ? 'rawfield' : 'world'); refresh(); });
     btn.play      = mkBtn('❚❚ pause',    () => { main.setPlaying(!main.isPlaying()); refresh(); });
     btn.fresh     = mkBtn('✛ new',       () => { if (main.newWorld) main.newWorld(); });
+    btn.aspect    = mkBtn('◎ aspect',    () => { if (main.cycleAspect) main.cycleAspect(); refresh(); });
 
     function refresh() {
       ['generator', 'primer', 'hunter', 'inspect'].forEach(k => btn[k].classList.toggle('on', tool === k));
       btn.lens.classList.toggle('on', E.Render.lens === 'rawfield');
       btn.play.textContent = main.isPlaying() ? '❚❚ pause' : '▶ play';
+      if (main.aspectName) btn.aspect.textContent = '◎ ' + main.aspectName();
       btn.element.textContent = ELN[element];
       btn.proj.textContent = proj;
       btn.element.style.opacity = btn.proj.style.opacity = (tool === 'generator' ? '1' : '0.4');

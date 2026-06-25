@@ -288,5 +288,21 @@ require('../js/content.js'); require('../js/chronicle.js');
   ok(chr.milestones.length >= 1, 'a milestone is recorded (first hunters / first decomposer)');
 })();
 
+require('../js/score.js');
+(function testScoreReflectsFlourishing() {
+  const sim = E.makeSim(7);
+  sim.addGenerator({ x: 60, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+  sim.addGenerator({ x: 100, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 16 });
+  sim.dropPrimer(60, 50); sim.dropPrimer(100, 50);
+  for (let t = 0; t < 150; t++) sim.tick();
+  const early = E.score(sim);
+  for (let t = 0; t < 600; t++) sim.tick();
+  const late = E.score(sim);
+  console.log(`   [score] early flourish=${early.flourish} → late flourish=${late.flourish} (div ${late.diversity}, order ${late.order}, burn ${late.throughput})`);
+  ok(late.diversity > 1 && late.order > 1, 'the score reads a living world (diversity + order > 0)');
+  ok(late.flourish > early.flourish, 'flourish rises as the world develops (early < late)');
+  ok(late.throughput >= 0, 'throughput (the 2nd-law flux) is tracked');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);

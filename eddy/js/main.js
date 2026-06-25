@@ -3,7 +3,7 @@
   const E = root.E = root.E || {};
   E.Main = {};
 
-  let gl = null, sim = null, playing = true, stepOnce = false, last = 0, acc = 0, simTicks = 0, chronicle = null;
+  let gl = null, sim = null, playing = true, stepOnce = false, last = 0, acc = 0, simTicks = 0, chronicle = null, aspect = 0;
   const TICK_MS = 60; // sim cadence; render runs every frame
 
   function resize() {
@@ -29,6 +29,7 @@
     const ro = document.getElementById('readout');
     if (ro) { const s = sim.stats(); ro.textContent = `${playing ? '▶' : '❚❚'}  alive ${s.alive} · diets ${s.speciesApprox}` + (chronicle ? ` · witnessed ${chronicle.codex.size}` : ''); }
     if (chronicle) renderChronicle();
+    if (E.score) renderScore();
     requestAnimationFrame(frame);
   }
 
@@ -48,6 +49,14 @@
     const ms = chronicle.milestones.map(e => `<div class="ev milestone">★ ${e.text}</div>`).join('');
     const rec = chronicle.recent(5).filter(e => e.kind !== 'milestone').map(e => `<div class="ev ${e.kind}">${e.text}</div>`).join('');
     el.innerHTML = ms + rec;
+  }
+
+  function renderScore() {
+    const el = document.getElementById('score'); if (!el || !E.score || !E.ASPECTS) return;
+    const s = E.score(sim), a = E.ASPECTS[aspect % E.ASPECTS.length];
+    el.innerHTML = `<div class="aspect">pursuing · the ${a.name}</div>`
+      + `<div class="big">${s[a.of]}</div>`
+      + `<div class="m">div <b>${s.diversity}</b> · order <b>${s.order}</b> · burn <b>${s.throughput}</b> · flourish <b>${s.flourish}</b></div>`;
   }
 
   function boot() {
@@ -81,6 +90,8 @@
   E.Main.getSim = () => sim;
   E.Main.replaceSim = (s) => { sim = s; E.Main.sim = s; acc = 0; simTicks = 0; chronicle = (E.makeChronicle ? E.makeChronicle() : null); };
   E.Main.newWorld = () => { if (E.Persist) E.Persist.clear(); E.Main.replaceSim(freshSim()); if (E.UI && E.UI._refresh) E.UI._refresh(); };
+  E.Main.cycleAspect = () => { aspect = (aspect + 1) % ((E.ASPECTS && E.ASPECTS.length) || 1); };
+  E.Main.aspectName = () => (E.ASPECTS ? E.ASPECTS[aspect % E.ASPECTS.length].name : '');
 
   // browser-only boot; load-safe under Node (require defines E.Main without booting)
   if (typeof document !== 'undefined') {

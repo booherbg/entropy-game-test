@@ -53,6 +53,11 @@
   #chronicle .born { color: #9fd98f; }
   #chronicle .extinct { color: #d98a8a; opacity: .5; }
   #chronicle .milestone { color: #f0b870; font-style: italic; }
+  #score { position: absolute; top: 42px; right: 12px; z-index: 5; text-align: right; pointer-events: none; }
+  #score .aspect { opacity: .55; font-size: 10.5px; text-transform: uppercase; letter-spacing: 1.2px; }
+  #score .big { font-size: 24px; color: #f0b870; line-height: 1.1; }
+  #score .m { opacity: .5; font-size: 11px; margin-top: 2px; }
+  #score .m b { color: #e8e4da; opacity: 1; }
 </style>
 </head>
 <body>
@@ -65,6 +70,7 @@
       <span class="readout" id="readout"></span>
     </div>
     <div id="hint"></div>
+    <div id="score"></div>
     <div id="chronicle"></div>
     <div id="murmur"></div>
     <div id="inspector"></div>
@@ -81,6 +87,7 @@
   <script src="js/persist.js"></script>
   <script src="js/content.js"></script>
   <script src="js/chronicle.js"></script>
+  <script src="js/score.js"></script>
   <script src="js/render.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/main.js"></script>
