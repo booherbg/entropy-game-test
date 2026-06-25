@@ -3,7 +3,7 @@
   const E = root.E = root.E || {};
   E.Main = {};
 
-  let gl = null, sim = null, playing = true, stepOnce = false, last = 0, acc = 0, simTicks = 0, chronicle = null, aspect = 0;
+  let gl = null, sim = null, playing = true, stepOnce = false, last = 0, acc = 0, simTicks = 0, chronicle = null, aspect = 0, economy = null;
   const TICK_MS = 60; // sim cadence; render runs every frame
 
   function resize() {
@@ -21,6 +21,7 @@
     let ticks = 0;
     while (((playing && acc >= TICK_MS) || stepOnce)) {
       sim.tick(); simTicks++; acc -= TICK_MS; stepOnce = false;
+      if (economy) economy.income(sim);
       if (chronicle && simTicks % 20 === 0) chronicle.observe(sim, simTicks);
       if (++ticks > 8) { acc = 0; break; } // don't spiral after a tab-away
     }
@@ -56,7 +57,8 @@
     const s = E.score(sim), a = E.ASPECTS[aspect % E.ASPECTS.length];
     el.innerHTML = `<div class="aspect">pursuing · the ${a.name}</div>`
       + `<div class="big">${s[a.of]}</div>`
-      + `<div class="m">div <b>${s.diversity}</b> · order <b>${s.order}</b> · burn <b>${s.throughput}</b> · flourish <b>${s.flourish}</b></div>`;
+      + `<div class="m">div <b>${s.diversity}</b> · order <b>${s.order}</b> · burn <b>${s.throughput}</b> · flourish <b>${s.flourish}</b></div>`
+      + (economy ? `<div class="m" style="margin-top:5px">flow <b style="color:#7fd0ff">${Math.round(economy.flow())}</b></div>` : '');
   }
 
   function boot() {
@@ -72,6 +74,7 @@
     if (!sim) sim = freshSim();
     E.Main.sim = sim;
     chronicle = (E.makeChronicle ? E.makeChronicle() : null);
+    economy = (E.makeEconomy ? E.makeEconomy() : null);
     if (E.Render && E.Render.init) E.Render.init(gl);
     if (E.UI && E.UI.init) E.UI.init(c, sim, E.Main);
 
@@ -88,10 +91,12 @@
   E.Main.isPlaying = () => playing;
   E.Main.setPlaying = (v) => { playing = !!v; };
   E.Main.getSim = () => sim;
-  E.Main.replaceSim = (s) => { sim = s; E.Main.sim = s; acc = 0; simTicks = 0; chronicle = (E.makeChronicle ? E.makeChronicle() : null); };
+  E.Main.replaceSim = (s) => { sim = s; E.Main.sim = s; acc = 0; simTicks = 0; chronicle = (E.makeChronicle ? E.makeChronicle() : null); economy = (E.makeEconomy ? E.makeEconomy() : null); };
   E.Main.newWorld = () => { if (E.Persist) E.Persist.clear(); E.Main.replaceSim(freshSim()); if (E.UI && E.UI._refresh) E.UI._refresh(); };
   E.Main.cycleAspect = () => { aspect = (aspect + 1) % ((E.ASPECTS && E.ASPECTS.length) || 1); };
   E.Main.aspectName = () => (E.ASPECTS ? E.ASPECTS[aspect % E.ASPECTS.length].name : '');
+  E.Main.afford = (what) => economy ? economy.spend(what) : true;
+  E.Main.cost = (what) => economy ? (economy.COST[what] || 0) : 0;
 
   // browser-only boot; load-safe under Node (require defines E.Main without booting)
   if (typeof document !== 'undefined') {

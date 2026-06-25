@@ -304,5 +304,21 @@ require('../js/score.js');
   ok(late.throughput >= 0, 'throughput (the 2nd-law flux) is tracked');
 })();
 
+require('../js/economy.js');
+(function testEconomyFlow() {
+  const sim = E.makeSim(7);
+  sim.addGenerator({ x: 60, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+  sim.addGenerator({ x: 100, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 16 });
+  sim.dropPrimer(60, 50); sim.dropPrimer(100, 50);
+  const eco = E.makeEconomy();
+  const start = eco.flow();
+  ok(eco.spend('spring') && eco.flow() < start, 'placing a spring costs flow');
+  eco.set(10);
+  ok(!eco.can('spring'), "can't afford a spring on an empty budget");
+  eco.set(0);
+  for (let t = 0; t < 700; t++) { sim.tick(); eco.income(sim); }
+  ok(eco.flow() > 50, 'a flourishing world pays a flow dividend over time');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);

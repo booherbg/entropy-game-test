@@ -53,11 +53,14 @@
       const cell = E.UI.cellFromPixel(ev.clientX - r.left, ev.clientY - r.top, r.width, r.height);
       const s = main.getSim ? main.getSim() : sim;
       if (tool === 'generator') {
+        if (main.afford && !main.afford('spring')) { if (hint) hint.textContent = `not enough flow for a spring (costs ${main.cost('spring')})`; return; }
         // a finite spring: it runs dry, so where & when you place it is a real decision (steward the flow)
         s.addGenerator({ x: cell.x, y: cell.y, el: element, rate: 8, proj: proj, radius: 16, angle: 0.5, length: 30, reservoir: 4000, r0: 4000 });
       } else if (tool === 'primer') {
+        if (main.afford && !main.afford('primer')) { if (hint) hint.textContent = 'not enough flow to seed'; return; }
         s.dropPrimer(cell.x, cell.y);
       } else if (tool === 'hunter') {
+        if (main.afford && !main.afford('hunter')) { if (hint) hint.textContent = `not enough flow for a hunter (costs ${main.cost('hunter')})`; return; }
         s.dropPredator(cell.x, cell.y);
       } else if (tool === 'inspect' && E.UI.inspectAt) {
         E.UI.inspectAt(s, cell); // Task 14
