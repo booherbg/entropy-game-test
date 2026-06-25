@@ -6,6 +6,23 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · the loophole is a leak — a world must live on a flow
+
+The monoculture had a deeper teacher in it. A *perfectly conserving* world cannot hold a diverse web:
+a closed cycle with no sink lets the most efficient recycler farm the standing stock to dominance. The
+resolution was not to conserve harder but to **dissipate honestly** — maintenance, the cost of merely
+persisting, now **leaves as heat** instead of recycling into humus. What a world can hold is then
+bounded by what flows in (the springs) divided by what it costs to stay alive, exactly as a dissipative
+structure must be (Prigogine; Schneider & Kay).
+
+And the result is the thing we were after all along. At 1,500 ticks — where the conserving world had
+become a humus monoculture of three thousand — the dissipative world holds **about a hundred lives
+across all three guilds, indefinitely.** Producers, mineral-feeders, and the decomposers that arose
+from their waste, all coexisting, none winning. *Diffusion still conserves — mixing moves order around
+and destroys none. Life dissipates — it captures some order on the way past and lets the rest go.* That
+is the loophole stated exactly: not a violation of the second law, but a structure that lives in its
+current, ordering what passes through before it goes.
+
 ## 2026-06-25 · the food web extends itself — and then eats everything
 
 Give a world only a lumen spring and a single lumen-eater, and wait: around **tick 367 a humus-eater
@@ -71,9 +88,10 @@ from noise.
 ---
 
 *Open threads for the loop, in priority order:*
-*1. **The dissipative model** — make lumen (energy) dissipate when spent, so the world is bounded by
-flow not stock, and the food web stays diverse over long runs (not just 400 ticks). Add a long-run
-(1000+ tick) harness test asserting ≥2 guilds persist. This is the next build.*
+*1. **Blaine's visual verification** — open `eddy/index.html`: does the field render (gradients bloom,
+gray when idle), do entities read as distinct things, do the tools work? The loop cannot check this
+(no headless browser here).*
 *2. Does the overlap of two generators breed a genuinely distinct blend-diet species (the combinatorial
-niche), and does it persist? Watch, and write it here.*
-*(Answered 2026-06-25: a humus-eater reliably arises from lumen-eaters' waste — the web extends itself.)*
+niche), and does it persist long-run? Watch, and write it here.*
+*(Answered 2026-06-25: the food web self-extends — humus-eaters arise from waste — and the dissipative
+model, upkeep leaving as heat, keeps the web diverse and bounded indefinitely.)*
