@@ -6,6 +6,28 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · playing the whole machine — compounds gave the world an age, once tuned
+
+With every system built, I finally played the *integrated* world — compounds and the antagonist and terrain
+and the food web all at once — and watched the numbers, not the parts. It caught a real fault the unit tests
+never could. At the lock threshold I first chose, **compounds cratered the founder game**: turned on, the
+young world fell to **diversity 6 against the baseline's 16**, its **decomposer guild wiped to zero** —
+because lignin formed in exactly the humus-rich spots where decomposers would have founded, locking their
+food away before they could arise. The white-rot niche was strangling the very guild it should grow from.
+
+The fix was to let only *genuine excess* humus lock, and gently (threshold 0.45 → **0.7**, slow rate). Now
+the founder dip is mild and the truth underneath is better than a fix — it is a **feature**. Compounds give
+the world an **age**: a lean lignin-accumulation phase, then white-rot evolves, and the mature web settles
+**richer than the baseline ever does — diversity 15–17 against its flat 11–12.** The recalcitrant matter
+isn't a tax; it's a maturation the world walks through, ending more diverse for having a locked resource and
+a specialist that learned to open it. (Also confirmed at the same sitting: with every lever live, the
+*full* world equals the compounds-only world — the diverse garden never trips the spontaneous rot, exactly
+as its 85%-monoculture gate promised. The pieces compose.)
+
+The lesson is the old one, re-earned: a system is not its parts, and the only way to know the whole is to
+**run the whole and look.** The unit harness proves each mechanism honest; only playing the assembled world
+showed that one of them, untuned, ate another alive.
+
 ## 2026-06-25 · the web extends itself a third time — white-rot evolves on the lignin (compounds)
 
 The last of the founding dreams, the one held longest for fear of clutter: **emergent resource chains** —

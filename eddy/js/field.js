@@ -50,7 +50,7 @@
     // compounds (lignin): where humus piles HIGH, a fraction locks into a recalcitrant store that ordinary
     // life cannot eat — it only seeps back very slowly. conserved (field humus <-> locked). gated by the
     // sim's compounds flag, so it never runs (and the baselines never change) unless compounds are on.
-    const LOCK_THRESH = 0.45, LOCK_RATE = 0.04, LOCK_RELEASE = 0.002;
+    const LOCK_THRESH = 0.7, LOCK_RATE = 0.02, LOCK_RELEASE = 0.002; // only genuine EXCESS humus locks, gently — a lignin-maturation phase, then a richer mature web, without cratering the founder game
     function lockStep() {
       for (let i = 0; i < N; i++) {
         const hi = i * E.NEL + E.HUM, h = el[hi];
