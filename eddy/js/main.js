@@ -72,7 +72,7 @@
   function renderFoodWeb() {
     const el = document.getElementById('foodweb'); if (!el) return;
     const fw = E.foodWeb(sim);
-    const max = Math.max(1, fw.lumen, fw.mineral, fw.decomposers, fw.hunters), W = 88;
+    const max = Math.max(1, fw.lumen, fw.mineral, fw.decomposers, fw.hunters, fw.crackers), W = 88;
     const row = (cls, n, lbl) => n > 0
       ? `<div class="fw-row"><span class="fw-bar ${cls}" style="width:${Math.round(n / max * W)}px"></span><span class="fw-n">${n}</span> <span class="fw-lbl">${lbl}</span></div>` : '';
     el.innerHTML = '<div class="fw-title">the food web</div>'
