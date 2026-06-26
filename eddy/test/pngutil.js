@@ -50,7 +50,7 @@ function renderWorld(E, sim, S) {
   function entAppearance(e) {
     let r = Math.max(1, Math.round(S * 0.9 * (0.5 + Math.min(e.biomass, 2) / 2 * 0.95))); // size by vitality (mirrors render.js)
     const c = E.Render.dietColor(e.diet);
-    const p = (e.pred || 0) * 0.85; // predators tint toward crimson — the drama, made visible
+    const p = Math.min(1, (e.pred || 0) * 1.4); // predators tint toward crimson — boosted so a hunter reads clearly red even at its evolved ~0.48
     let cr = c[0] * (1 - p) + 0.92 * p, cg = c[1] * (1 - p) + 0.16 * p, cb = c[2] * (1 - p) + 0.16 * p;
     if (e.composite) { cr = cr * 0.55 + 0.42; cg = cg * 0.55 + 0.42; cb = cb * 0.55 + 0.40; r = Math.round(r * 1.3); } // composites glow pearl, larger
     const R = Math.min(255, (cr * 255 | 0) + 25), G = Math.min(255, (cg * 255 | 0) + 30), B = Math.min(255, (cb * 255 | 0) + 25);

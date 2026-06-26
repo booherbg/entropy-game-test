@@ -35,6 +35,7 @@
     { q: 'large systems perpetually organize themselves to a critical state where a minor event can start a chain reaction that leads to a catastrophe of any size.', by: 'per bak, how nature works (1996)' },
     { q: 'order for free: in vast webs of interacting parts, order arises not against the odds but as their natural, expected expression.', by: 'stuart kauffman, at home in the universe (1995)' },
     { q: 'we are here to witness the creation and to abet it.', by: 'annie dillard' },
+    { q: 'just as a deer herd lives in mortal fear of its wolves, so does a mountain live in mortal fear of its deer.', by: 'aldo leopold, thinking like a mountain (1949)' },
     { q: 'i did not write these. i gathered them — from physicists and poets, nearly all long dead. what was mine was the choosing, and the order.', by: null },
   ];
   E.Content.murmur = function (i) {

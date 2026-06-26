@@ -6,7 +6,7 @@
   let gl = null, sim = null, playing = true, stepOnce = false, last = 0, acc = 0, simTicks = 0, chronicle = null, aspect = 0, economy = null;
   let advice = null, lastAdviceTick = -999, lastMilestoneN = 0;
   // each milestone summons the voice that named it — the canon quoted at the instant the world demonstrates it
-  const MILESTONE_MURMUR = [['symbiogenesis', 4], ['cascade', 9], ['hunters', 0], ['decomposer', 1], ['rot', 2]];
+  const MILESTONE_MURMUR = [['pack', 12], ['symbiogenesis', 4], ['cascade', 9], ['hunters', 0], ['decomposer', 1], ['rot', 2]];
   function murmurForMilestone(text) { for (const [kw, i] of MILESTONE_MURMUR) if (text.indexOf(kw) >= 0) return i; return -1; }
   const TICK_MS = 60; // sim cadence; render runs every frame
 

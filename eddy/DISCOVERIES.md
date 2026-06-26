@@ -6,6 +6,38 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-26 · watched it play — the dynamism is real, but it hides in the numbers (so I surfaced the pack)
+
+Overdue step in the loop's own method: after building two big mechanics (the kill, the glow), I stopped and
+*played* the whole thing — ran the full live configuration (every flag on, terrain, three springs) to sustained
+maturity and watched the arc, frame by frame. Two honest findings, one good and one not.
+
+The good: the world is no longer static underneath. Predators emerge unbidden (~t500), overshoot in an
+establishment **boom** (hunters 18→61 as prey fall 121→84 around t1500), then **bust** to a steady coexistence
+(~40 hunters, ~80 prey, diversity ~17). Niche churn at maturity runs ~2 per 100 ticks — the *set* of ways to
+make a living is semi-steady while the *counts* pulse beneath it. The obligate predator earned its keep: the
+world has a pulse now.
+
+The not-good, seen only by looking: that pulse is **invisible**. At the macro scale the mature frames are
+nearly identical — two colonies pinned to their springs, glowing in place; the t1500 predator boom doesn't
+*look* like anything. And the hunters rendered as faint salmon (their evolved `pred` sits ~0.48, and the crimson
+tint scaled too gently to read). The game's oldest weakness, again: the depth is in the data, not the eye.
+
+So this pass was about *surfacing* what's already true, no balance touched. Hunters now read clearly **crimson**
+(the tint boosted so a `pred`≈0.48 hunter is unmistakably red — a pack knots visibly red at the prey-rich seam,
+a kill site you can see). And the chronicle now names the **pack**: a once-only milestone when hunters cross
+from a lone predator into a real *guild* (distinct from "the first hunters"), which summons the predator's
+voice into the murmurs — Aldo Leopold's *Thinking Like a Mountain*, "just as a deer herd lives in mortal fear
+of its wolves, so does a mountain live in mortal fear of its deer." The canon quoted as the world proves it,
+exactly as the rest.
+
+One honest restraint: I started to narrate a recurring boom→bust "turn" and pulled it — the boom-bust is mostly
+a *one-time establishment overshoot*, not a reliable limit cycle, so a recurring narration would overclaim. The
+once-only "a pack has risen" is what's true. And the macro-staticness stands as a named, unsolved limit:
+colonies pin to their springs, so a mature world *looks* still even as it pulses. A future arc could let life
+spread and migrate so the world fills and shifts by itself; for now, the player's hand (placing new springs)
+supplies the macro change. Naming the limit is the start of the next one.
+
 ## 2026-06-26 · the storm came, the Queen still sleeps — why even a real predator won't (yet) evolve armour
 
 Having built the strong predator (above), I went straight at the thing it was supposed to unblock: the Red

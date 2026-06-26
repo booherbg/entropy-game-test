@@ -321,6 +321,22 @@ require('../js/content.js'); require('../js/chronicle.js');
   ok(cascades.length >= 1, 'a cascade (an extinction avalanche above baseline) is named — the SOC drama, made felt');
 })();
 
+(function testChroniclePackRises() {
+  // with the predator redesign on, hunters cross from a lone predator into a real GUILD — the chronicle names
+  // it (a once-only "pack has risen" milestone), and main maps that to Leopold's wolves-on-the-mountain murmur.
+  const sim = E.makeSim(7);
+  sim.setRichKill(true); sim.setEatTradeoff(0.45);
+  sim.addGenerator({ x: 60, y: 50, el: E.LUM, rate: 9, proj: 'radial', radius: 20, reservoir: 1e9, r0: 1e9 });
+  sim.addGenerator({ x: 100, y: 52, el: E.MIN, rate: 9, proj: 'radial', radius: 20, reservoir: 1e9, r0: 1e9 });
+  sim.dropPrimer(60, 50); sim.dropPrimer(100, 52);
+  const chr = E.makeChronicle();
+  for (let t = 1; t <= 1200; t++) { sim.tick(); if (t % 20 === 0) chr.observe(sim, t); }
+  const pack = chr.milestones.find(e => /pack has risen/.test(e.text));
+  console.log(`   [chronicle] pack milestone: ${pack ? '"' + pack.text + '"' : 'NONE'}`);
+  ok(!!pack && /pack/.test(pack.text), 'the chronicle names the pack — hunters crossing into a guild (predation is a force; the keyword main maps to a murmur)');
+  ok(/leopold/.test((E.Content.murmur(12).by || '').toLowerCase()), 'the predator voice (Leopold, thinking like a mountain) sits at the mapped murmur index — the pack summons it');
+})();
+
 require('../js/score.js');
 (function testScoreReflectsFlourishing() {
   const sim = E.makeSim(7);

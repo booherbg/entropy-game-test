@@ -9,9 +9,10 @@
     const codex = new Map();  // name -> { name, diet, pred, firstTick, lastTick, peak, count, alive }
     const events = [];        // { tick, kind, text }  (kind: born | extinct | milestone) — recent feed, capped
     const milestones = [];    // rare, important — kept uncapped and pinned
-    let sawHunter = false, sawDecomposer = false, sawCascade = false, sawRot = false, sawSymbiosis = false;
+    let sawHunter = false, sawDecomposer = false, sawCascade = false, sawRot = false, sawSymbiosis = false, sawPack = false;
     const extHist = [];                          // extinctions per observation, to spot a wave above baseline
     const CASCADE_MIN = 8, CASCADE_MULT = 1.3;   // a cascade = >=8 lost at once AND >1.3x the recent rate (baseline churn ~5/obs)
+    const PACK_MIN = 8, PACK_FRAC = 0.22;        // a pack = hunters become a real GUILD (>=8 and >=22% of the living), not one lone hunter
     const ELN = ['lumen', 'mineral', 'humus'];
 
     function emit(tick, kind, text) {
@@ -55,6 +56,12 @@
         else emit(tick, 'cascade', `a cascade — ${extNow} lifeforms fell together`);
       }
       extHist.push(extNow); if (extHist.length > 8) extHist.shift();
+      // the pack: hunters cross from a lone predator into a real GUILD — predation is now a force in the world
+      // (Leopold's wolves on the mountain). a once-only milestone, distinct from "the first hunters".
+      if (!sawPack) {
+        let huntNow = 0, alive = 0; for (const e of sim.life.list) if (e.alive) { alive++; if ((e.pred || 0) > 0.4) huntNow++; }
+        if (huntNow >= PACK_MIN && huntNow >= PACK_FRAC * alive) { sawPack = true; emit(tick, 'milestone', `a pack has risen — ${huntNow} hunters, predation is a force now (the mountain fears its deer)`); }
+      }
       // milestones (once each)
       if (!sawHunter) { for (const [, c] of cur) if (c.predSum / c.count > 0.4) { sawHunter = true; emit(tick, 'milestone', 'the first hunters — life has begun to eat life'); break; } }
       if (!sawDecomposer) { for (const [, c] of cur) { const d = c.diet; if (d[E.HUM] > d[E.LUM] && d[E.HUM] > d[E.MIN]) { sawDecomposer = true; emit(tick, 'milestone', 'a decomposer arose from the waste — the food web extends itself'); break; } } }

@@ -139,7 +139,7 @@ void main(){ vec2 d = gl_PointCoord - vec2(0.5); float r = length(d); if (r > 0.
     const list = sim.life.list; let n = 0;
     for (let k = 0; k < list.length && n < ECAP; k++) {
       const e = list[k]; if (!e.alive) continue;
-      const c = E.Render.dietColor(e.diet), p = (e.pred || 0) * 0.85, o = n * 6; // predators tint crimson
+      const c = E.Render.dietColor(e.diet), p = Math.min(1, (e.pred || 0) * 1.4), o = n * 6; // predators tint crimson — boosted so a hunter reads clearly red even at its evolved ~0.48
       entBuf[o] = e.x; entBuf[o+1] = e.y;
       entBuf[o+2] = c[0] * (1 - p) + 0.92 * p; entBuf[o+3] = c[1] * (1 - p) + 0.16 * p; entBuf[o+4] = c[2] * (1 - p) + 0.16 * p;
       entBuf[o+5] = 0.5 + Math.min(e.biomass, 2) / 2 * 0.95; // size by vitality — thriving large, starving small
