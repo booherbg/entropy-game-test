@@ -6,6 +6,26 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · the rot strikes unbidden — a monoculture rots from within
+
+The rot was a tool you could loose; now it is a threat that comes for you. **Spontaneous ignition:** when the
+world has collapsed to a genuine monoculture — one guild holding more than **85%** of all the living, and the
+world established — a rot rarely lights, on its own, at the colony's thickest point. Uniformity rotting from
+the inside. The over-optimized world, the green goo, the single perfect strategy: it festers.
+
+The elegant part is that the antagonist is **self-gating by the very thing it punishes.** The property that
+makes a monoculture vulnerable — uniformity — is exactly the trigger; a diverse world, where no guild nears
+85%, is **never touched.** Measured: the Class-4 garden tops out at a 0.62 single-guild fraction across every
+seed, so it never qualifies, ever — the rot *cannot* disturb a healthy world. And because it ships **off by
+default** (the live game turns it on), every measured baseline stays byte-for-byte identical; the controlled
+experiments still isolate each mechanic, while the live game is the integration where the threat is real.
+
+So the thesis is now closed on both sides. Build a monoculture and it **rots from within** (punished); keep a
+diverse world and you are **immune to the spontaneous rot** (rewarded) *and* any rot you do face **firebreaks
+at your seams** (defended). Diversity is no longer a number on a panel you might chase — it is your shield,
+your immunity, and your firewall, all at once. The Weaver was always the point; now neglecting her has a
+cost that finds you on its own.
+
 ## 2026-06-25 · the rot arrives — an antagonist that pushes back, and makes diversity a *shield*
 
 The blight was reverted with a promise (below): the antagonist wanted a different substrate — the **field**,
@@ -356,9 +376,10 @@ aloud ("the world is nearly bare — place a spring, let surplus pool, then seed
 right answer; it needed no code, only legibility — which the advisor supplies.*
 *3. **The antagonist SHIPPED — the rot** (above): a typed fire on the field that sweeps a monoculture (89%
 culled) but firebreaks at guild seams in a diverse world (39%, one patch). Conserved, no-op baseline,
-visible as a dark stain, narrated, a ☣ player tool. Remaining: **spontaneous ignition** so it strikes
-unbidden — rarely lighting in a dense MONOCULTURE patch (uniformity = vulnerability), gated so a healthy
-diverse world stays undisturbed (keeps the measured Class-4 baseline clean).*
+visible as a dark stain, narrated, a ☣ player tool — and now **strikes unbidden**: a monoculture (one guild
+>85% of the living) spontaneously rots from within, while a diverse world is never touched (self-gating;
+off by default so baselines stay byte-identical). The antagonist is complete. (Next, if wanted: tune the
+ignition rate for feel, and a render of the spontaneous strike.)*
 *4. **The obligate predator that sustains itself** — keystone predation works (a hunter crops the dominant
 and raises diversity, Paine 1966), but only *while the pack persists*; a fire-and-forget hunter fades. The
 remaining arc: a predator that lives by the kill well enough to hold its own guild down (needs a
@@ -374,4 +395,5 @@ choices move the score by 3.8× — it is not boring; the hunter is now a keysto
 diversity, not decoration; the soil settles to a stable plateau (overshoot-and-settle, not hollowing); the
 SOC cascades are now narrated as felt events; the impatient-primer "problem" was the dissipative thesis
 working all along — a packet can't sustain life without a flow, and the advisor now teaches that; and the
-antagonist arrived — the rot, a typed fire that makes diversity a literal firebreak (89% vs 39% culled).)*
+antagonist arrived — the rot, a typed fire that makes diversity a literal firebreak (89% vs 39% culled) and
+strikes monocultures unbidden, while never touching a diverse world.)*

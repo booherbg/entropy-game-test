@@ -420,5 +420,25 @@ require('../js/advisor.js');
   ok(mono > div + 15, 'the rot sweeps a monoculture but diversity firebreaks it (Elton: variety is a shield)');
 })();
 
+(function testSpontaneousRotSparesDiversity() {
+  // with auto-rot ON, a MONOCULTURE rots from within (the antagonist strikes unbidden) but a DIVERSE world
+  // is never touched — the gate (one guild > 85% of life) that protects a healthy world, and (off by
+  // default) keeps every measured baseline byte-identical.
+  function peakRot(setup, on) {
+    const s = E.makeSim(7); setup(s);
+    for (let k = 0; k < 40; k++) { s.field.diffuse(); E.depositGenerators(s.field, s.gens); }
+    for (const g of s.gens) s.dropPrimer(g.x, g.y);
+    s.setAutoRot(on);
+    let peak = 0;
+    for (let t = 0; t < 1500; t++) { s.tick(); const r = s.field.rotTotal(); if (r > peak) peak = r; }
+    return peak;
+  }
+  const mono = peakRot(s => s.addGenerator({ x: 80, y: 50, el: E.LUM, rate: 12, proj: 'radial', radius: 16 }), true);
+  const div = peakRot(s => { s.addGenerator({ x: 55, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 }); s.addGenerator({ x: 95, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 16 }); s.addGenerator({ x: 75, y: 30, el: E.HUM, rate: 5, proj: 'vein', angle: 0.4, length: 30 }); }, true);
+  console.log(`   [auto-rot] monoculture peak rot ${mono.toFixed(0)} vs diverse ${div.toFixed(0)} (diverse must be 0)`);
+  ok(mono > 0, 'a monoculture rots from within when auto-rot is on (the antagonist strikes unbidden)');
+  ok(div === 0, 'a diverse world is never spontaneously rotted — the gate spares it (and the baseline)');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);

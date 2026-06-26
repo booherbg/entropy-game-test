@@ -15,7 +15,22 @@
       gens = [];
     }
 
-    let burnRate = 0, lastDiss = 0;
+    let burnRate = 0, lastDiss = 0, ticks = 0, autoRot = false;
+    // spontaneous rot: a MONOCULTURE rots from within (uniformity = vulnerability) — the antagonist striking
+    // unbidden. gated so a diverse world is NEVER touched, and (default OFF) so every measured baseline is
+    // byte-identical; the live game turns it on. the gate is checked with no rng unless it passes.
+    const IGNITE_CHECK = 30, IGNITE_ALIVE = 80, IGNITE_FRAC = 0.85, IGNITE_RATE = 0.12;
+    function maybeIgnite() {
+      if (!autoRot || ticks % IGNITE_CHECK !== 0) return;
+      let alive = 0; const g = [0, 0, 0];
+      for (const e of life.list) { if (!e.alive) continue; alive++; let d = 0; for (let k = 1; k < E.NEL; k++) if (e.diet[k] > e.diet[d]) d = k; g[d]++; }
+      if (alive < IGNITE_ALIVE) return;
+      if (Math.max(g[0], g[1], g[2]) / alive <= IGNITE_FRAC) return; // a diverse world is untouched — and no rng is drawn
+      if (rng() >= IGNITE_RATE) return;                              // rng ONLY past the gate → baseline byte-identical
+      let bestCell = -1, bestN = 0; const cc = new Map();            // monoculture & unlucky → ignite at its thickest point
+      for (const e of life.list) { if (!e.alive) continue; const key = E.idx(e.x | 0, e.y | 0); const n = (cc.get(key) || 0) + 1; cc.set(key, n); if (n > bestN) { bestN = n; bestCell = key; } }
+      if (bestCell >= 0) life.seedRot(field, bestCell % E.W, (bestCell / E.W) | 0, 5);
+    }
     function tick() {
       field.diffuse();
       E.depositGenerators(field, gens);
@@ -23,6 +38,7 @@
       field.soilStep();
       E.fertilityStep(field, life, rng);
       const d = life.dissipated(); burnRate += ((d - lastDiss) - burnRate) * 0.1; lastDiss = d; // smoothed 2nd-law flux
+      ticks++; maybeIgnite();
     }
     function addGenerator(g) { gens.push(g); }
     function dropPrimer(x, y) { return life.spawnFromPrimer(field, x | 0, y | 0, 10); } // a player's seed brings starter substrate
@@ -47,6 +63,7 @@
 
     return { field, life, gens, tick, addGenerator, dropPrimer, dropPredator, dropRot, stats, hash,
              burnRate: function () { return burnRate; },
+             setAutoRot: function (v) { autoRot = !!v; }, autoRot: function () { return autoRot; },
              serialize() { return E.serializeSim(field, life, gens, seed); } };
   };
 
