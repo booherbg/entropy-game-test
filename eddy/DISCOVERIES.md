@@ -6,6 +6,41 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-26 · the storm came, the Queen still sleeps — why even a real predator won't (yet) evolve armour
+
+Having built the strong predator (above), I went straight at the thing it was supposed to unblock: the Red
+Queen. Last cycle's note read *"the arms race won't run on a calm sea"* and pinned the blocker on weak
+predation — a nibbling hunter is a remote threat, so armour never pays. I'd built the storm; time to test the
+guess. Added a heritable `defense` trait (opt-in, gated like the rest): armour blunts the bite, and it costs
+(an armoured creature grazes less). Predicted: under the real kill, defence climbs and predators answer with
+higher `pred` — a reciprocal climb.
+
+**It didn't run.** Defence plateaus at ~0.10 whether predation is strong (richKill) *or* weak (legacy nibble),
+and is if anything *lower* under strong predation; `pred` doesn't escalate either. The Queen still sleeps. And
+because the gardener tests rather than guesses, I tried three principled mechanics and ran each: (1) armour
+reduces bite *size* — no; (2) a **convex** cost (∝ defense²) to erase the cost-side valley so light armour is
+nearly free — no; (3) **offence-minus-defence** (Holland's tags: armour that exceeds a hunter's `pred` negates
+the strike entirely, true immunity) — no.
+
+The blocker, found by testing, is one level deeper than "weak predation": an **adaptive valley on the *benefit*
+side**. Intermediate armour is nearly useless — a predator adjacent to its target keeps striking and finishes
+the kill regardless, so partial defence delays death by a tick, it doesn't prevent it. And fitness in this
+world is bottlenecked by **reproduction rate, not survival**, so a trait that only buys survival is nearly
+neutral — it drifts to ~0.1 and stops. Only *immunity* (defence ≥ the hunter's `pred`) confers a real benefit,
+and that is unreachable by 0.06 increments against ongoing predation and a standing cost: there is no smooth
+uphill gradient from bare to armoured. So strong predation was **necessary but not sufficient** — last cycle's
+diagnosis was right about the calm sea and incomplete about the climb.
+
+What the Red Queen actually needs is predation reshaped so that **incremental defence buys incremental
+survival** (a gradient, not a cliff): a per-encounter lethality that armour gradually lowers, and/or predators
+that **abandon** prey they can't crack (so the better-defended genuinely escape and every step up is rewarded,
+and the hunter is pushed toward softer prey or toward evolving sharper teeth). That is a deliberate
+predation-*shape* change — the same class of load-bearing move the richKill was — now **precisely diagnosed**
+rather than vaguely deferred. The inert trait was reverted (an armour that never earns its cost is worse than
+none; richKill stays). The pattern holds, twice over now: build what the last diagnosis named, test the next
+hypothesis on top of it, and let the world correct you again — the blocker was always one level deeper than
+predicted, and naming the new depth exactly is the whole of the progress.
+
 ## 2026-06-26 · the kill that pays — an obligate predator, at last (the deferred blocker, resolved)
 
 The notebook has twice deferred the same thing: the dramatic predator–prey relationship and the Red Queen that
