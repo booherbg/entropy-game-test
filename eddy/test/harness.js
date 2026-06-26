@@ -320,6 +320,24 @@ require('../js/score.js');
   ok(late.throughput >= 0, 'throughput (the 2nd-law flux) is tracked');
 })();
 
+(function testFoodWebReadsTheGuilds() {
+  // E.foodWeb resolves the living world into its trophic guilds (producers / decomposers / hunters) — the
+  // data behind a "who eats whom" reading. A matured 3-spring world should show producers AND decomposers.
+  const sim = E.makeSim(7);
+  sim.addGenerator({ x: 55, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+  sim.addGenerator({ x: 95, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 16 });
+  sim.addGenerator({ x: 75, y: 30, el: E.HUM, rate: 5, proj: 'vein', angle: 0.4, length: 30 });
+  for (let k = 0; k < 40; k++) { sim.field.diffuse(); E.depositGenerators(sim.field, sim.gens); }
+  sim.dropPrimer(55, 50); sim.dropPrimer(95, 50);
+  for (let t = 0; t < 900; t++) sim.tick();
+  const fw = E.foodWeb(sim);
+  console.log(`   [foodweb] lumen ${fw.lumen} · mineral ${fw.mineral} · decomposers ${fw.decomposers} · hunters ${fw.hunters} (total ${fw.total})`);
+  ok(fw.lumen + fw.mineral + fw.decomposers === fw.total, 'every living thing is resolved into exactly one guild');
+  ok(fw.lumen > 0 && fw.mineral > 0, 'both producer guilds are read from the two springs');
+  ok(fw.decomposers > 0, 'the decomposer guild (arisen from waste) is read');
+  ok(fw.links.length >= 3, 'the food-web links (the flows carrying matter) are listed');
+})();
+
 require('../js/economy.js');
 (function testEconomyFlow() {
   const sim = E.makeSim(7);

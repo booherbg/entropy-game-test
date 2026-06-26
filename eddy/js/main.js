@@ -29,7 +29,12 @@
     resize();
     if (E.Render && E.Render.draw) E.Render.draw(sim, gl);
     const ro = document.getElementById('readout');
-    if (ro) { const s = sim.stats(); ro.textContent = `${playing ? '▶' : '❚❚'}  alive ${s.alive} · diets ${s.speciesApprox}` + (chronicle ? ` · witnessed ${chronicle.codex.size}` : ''); }
+    if (ro) {
+      const s = sim.stats();
+      let web = '';
+      if (E.foodWeb) { const fw = E.foodWeb(sim); web = ` · ☀${fw.lumen} ◆${fw.mineral} ♻${fw.decomposers}` + (fw.hunters ? ` ⚔${fw.hunters}` : ''); } // the food web, live
+      ro.textContent = `${playing ? '▶' : '❚❚'}  alive ${s.alive}${web} · diets ${s.speciesApprox}` + (chronicle ? ` · witnessed ${chronicle.codex.size}` : '');
+    }
     if (chronicle) renderChronicle();
     if (E.score) renderScore();
     if (E.advise && (!advice || simTicks - lastAdviceTick >= 60)) { advice = E.advise(sim); lastAdviceTick = simTicks; }
