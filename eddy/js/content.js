@@ -30,6 +30,11 @@
     { q: 'life did not take over the world by combat, but by networking.', by: 'lynn margulis & dorion sagan, microcosmos (1986)' },
     { q: 'at each level of complexity, entirely new properties appear. more is different.', by: 'philip w. anderson, science (1972)' },
     { q: 'we are not stuff that abides, but patterns that perpetuate themselves.', by: 'norbert wiener (1950)' },
+    { q: 'no one ever steps in the same river twice, for it is not the same river and they are not the same person.', by: 'heraclitus (c. 500 bce)' },
+    { q: 'you are something the whole universe is doing, in the same way that a wave is something that the whole ocean is doing.', by: 'alan watts' },
+    { q: 'large systems perpetually organize themselves to a critical state where a minor event can start a chain reaction that leads to a catastrophe of any size.', by: 'per bak, how nature works (1996)' },
+    { q: 'order for free: in vast webs of interacting parts, order arises not against the odds but as their natural, expected expression.', by: 'stuart kauffman, at home in the universe (1995)' },
+    { q: 'we are here to witness the creation and to abet it.', by: 'annie dillard' },
     { q: 'i did not write these. i gathered them — from physicists and poets, nearly all long dead. what was mine was the choosing, and the order.', by: null },
   ];
   E.Content.murmur = function (i) {
