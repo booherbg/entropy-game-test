@@ -166,7 +166,10 @@
     function seedRot(field, x, y, amt) { field.rot[E.idx(x | 0, y | 0)] += (amt || 4); } // light a rot at a cell
     function rotStep(field) {
       const rot = field.rot, rotType = field.rotType, N = E.W * E.H;
-      let any = false; for (let i = 0; i < N; i++) if (rot[i] > ROT_MIN) { any = true; break; }
+      // keep stepping while ANY rot remains (down to the zero-out epsilon), not just while it's above the
+      // spread threshold — otherwise sub-ROT_MIN residue freezes forever (rotTotal never returns to 0,
+      // stale rotType, a permanent faint stain hiding lignin). still a no-op (and baseline-identical) at zero.
+      let any = false; for (let i = 0; i < N; i++) if (rot[i] > 1e-4) { any = true; break; }
       if (!any) return; // no rot → no-op (baseline untouched; pure deterministic field op, no rng)
       // per-cell dominant guild from the current life — the FUEL map. -1 = no life.
       const dom = new Int8Array(N).fill(-1), cellD = new Map();
