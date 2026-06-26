@@ -465,6 +465,27 @@ require('../js/advisor.js');
   ok(right < 0.5, 'a rock wall is a firebreak — the rot cannot cross it (terrain firebreak)');
 })();
 
+(function testProceduralTerrainOpens() {
+  // a fresh world arrives as a landscape: terrain is bounded (not a maze), and the opening still establishes
+  // life in its basin — across seeds. mirrors main.js freshSim.
+  function fresh(seed) {
+    const s = E.makeSim(seed >>> 0), gx = (E.W * 0.4) | 0, gy = (E.H * 0.5) | 0;
+    s.addGenerator({ x: gx, y: gy, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+    E.makeTerrain(s.field, E.makeRng((seed ^ 0x2545f491) >>> 0), gx, gy);
+    for (let k = 0; k < 40; k++) { s.field.diffuse(); E.depositGenerators(s.field, s.gens); }
+    s.dropPrimer(gx, gy);
+    let minAlive = 1e9;
+    for (let t = 1; t <= 600; t++) { s.tick(); if (t > 150) minAlive = Math.min(minAlive, s.life.list.reduce((n, e) => n + (e.alive ? 1 : 0), 0)); }
+    return { rock: s.field.barrier.reduce((a, b) => a + b, 0), minAlive };
+  }
+  let opened = 0, totalRock = 0;
+  for (const seed of [12345, 22222, 98765, 7]) { const r = fresh(seed); if (r.minAlive > 0) opened++; totalRock += r.rock; }
+  const avgRock = totalRock / 4;
+  console.log(`   [terrain] fresh worlds: ${opened}/4 opening colonies survived; ~${avgRock.toFixed(0)} rock cells (of ${E.W * E.H})`);
+  ok(opened === 4, 'every fresh world establishes its opening colony in the basin (terrain never walls it off)');
+  ok(avgRock > 50 && avgRock < 1200, 'procedural terrain is bounded — a landscape, not a maze and not bare');
+})();
+
 (function testFullIntegration() {
   // everything at once — terrain, auto-rot, hunters, the economy, the chronicle — must coexist for a long
   // run with no NaN, no crash, no collapse. the cross-feature safety net the per-mechanic tests can't give.

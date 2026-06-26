@@ -38,9 +38,11 @@
   }
 
   function freshSim() {
-    const s = E.makeSim(((typeof Date !== 'undefined' && Date.now) ? Date.now() : 1) >>> 0);
+    const seed = ((typeof Date !== 'undefined' && Date.now) ? Date.now() : 1) >>> 0;
+    const s = E.makeSim(seed);
     const gx = (E.W * 0.4) | 0, gy = (E.H * 0.5) | 0;   // a gentle opening: one lumen spring + a primer
     s.addGenerator({ x: gx, y: gy, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+    if (E.makeTerrain) E.makeTerrain(s.field, E.makeRng((seed ^ 0x2545f491) >>> 0), gx, gy); // a fresh world arrives as a landscape, the opening cupped in a basin
     // pre-build the gradient so the opening seed lands in real surplus and takes immediately
     // (otherwise a fresh world sits dead for hundreds of ticks while the spring slowly pools)
     for (let k = 0; k < 40; k++) { s.field.diffuse(); E.depositGenerators(s.field, s.gens); }

@@ -27,8 +27,14 @@ diffuses byte-for-byte as before, so every measured baseline (the edge-of-chaos,
 terrain is opt-in, laid by the player's hand. It renders as stone (verified headless — a lumen spring cupped
 in a basin of rock, its gold pooled and its life packed inside, a ridge firebreaking the open colony beside
 it), it serializes, and it gives the steward a new verb: **▣ shape the land.** The map stopped being a flat
-sheet the world relaxes across; it became a place with structure to read and to build. (Next, if wanted:
-procedural terrain so a fresh world arrives already a landscape, not a blank table.)
+sheet the world relaxes across; it became a place with structure to read and to build.
+
+And the world now **arrives as a landscape.** A fresh world generates its own terrain — the opening spring
+**cupped in a U-basin** (a richer, sheltered start, open at the top so life climbs out as it matures) and a
+couple of wandering ridges scattered for character. Deterministic from the seed (every world its own place,
+reproducible), bounded (~190 rock cells of 16,000 — a landscape, not a maze), and verified to **never wall
+off the opening** (4/4 seeds establish their first colony). The blank table is gone: you wake into a basin
+someone might have carved, and the first thing the world shows you is that *here* is different from *there*.
 
 ## 2026-06-25 · the rot strikes unbidden — a monoculture rots from within
 
