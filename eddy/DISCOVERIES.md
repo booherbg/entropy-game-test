@@ -6,6 +6,30 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · why the obligate predator won't come — it's bodies, not material
+
+Terrain gave a fresh idea for the oldest deferred dream — a true **obligate predator** (one that lives only
+by the kill, booming and crashing against its prey in a Lotka–Volterra cycle). The blocker was always "the
+prey base is too thin." And terrain *concentrates* — so: wall the prey into a **basin**, pack them dense, and
+let an obligate hunter (the `EAT_TRADEOFF` lever, off by default, turned up) finally find a meal every tick.
+
+It failed, cleanly, in every basin tried — large, small, sealed — and the failure named the real wall at
+last. **Terrain concentrates *material*; it does not concentrate *bodies*.** A region's prey *population* is
+pinned by **upkeep** — the carrying capacity is inflow ÷ cost-to-persist, about sixty to ninety lives, and a
+basin holds *more material* without holding *more prey*. Cram those same ninety into a tiny bowl and the
+body-density does rise (to ~0.43 a cell), but ninety bodies is still ninety bodies: a hunting population eats
+them out and starves before they regrow, or — the adaptive valley again — hunting fails to pay often enough
+and `pred` drifts back down to grazing. Either way the hunters are gone within a hundred ticks.
+
+So the diagnosis is finally precise, and it closes a thread that had stayed vague for many iterations: the
+obligate predator is blocked by **prey body-count**, which is set by the **upkeep carrying capacity** — not
+by material, not by mobility, not by terrain. To get the crash-and-recovery drama you would have to build a
+deliberately **prey-rich regime** (much higher spring inflow, or a lower prey upkeep) — a change to the
+*core balance* that tunes the whole edge-of-chaos, a design decision with global consequences, not a tweak.
+The stable **grazer-omnivore keystone** the game ships is the honest v1; the obligate cycle is a different
+game knob, and now we know exactly which one. (The `EAT_TRADEOFF` lever was wired, tested, and reverted as
+unused — the path, if ever wanted, is: raise the prey base *first*, then turn it up.)
+
 ## 2026-06-25 · the land takes shape — terrain, basins, and a second kind of firebreak
 
 The thing the founding brainstorm wanted most, and the last big piece unbuilt: **spatial depth** — the SimCity
