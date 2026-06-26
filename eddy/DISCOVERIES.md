@@ -6,6 +6,29 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-26 · the Red Queen won't run on a calm sea — why the arms race (and the obligate predator) wait on one thing
+
+Reached for co-evolution next — the Red Queen (Van Valen; Holland's offence/defence tags): give prey a
+heritable `defense` that blunts a bite at the cost of upkeep, and watch predators escalate to bite through
+it, an endless reciprocal climb. Built it, ran it. **It didn't run.** With sustained hunters in the world,
+prey `defense` sat at ~0.06 — exactly where it sat with *no* hunters at all. No armour, no escalation, no race.
+
+The reason is the same one that grounds the obligate predator, and finding them to be the **same root** is
+the real catch. Predation here is a **weak selective force**: a few keystone grazers cropping the dominant,
+a minor cause of death against a tide of upkeep and starvation. So for the average prey, a hunter is a remote
+threat, and armour's certain cost outweighs its rare benefit — selection never favours defence. The Red
+Queen needs a *predator-haunted* world to run; this world is predator-*flecked*. And the obligate predator
+fails for the mirror reason — too few prey bodies to live by the kill. **One constraint underlies both: the
+prey base, capped by the upkeep carrying capacity, keeps predation a gentle keystone rather than a dominant
+force.** Strong predator dynamics — obligate hunters, the arms race — all wait on the *same* unlock: a
+deliberately **prey-rich regime** (more inflow, or cheaper persistence), a core-balance retune of the edge
+of chaos. Not three separate problems; one, seen from three sides.
+
+So defence was reverted (an inert trait that never earns its cost is worse than none). The world keeps the
+co-evolution it *can* sustain — predation that lifts diversity (keystone), and the merger that founds new
+kinds (symbiogenesis) — and the notebook now knows precisely what the dramatic predator-prey cycle is
+waiting for. The honest gardener prunes the branch that won't fruit in this soil, and names the soil.
+
 ## 2026-06-26 · two became one — symbiogenesis, the other way life takes over (Margulis)
 
 Freed to push toward depth, I went for the body of research the world had only half-spoken. It had **combat** —
