@@ -99,7 +99,7 @@
     const state = e.biomass > 1.2 ? 'thriving' : (e.biomass > 0.4 ? 'holding' : 'starving');
     box.innerHTML =
       `<h3>${E.Content.nameFor(e.diet)}</h3>` +
-      `<div class="meta">gen ${e.gen} · ${state}${(e.pred || 0) > 0.3 ? ' · a hunter (eats other life)' : ''}${(e.crack || 0) > 0.3 ? ' · a white-rot cracker (eats lignin)' : ''}</div>` +
+      `<div class="meta">gen ${e.gen} · ${state}${(e.pred || 0) > 0.3 ? ' · a hunter (eats other life)' : ''}${(e.crack || 0) > 0.3 ? ' · a white-rot cracker (eats lignin)' : ''}${e.composite ? ' · a composite (two became one — eats both)' : ''}</div>` +
       `<div class="row"><span class="k">eats</span>${eats || '—'}</div>` +
       `<div class="row"><span class="k">makes</span><span class="chip hum">humus</span> + motion</div>` +
       `<div class="why">it adapted to the ${elName[dom]} you fed here — that is why it reads ${col[dom]}. ` +

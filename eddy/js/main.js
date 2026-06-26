@@ -72,7 +72,7 @@
   function renderFoodWeb() {
     const el = document.getElementById('foodweb'); if (!el) return;
     const fw = E.foodWeb(sim);
-    const max = Math.max(1, fw.lumen, fw.mineral, fw.decomposers, fw.hunters, fw.crackers), W = 88;
+    const max = Math.max(1, fw.lumen, fw.mineral, fw.decomposers, fw.hunters, fw.crackers, fw.composites), W = 88;
     const row = (cls, n, lbl) => n > 0
       ? `<div class="fw-row"><span class="fw-bar ${cls}" style="width:${Math.round(n / max * W)}px"></span><span class="fw-n">${n}</span> <span class="fw-lbl">${lbl}</span></div>` : '';
     el.innerHTML = '<div class="fw-title">the food web</div>'
@@ -80,7 +80,8 @@
       + row('min', fw.mineral, 'eat mineral')
       + row('hum', fw.decomposers, 'recycle waste')
       + row('red', fw.hunters, 'hunt the living')
-      + row('lig', fw.crackers, 'crack lignin');
+      + row('lig', fw.crackers, 'crack lignin')
+      + row('comp', fw.composites, 'two as one');
   }
 
   function renderScore() {
@@ -106,6 +107,7 @@
     E.Main.sim = sim;
     if (sim.setAutoRot) sim.setAutoRot(true); // the live game faces the antagonist (a monoculture rots unbidden)
     if (sim.setCompounds) sim.setCompounds(true); // and grows compounds (lignin a white-rot specialist evolves to crack)
+    if (sim.setSymbiosis) sim.setSymbiosis(true); // and allows symbiogenesis (complementary life merges into composites)
     chronicle = (E.makeChronicle ? E.makeChronicle() : null);
     economy = (E.makeEconomy ? E.makeEconomy() : null);
     if (E.Render && E.Render.init) E.Render.init(gl);
@@ -124,7 +126,7 @@
   E.Main.isPlaying = () => playing;
   E.Main.setPlaying = (v) => { playing = !!v; };
   E.Main.getSim = () => sim;
-  E.Main.replaceSim = (s) => { sim = s; E.Main.sim = s; if (s.setAutoRot) s.setAutoRot(true); if (s.setCompounds) s.setCompounds(true); acc = 0; simTicks = 0; advice = null; lastAdviceTick = -999; chronicle = (E.makeChronicle ? E.makeChronicle() : null); economy = (E.makeEconomy ? E.makeEconomy() : null); };
+  E.Main.replaceSim = (s) => { sim = s; E.Main.sim = s; if (s.setAutoRot) s.setAutoRot(true); if (s.setCompounds) s.setCompounds(true); if (s.setSymbiosis) s.setSymbiosis(true); acc = 0; simTicks = 0; advice = null; lastAdviceTick = -999; chronicle = (E.makeChronicle ? E.makeChronicle() : null); economy = (E.makeEconomy ? E.makeEconomy() : null); };
   E.Main.newWorld = () => { if (E.Persist) E.Persist.clear(); E.Main.replaceSim(freshSim()); if (E.UI && E.UI._refresh) E.UI._refresh(); };
   E.Main.cycleAspect = () => { aspect = (aspect + 1) % ((E.ASPECTS && E.ASPECTS.length) || 1); };
   E.Main.aspectName = () => (E.ASPECTS ? E.ASPECTS[aspect % E.ASPECTS.length].name : '');

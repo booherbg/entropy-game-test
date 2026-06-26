@@ -73,6 +73,7 @@
              burnRate: function () { return burnRate; },
              setAutoRot: function (v) { autoRot = !!v; }, autoRot: function () { return autoRot; },
              setCompounds: function (v) { compounds = !!v; life.setCompounds(v); },
+             setSymbiosis: function (v) { life.setSymbiosis(v); },
              serialize() { return E.serializeSim(field, life, gens, seed); } };
   };
 
@@ -85,7 +86,7 @@
       field: { el: Array.from(field.el), variant: Array.from(field.variant), soil: Array.from(field.soil), rot: Array.from(field.rot), rotType: Array.from(field.rotType), barrier: Array.from(field.barrier), locked: Array.from(field.locked) },
       life: life.list.filter(e => e.alive).map(e => ({
         id: e.id, x: e.x, y: e.y, diet: Array.from(e.diet),
-        biomass: e.biomass, age: e.age, gen: e.gen, pred: e.pred, crack: e.crack || 0,
+        biomass: e.biomass, age: e.age, gen: e.gen, pred: e.pred, crack: e.crack || 0, symb: e.symb || 0, composite: !!e.composite,
       })),
     };
   };
@@ -102,7 +103,7 @@
     for (const e of obj.life) {
       life.list.push({
         id: e.id, x: e.x, y: e.y, diet: new Float32Array(e.diet),
-        biomass: e.biomass, age: e.age, gen: e.gen, alive: true, pred: e.pred || 0, crack: e.crack || 0,
+        biomass: e.biomass, age: e.age, gen: e.gen, alive: true, pred: e.pred || 0, crack: e.crack || 0, symb: e.symb || 0, composite: !!e.composite,
       });
     }
     const gens = (obj.gens || []).map(g => Object.assign({}, g));

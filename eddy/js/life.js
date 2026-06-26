@@ -29,7 +29,7 @@
       const diet = localBlend(field, i);              // latch: eat what's in surplus here (incl. the starter)
       // pred0>0 seeds a predator (it lives by hunting, not the field) — a player decision; its
       // descendants' pred still drifts, so the predator/prey arms race can evolve from there.
-      const ent = { id: nextId++, x, y, diet, biomass: pred0 ? 1.0 : 0.5, age: 0, gen: 1, alive: true, pred: pred0 || 0, crack: 0 };
+      const ent = { id: nextId++, x, y, diet, biomass: pred0 ? 1.0 : 0.5, age: 0, gen: 1, alive: true, pred: pred0 || 0, crack: 0, symb: 0, composite: false };
       list.push(ent);
       return ent;
     }
@@ -47,7 +47,7 @@
       const i = E.idx(ent.x | 0, ent.y | 0);
       // take a diet-weighted bite of each element — but predators are poor producers (they must hunt
       // to live), which is what keeps the predator/producer niche split from diffusing away.
-      const eat = EAT * (1 - (ent.pred || 0) * EAT_TRADEOFF);
+      const eat = EAT * (1 - (ent.pred || 0) * EAT_TRADEOFF) * (ent.composite ? COMPOSITE_EAT : 1); // composites take up more — the merger's payoff (no-op without composites)
       const tL = Math.min(eat * ent.diet[E.LUM], field.get(i, E.LUM));
       const tM = Math.min(eat * ent.diet[E.MIN], field.get(i, E.MIN));
       const tH = Math.min(eat * ent.diet[E.HUM], field.get(i, E.HUM));
@@ -83,6 +83,14 @@
     const ROT_DAMAGE = 0.3, ROT_SPREAD = 0.45, ROT_MIN = 0.05, ROT_CAP = 2.0;
     const ROT_DECAY_FUEL = 0.08, ROT_DECAY_BARE = 0.5; // rot is FIRE — it burns out fast where its fuel-type isn't
     const ROT_SAME = 1.0, ROT_CROSS = 0.02, ROT_EMPTY = 0.22; // spread into matching fuel / a wrong-guild seam (firebreak) / bare bridge
+    // symbiogenesis (Margulis): two creatures of DIFFERENT diets, sharing a cell, can MERGE into one
+    // COMPOSITE that eats both — a new kind, more than its sum (the eukaryote: a cell that swallowed another
+    // and never let go). "life did not take over the world by combat, but by networking." the heritable
+    // `symb` trait tilts the odds; selection raises it where the merger thrives (the boundaries between
+    // guilds). opt-in — off ⇒ no symbioseStep, no symb drift (no rng), no composites ⇒ baselines identical.
+    let symbiosis = false;
+    const MUT_SYMB = 0.06, SYMB_RATE = 0.5, SYMB_BASE = 0.12, COMPOSITE_UPKEEP = 1.2, COMPOSITE_EAT = 1.5; // the merger's windfall: a composite's two metabolisms take up more (the eukaryote's aerobic gain), so partnership pays where BOTH foods meet — but its higher upkeep makes it a loss in a pure zone (specialists keep the edges)
+    function domElem(diet) { let d = 0; for (let k = 1; k < E.NEL; k++) if (diet[k] > diet[d]) d = k; return d; }
     function neighborCell(ent) {
       const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
       const d = dirs[(rng() * 4) | 0];
@@ -102,8 +110,10 @@
       const pred = Math.max(0, Math.min(1, ent.pred + (rng() * 2 - 1) * MUT_PRED)); // predatory trait drifts; selection shapes it
       let crack = ent.crack || 0;
       if (compounds) crack = Math.max(0, Math.min(1, crack + (rng() * 2 - 1) * MUT_CRACK)); // crack drifts ONLY when compounds on (no extra rng off → baseline byte-identical)
+      let symb = ent.symb || 0;
+      if (symbiosis) symb = Math.max(0, Math.min(1, symb + (rng() * 2 - 1) * MUT_SYMB)); // symb drifts ONLY when symbiosis on (gated → no rng off)
       ent.biomass *= 0.5;                                  // split biomass with the child (conserved)
-      list.push({ id: nextId++, x: nx, y: ny, diet, biomass: ent.biomass, age: 0, gen: ent.gen + 1, alive: true, pred, crack });
+      list.push({ id: nextId++, x: nx, y: ny, diet, biomass: ent.biomass, age: 0, gen: ent.gen + 1, alive: true, pred, crack, symb, composite: ent.composite || false });
     }
     // life eats life: tag-matched exchange (v1 = predation). a predatory entity takes a bite of a
     // less-predatory neighbour's biomass — predator gains, the rest returns to humus (conserved).
@@ -214,15 +224,43 @@
         rot[i] = v;
       }
     }
+    // symbiogenesis: where two complementary creatures share a cell, they may merge into a composite that
+    // eats both (Margulis). conserved (b's biomass joins a; nothing to the field). off ⇒ no-op, no rng.
+    function symbioseStep() {
+      if (!symbiosis) return;
+      const occ = new Map();
+      for (const e of list) { if (!e.alive) continue; const k = E.idx(e.x | 0, e.y | 0); let a = occ.get(k); if (!a) { a = []; occ.set(k, a); } a.push(e); }
+      for (const [, cell] of occ) {
+        if (cell.length < 2) continue;
+        for (let i = 0; i < cell.length; i++) {
+          const a = cell[i]; if (!a.alive) continue;
+          const da = domElem(a.diet);
+          for (let j = i + 1; j < cell.length; j++) {
+            const b = cell[j]; if (!b.alive || domElem(b.diet) === da) continue; // partners must be COMPLEMENTARY
+            const odds = SYMB_RATE * (SYMB_BASE + (1 - SYMB_BASE) * 0.5 * ((a.symb || 0) + (b.symb || 0)));
+            if (rng() >= odds) continue;
+            const tot = a.biomass + b.biomass, d = new Float32Array(E.NEL); let s = 0; // a swallows b → a composite
+            for (let k = 0; k < E.NEL; k++) { d[k] = (a.diet[k] * a.biomass + b.diet[k] * b.biomass) / (tot || 1); s += d[k]; }
+            for (let k = 0; k < E.NEL; k++) d[k] /= (s || 1);
+            a.diet = d; a.biomass = tot; a.composite = true;                    // it now eats both — more than its sum
+            a.symb = Math.min(1, Math.max(a.symb || 0, b.symb || 0) + 0.05);    // the partnership reinforces the taste
+            a.pred = Math.max(a.pred || 0, b.pred || 0); a.crack = Math.max(a.crack || 0, b.crack || 0); // inherits the best of both
+            b.alive = false;                                                   // absorbed — biomass already in a (conserved)
+            break;
+          }
+        }
+      }
+    }
     function step(field) {
       move(field);
       predate(field);
+      symbioseStep();
       rotStep(field);
       for (const ent of list) {
         if (!ent.alive) continue;
         metabolize(field, ent);
         const i = E.idx(ent.x | 0, ent.y | 0);
-        const cost = Math.min(UPKEEP, ent.biomass);
+        const cost = Math.min(UPKEEP * (ent.composite ? COMPOSITE_UPKEEP : 1), ent.biomass); // a composite runs two metabolisms — it costs more to be (no-op without composites)
         ent.biomass -= cost; _dissipated += cost;          // upkeep dissipates — maintenance energy leaves as heat (the 2nd-law sink, bounds the world by flow)
         if (ent.biomass >= REPRO) reproduce(field, ent);
         if (ent.biomass <= 1e-6) { field.add(i, E.HUM, Math.max(0, ent.biomass)); ent.alive = false; }
@@ -236,7 +274,7 @@
     }
 
     return { list, spawnFromPrimer, seedRot, step, _rng: rng, dissipated: function () { return _dissipated; },
-             setCompounds: function (v) { compounds = !!v; } };
+             setCompounds: function (v) { compounds = !!v; }, setSymbiosis: function (v) { symbiosis = !!v; } };
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = E;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

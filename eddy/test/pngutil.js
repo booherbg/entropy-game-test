@@ -48,10 +48,11 @@ function renderWorld(E, sim, S) {
   }
   for (const e of sim.life.list) {
     if (!e.alive) continue;
-    const r = Math.max(1, Math.round(S * 0.9 * (0.5 + Math.min(e.biomass, 2) / 2 * 0.95))); // size by vitality (mirrors render.js)
+    let r = Math.max(1, Math.round(S * 0.9 * (0.5 + Math.min(e.biomass, 2) / 2 * 0.95))); // size by vitality (mirrors render.js)
     const c = E.Render.dietColor(e.diet);
     const p = (e.pred || 0) * 0.85; // predators tint toward crimson — the drama, made visible
-    const cr = c[0] * (1 - p) + 0.92 * p, cg = c[1] * (1 - p) + 0.16 * p, cb = c[2] * (1 - p) + 0.16 * p;
+    let cr = c[0] * (1 - p) + 0.92 * p, cg = c[1] * (1 - p) + 0.16 * p, cb = c[2] * (1 - p) + 0.16 * p;
+    if (e.composite) { cr = cr * 0.55 + 0.42; cg = cg * 0.55 + 0.42; cb = cb * 0.55 + 0.40; r = Math.round(r * 1.3); } // composites glow pearl, larger
     const R = Math.min(255, (cr * 255 | 0) + 25), G = Math.min(255, (cg * 255 | 0) + 30), B = Math.min(255, (cb * 255 | 0) + 25);
     const cx = Math.round((e.x + 0.5) * S), cy = Math.round((e.y + 0.5) * S);
     for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {

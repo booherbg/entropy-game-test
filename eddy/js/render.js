@@ -142,6 +142,10 @@ void main(){ vec2 d = gl_PointCoord - vec2(0.5); float r = length(d); if (r > 0.
       entBuf[o] = e.x; entBuf[o+1] = e.y;
       entBuf[o+2] = c[0] * (1 - p) + 0.92 * p; entBuf[o+3] = c[1] * (1 - p) + 0.16 * p; entBuf[o+4] = c[2] * (1 - p) + 0.16 * p;
       entBuf[o+5] = 0.5 + Math.min(e.biomass, 2) / 2 * 0.95; // size by vitality — thriving large, starving small
+      if (e.composite) { // symbiogenesis: a composite glows pearl and runs a touch larger — a new, integrated kind of life
+        entBuf[o+2] = entBuf[o+2] * 0.55 + 0.42; entBuf[o+3] = entBuf[o+3] * 0.55 + 0.42; entBuf[o+4] = entBuf[o+4] * 0.55 + 0.40;
+        entBuf[o+5] *= 1.3;
+      }
       n++;
     }
     if (n === 0) return;

@@ -6,6 +6,38 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-26 · two became one — symbiogenesis, the other way life takes over (Margulis)
+
+Freed to push toward depth, I went for the body of research the world had only half-spoken. It had **combat** —
+predation, the rot, the cracker. But Lynn Margulis's whole correction to Darwin, the line already in the
+murmurs, is that *"life did not take over the world by combat, but by networking"* — by **merger**. The
+eukaryotic cell is two organisms that became one and never parted. That is **symbiogenesis**, and it was the
+missing half of the food-web arc my own notes named (mutualism → predation → *symbiogenesis*).
+
+Built it small, the way the brief asked: one heritable `symb` trait, one rule. Two creatures of *different*
+diets sharing a cell may **merge** into a single **composite** that eats both — and the merger PAYS, a
+metabolic windfall (the eukaryote's aerobic gain), so the new whole is more than the sum of its parts. Then
+the world did the rest, unbidden. Where two complementary springs **overlap**, composites bloom at the seam;
+the `symb` trait **evolves to fixation** (→1.0 — partnership, strongly selected); and the composites become
+the **fit majority of the overlap** (biomass 1.12 vs 0.92 for the specialists), a new luminous kingdom owning
+the boundary while specialists keep the pure edges. Two became one, and one inherited the meeting-place.
+
+The honest turn, the one that taught the most: my first composite was *worse* than its parents — a balanced
+diet eats the same total but a dual body costs more upkeep, so it died. The merger has to **pay** to be
+chosen, exactly as Margulis insists endosymbiosis did: the captured partner gave the host a power it could
+not make alone (respiration, photosynthesis). Give the composite that windfall — eat *more* where both foods
+meet — and partnership becomes the better life precisely at the boundary, and a loss in a monotone zone. So
+cooperation, like predation before it, earns its place only where the world makes it pay. And it is honest
+all the way down: conserved (the composite *is* the sum of its partners, nothing created), off by default
+(no `symb` drift, no merges, no rng → baselines byte-identical), narrated ("two became one"), and beautiful —
+composites glow **pearl**, larger, a higher integrated form you can pick out of the crowd by eye.
+
+The web now extends itself **both ways the canon names**: by combat (a hunter from prey, a white-rot from
+lignin) and by **cooperation** (a composite from two that met). Margulis's quarrel with the combat-only story
+is no longer a quotation in the margin — it is a mechanism running in the world.
+
+---
+
 ## 2026-06-25 · playing the whole machine — compounds gave the world an age, once tuned
 
 With every system built, I finally played the *integrated* world — compounds and the antagonist and terrain

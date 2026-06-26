@@ -9,7 +9,7 @@
     const codex = new Map();  // name -> { name, diet, pred, firstTick, lastTick, peak, count, alive }
     const events = [];        // { tick, kind, text }  (kind: born | extinct | milestone) — recent feed, capped
     const milestones = [];    // rare, important — kept uncapped and pinned
-    let sawHunter = false, sawDecomposer = false, sawCascade = false, sawRot = false;
+    let sawHunter = false, sawDecomposer = false, sawCascade = false, sawRot = false, sawSymbiosis = false;
     const extHist = [];                          // extinctions per observation, to spot a wave above baseline
     const CASCADE_MIN = 8, CASCADE_MULT = 1.3;   // a cascade = >=8 lost at once AND >1.3x the recent rate (baseline churn ~5/obs)
     const ELN = ['lumen', 'mineral', 'humus'];
@@ -59,6 +59,7 @@
       if (!sawHunter) { for (const [, c] of cur) if (c.predSum / c.count > 0.4) { sawHunter = true; emit(tick, 'milestone', 'the first hunters — life has begun to eat life'); break; } }
       if (!sawDecomposer) { for (const [, c] of cur) { const d = c.diet; if (d[E.HUM] > d[E.LUM] && d[E.HUM] > d[E.MIN]) { sawDecomposer = true; emit(tick, 'milestone', 'a decomposer arose from the waste — the food web extends itself'); break; } } }
       if (!sawRot && sim.field.rotTotal && sim.field.rotTotal() > 8) { sawRot = true; emit(tick, 'milestone', 'a rot has taken hold — but it stalls at the seams between guilds. diversity is your firebreak'); }
+      if (!sawSymbiosis) { for (const e of sim.life.list) if (e.alive && e.composite) { sawSymbiosis = true; emit(tick, 'milestone', 'two became one — symbiogenesis: a composite now lives by what neither could alone (Margulis)'); break; } }
     }
     function recent(n) { return events.slice(-(n || 6)).reverse(); }
     function aliveCount() { let a = 0; for (const r of codex.values()) if (r.alive) a++; return a; }

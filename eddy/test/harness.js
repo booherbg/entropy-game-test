@@ -572,6 +572,42 @@ require('../js/advisor.js');
   ok(crackers > 3, 'a cracker guild establishes — the food web extends onto the locked resource');
 })();
 
+(function testSymbiogenesis() {
+  // Margulis: two complementary creatures sharing a cell can MERGE into a composite that eats both — a new
+  // kind, more than its sum. The symb trait evolves where the merger pays (the overlap). Off by default.
+  // (a) conservation (closed world): the merge sums biomass, creates nothing
+  const f = E.makeField(E.makeRng(3)), life = E.makeLife(E.makeRng(3));
+  life.setSymbiosis(true);
+  for (let i = 0; i < 30; i++) { // a lumen-eater AND a mineral-eater in the SAME cell (so they can merge)
+    const x = 70 + (i % 10), y = 48 + ((i / 10) | 0);
+    f.add(E.idx(x, y), E.LUM, 2.0); f.add(E.idx(x, y), E.MIN, 2.0);
+    const a = life.spawnFromPrimer(f, x, y, 0); a.biomass = 1.0; a.symb = 0.9; a.diet = new Float32Array([0.8, 0.1, 0.1]);
+    const b = life.spawnFromPrimer(f, x, y, 0); b.biomass = 1.0; b.symb = 0.9; b.diet = new Float32Array([0.1, 0.8, 0.1]);
+  }
+  const tot = () => { let s = 0; for (let i = 0; i < E.W * E.H; i++) s += f.el[i * 3] + f.el[i * 3 + 1] + f.el[i * 3 + 2]; for (const e of life.list) if (e.alive) s += e.biomass; return s + life.dissipated() + f.soilTotal(); };
+  const before = tot();
+  let merged = false;
+  for (let t = 0; t < 40; t++) { life.step(f); if (!merged && life.list.some(e => e.alive && e.composite)) merged = true; }
+  ok(merged, 'complementary creatures merge into a composite (symbiogenesis happens)');
+  approx(tot(), before, 1e-2, 'the merge conserves matter — a composite is the sum of its partners, nothing created');
+  // (b) off by default → no composites ever; (c) on → composites emerge and symb evolves (overlapping springs)
+  function run(on) {
+    const s = E.makeSim(7);
+    s.addGenerator({ x: 74, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 17 });
+    s.addGenerator({ x: 86, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 17 });
+    for (let k = 0; k < 40; k++) { s.field.diffuse(); E.depositGenerators(s.field, s.gens); }
+    s.dropPrimer(74, 50); s.dropPrimer(86, 50);
+    if (on) s.setSymbiosis(true);
+    let maxComp = 0, maxSymb = 0;
+    for (let t = 1; t <= 600; t++) { s.tick(); if (t % 100 === 0) { let c = 0, ms = 0; for (const e of s.life.list) if (e.alive) { if (e.composite) c++; if ((e.symb || 0) > ms) ms = e.symb; } if (c > maxComp) maxComp = c; if (ms > maxSymb) maxSymb = ms; } }
+    return { maxComp, maxSymb };
+  }
+  const off = run(false), on = run(true);
+  console.log(`   [symbiosis] off: ${off.maxComp} composites | on: ${on.maxComp} composites, symb→${on.maxSymb.toFixed(2)}`);
+  ok(off.maxComp === 0, 'symbiosis OFF (default) ⇒ no composites — baselines untouched');
+  ok(on.maxComp > 5 && on.maxSymb > 0.6, 'composite life emerges at the overlap and the symb trait evolves to favour partnership');
+})();
+
 (function testFullIntegration() {
   // everything at once — terrain, auto-rot, hunters, the economy, the chronicle — must coexist for a long
   // run with no NaN, no crash, no collapse. the cross-feature safety net the per-mechanic tests can't give.
