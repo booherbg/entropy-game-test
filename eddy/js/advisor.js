@@ -29,7 +29,16 @@
         return { level: 'warn', text: `the ${ELN[g.el]} spring is running dry — its niche will fade. tend a new source before it goes quiet.` };
       }
     }
-    // 2. one guild crowding the web → the keystone lesson (a hunter opens room) or widen the palette
+    // 2. compounds: lignin locking the humus away — the maturation phase (explains the lean founder spell;
+    // takes priority because the lignin is the real cause of a thin, lopsided-looking young world)
+    const lignin = sim.field.lockedTotal ? sim.field.lockedTotal() : 0;
+    if (lignin > 400) {
+      const crackers = live.reduce((c, e) => c + ((e.crack || 0) > 0.3 ? 1 : 0), 0);
+      return crackers < 5
+        ? { level: 'tip', text: 'lignin is locking the humus away — recalcitrant, nothing ordinary can eat it. give it time: a white-rot cracker will evolve to open it.' }
+        : { level: 'good', text: `your white-rot guild (${crackers}) is cracking the lignin — the food web has reached even the locked resource.` };
+    }
+    // 3. one guild crowding the web → the keystone lesson (a hunter opens room) or widen the palette
     if (domFrac > 0.7 && diversity < 12) {
       return hunters < 3
         ? { level: 'tip', text: `the ${ELN[domG]} guild is crowding the web (${Math.round(domFrac * 100)}%) — a hunter dropped in would crop the crowd and open room for rarer niches.` }
@@ -39,7 +48,7 @@
     if (diversity < 6 && n > 30) {
       return { level: 'tip', text: 'much life, few niches — set two different springs close, so their fields overlap and a blend-eater arises between them.' };
     }
-    // 4. all is well — read the emergence back (good)
+    // 5. all is well — read the emergence back (good)
     if (diversity >= 10 && guildsPresent === 3) {
       return { level: 'good', text: `a rich, balanced web — ${diversity} niches across all three guilds${hunters ? ', hunters threading through' : ''}. the loophole is holding.` };
     }

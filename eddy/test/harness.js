@@ -409,6 +409,16 @@ require('../js/advisor.js');
   gar.gens[0].r0 = 4000; gar.gens[0].reservoir = 4000 * 0.1;
   const aw = E.advise(gar);
   ok(valid(aw) && aw.level === 'warn' && /dry|fade|quiet/.test(aw.text), 'advisor warns when a spring runs dry (its niche will fade)');
+  // a compounds world piling up lignin → the advisor explains the maturation (a white-rot cracker is coming)
+  const cw = E.makeSim(7);
+  cw.addGenerator({ x: 75, y: 50, el: E.HUM, rate: 10, proj: 'radial', radius: 14 });
+  cw.addGenerator({ x: 55, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+  for (let k = 0; k < 40; k++) { cw.field.diffuse(); E.depositGenerators(cw.field, cw.gens); }
+  cw.dropPrimer(55, 50); cw.setCompounds(true);
+  for (let t = 0; t < 700; t++) cw.tick();
+  const ac = E.advise(cw);
+  console.log(`   [advisor] compounds → ${ac.level}: ${ac.text}`);
+  ok(valid(ac) && /lignin|white-rot/.test(ac.text), 'advisor explains lignin/white-rot once compounds accumulate (legibility of the new system)');
 })();
 
 (function testRotConservesAndFirebreaks() {
