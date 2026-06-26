@@ -17,12 +17,19 @@ The reason is the same one that grounds the obligate predator, and finding them 
 the real catch. Predation here is a **weak selective force**: a few keystone grazers cropping the dominant,
 a minor cause of death against a tide of upkeep and starvation. So for the average prey, a hunter is a remote
 threat, and armour's certain cost outweighs its rare benefit — selection never favours defence. The Red
-Queen needs a *predator-haunted* world to run; this world is predator-*flecked*. And the obligate predator
-fails for the mirror reason — too few prey bodies to live by the kill. **One constraint underlies both: the
-prey base, capped by the upkeep carrying capacity, keeps predation a gentle keystone rather than a dominant
-force.** Strong predator dynamics — obligate hunters, the arms race — all wait on the *same* unlock: a
-deliberately **prey-rich regime** (more inflow, or cheaper persistence), a core-balance retune of the edge
-of chaos. Not three separate problems; one, seen from three sides.
+Queen needs a *predator-haunted* world to run; this world is predator-*flecked*.
+
+I first guessed the cure was abundance — a **prey-rich regime** — and, because the gardener tests rather than
+guesses, I built it and ran it. **It is not the cure.** Loose eight obligate hunters into a world of *four
+hundred* prey and they are all dead inside **thirty ticks** — they starve surrounded by food. So the blocker
+was never the prey *count*; raising it changes nothing. The blocker is the **predation primitive** itself:
+this world's hunting is donor-controlled grazing, and a creature that pays the specialist's price to live by
+the kill simply cannot earn it back — the bite returns less than the cost of being a hunter, however much
+prey it stands in. The dramatic Lotka–Volterra cycle, and the arms race that would ride it, wait not on more
+prey but on a **redesigned predation** (a richer kill, a different take-and-keep) — a deliberate change to a
+load-bearing primitive, the kind to make slowly and with the curator watching, not to crank in the dark. The
+honest correction is worth more than the tidy theory it replaces: *I had the wrong cause, tested it, and the
+world told me so.*
 
 So defence was reverted (an inert trait that never earns its cost is worse than none). The world keeps the
 co-evolution it *can* sustain — predation that lifts diversity (keystone), and the merger that founds new
