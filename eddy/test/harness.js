@@ -608,6 +608,50 @@ require('../js/advisor.js');
   ok(on.maxComp > 5 && on.maxSymb > 0.6, 'composite life emerges at the overlap and the symb trait evolves to favour partnership');
 })();
 
+(function testPredatorRedesign() {
+  // the predator redesign (opt-in; OFF ⇒ legacy nibble, baselines byte-identical). a TRUE kill + a grazing
+  // tradeoff let a creature LIVE BY THE KILL: the old donor-controlled nibble could crop prey but never feed
+  // a hunter, so an obligate predator was impossible. ON ⇒ a downed prey is killed (removed, a windfall) and
+  // a hunter can breed from kills, so a predator guild sustains and — Paine 1966 — raises diversity.
+
+  // (1) the kill mechanic, isolated and exact: OFF nibbles (prey survives at the floor), ON kills (removes it)
+  function killTest(richKill) {
+    const f = E.makeField(E.makeRng(20)), life = E.makeLife(E.makeRng(20));
+    if (richKill) { life.setRichKill(true); life.setEatTradeoff(0.45); }
+    const h = life.spawnFromPrimer(f, 50, 50); h.pred = 1.0; h.biomass = 1.5;
+    const pr = life.spawnFromPrimer(f, 50, 50); pr.pred = 0.0; pr.biomass = 0.5; // small prey → one decisive strike
+    const tot = () => f.total(E.LUM) + f.total(E.MIN) + f.total(E.HUM) + life.list.filter(e => e.alive).reduce((s, e) => s + e.biomass, 0);
+    const before = tot();
+    life.step(f);
+    return { preyAlive: pr.alive, drift: Math.abs(tot() + life.dissipated() - before) };
+  }
+  const kOff = killTest(false), kOn = killTest(true);
+  ok(kOff.preyAlive, 'redesign OFF ⇒ a strike only nibbles, the prey survives at the floor (legacy grazing — baseline intact)');
+  ok(!kOn.preyAlive, 'redesign ON ⇒ a decisive strike KILLS the prey (a real kill: removed, not grazed)');
+  ok(kOn.drift < 1e-2, 'the kill conserves matter (carcass → predator biomass + humus + the upkeep sink)');
+
+  // (2) the guild: with the same seed of hunters, does a self-sustaining predator guild establish over a long
+  // run? OFF the legacy nibble can't feed them and they fade; ON they live by the kill and hold a guild.
+  // (measured over a long horizon, not a single snapshot — injected hunters boom-and-bust before they settle.)
+  const H = s => s.life.list.reduce((n, e) => n + (e.alive && (e.pred || 0) > 0.4 ? 1 : 0), 0);
+  const D = s => { const set = new Set(); for (const e of s.life.list) if (e.alive) set.add(E.speciesKey(e)); return set.size; };
+  function guild(richKill) {
+    const s = E.makeSim(7);
+    if (richKill) { s.setRichKill(true); s.setEatTradeoff(0.45); }
+    s.addGenerator({ x: 70, y: 50, el: E.LUM, rate: 9, proj: 'radial', radius: 20, reservoir: 1e9, r0: 1e9 });
+    s.addGenerator({ x: 90, y: 50, el: E.MIN, rate: 9, proj: 'radial', radius: 20, reservoir: 1e9, r0: 1e9 });
+    s.dropPrimer(70, 50); s.dropPrimer(90, 50);
+    for (let t = 0; t < 400; t++) s.tick();
+    for (let i = 0; i < 6; i++) s.dropPredator(80, 50); // a starting seed of hunters (the ⚔ tool / organic drift)
+    for (let t = 400; t < 1600; t++) s.tick();          // long enough to pass the boom-bust transient and settle
+    return { end: H(s), div: D(s) };
+  }
+  const gOff = guild(false), gOn = guild(true);
+  console.log(`   [predators] guild after 1600t — OFF (nibble) ${gOff.end} hunters · ON (kill) ${gOn.end} hunters | diversity ${gOff.div}→${gOn.div}`);
+  ok(gOn.end > 12 && gOn.end > gOff.end, 'redesign ON ⇒ an obligate-predator guild sustains itself by the kill (the long-deferred blocker, resolved)');
+  ok(gOn.div > gOff.div, 'redesign ON ⇒ the real kill keeps predation a keystone — the hunted world is more diverse (Paine 1966)');
+})();
+
 (function testFullIntegration() {
   // everything at once — terrain, auto-rot, hunters, the economy, the chronicle — must coexist for a long
   // run with no NaN, no crash, no collapse. the cross-feature safety net the per-mechanic tests can't give.

@@ -74,6 +74,7 @@
              setAutoRot: function (v) { autoRot = !!v; }, autoRot: function () { return autoRot; },
              setCompounds: function (v) { compounds = !!v; life.setCompounds(v); },
              setSymbiosis: function (v) { life.setSymbiosis(v); },
+             setRichKill: function (v) { life.setRichKill(v); }, setEatTradeoff: function (v) { life.setEatTradeoff(v); },
              serialize() { return E.serializeSim(field, life, gens, seed); } };
   };
 

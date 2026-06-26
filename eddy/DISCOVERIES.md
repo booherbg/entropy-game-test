@@ -6,6 +6,46 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-26 · the kill that pays — an obligate predator, at last (the deferred blocker, resolved)
+
+The notebook has twice deferred the same thing: the dramatic predator–prey relationship and the Red Queen that
+would ride it, both blocked (correctly diagnosed) on the **predation primitive** — donor-controlled grazing
+that crops prey but cannot *feed a hunter*. The honest note then was that the fix is a load-bearing change to
+make "with the curator watching." With the curator's standing leave to run bold experiments, I made it — and
+**instrumented it against the trusted criticality harness so it wasn't made in the dark.** It works.
+
+First, the measurement (play before fixing): I seeded obligate hunters into a grown prey colony and watched
+the energy. They peaked at the eight injected and bled out — and the cause was not what I'd assumed. Two
+specific bugs, found only by watching: (1) **`SATIETY` (1.8) sat *below* `REPRO` (2.0)** — a hunter stops
+feeding when sated but must reach 2.0 to breed, so the gap could *only* be crossed by grazing; an obligate
+hunter that grazes poorly was frozen one step below the breeding threshold *forever*. The predator population
+literally could not grow, whatever the prey count — which is why last cycle's "prey-rich regime" test failed.
+(2) The bite **left the prey alive at the floor** — grazing, not killing — so prey never fell to predation and
+no population could track it. There was nothing for a predator to cycle *with*.
+
+The redesign is two matched levers, opt-in (off ⇒ byte-identical baselines, the established discipline):
+**richKill** — a strike that downs prey past the floor takes the *whole animal* (a kill, a windfall, the prey
+*removed*); and **eatTradeoff** — a hunter grazes the field poorly, so predation is not free upside but a
+*niche choice* (producer or hunter), the negative feedback that stops a runaway to all-predator. With satiety
+also lifted above the breeding line so a hunter can breed from kills alone, an **obligate predator guild now
+sustains itself by hunting**, indefinitely.
+
+The numbers, across the board better than the world without it. In a garden: diversity **8 → ~15**, a stable
+guild of **~45 hunters** (vs 3), the `pred` trait self-organizing to a steady **~0.48** equilibrium —
+adaptation, evolved, not authored. At criticality scale (5 seeds × 4000 ticks): mean diversity **14.3 → 18.1**,
+turnover **37 → 51** extinctions/run (a *more* dynamic world), heavy-tail intact (2.1× → 2.2×) — **still
+Wolfram Class 4 + Bak SOC on every seed.** The predator redesign doesn't cost the edge of chaos; it pushes the
+world *further* onto it. And it is visible: render a hunted world and the hunters knot crimson at the prey-rich
+seams — a pack at a kill site, keystone predation you can see.
+
+The honest edge: this is **stable coexistence**, not yet the wild Lotka–Volterra *limit cycle* (the populations
+damp to a living fixed point rather than oscillating forever — spatial averaging over a large grid stabilizes
+it). That's arguably the better game outcome (a cycle that never crashes to extinction), but a true oscillation
+— via a destabilizing functional response (the paradox of enrichment) — is now a *reachable* next experiment
+rather than a blocked one. And the bigger door this opens: predation is now a **strong selective force** (a
+hunter that kills, not nibbles), which is the precondition the Red Queen was waiting on. The arms race that
+"won't run on a calm sea" may finally have its storm.
+
 ## 2026-06-26 · lit from within — the depth was always there; it just wasn't *seen* (a render-craft note)
 
 Not a finding about the sim's behaviour but about how it *reads*, and worth the notebook because it resolves a

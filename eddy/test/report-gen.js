@@ -6,7 +6,7 @@ function img(name) {
   try { return 'data:image/png;base64,' + fs.readFileSync(dir + name).toString('base64'); }
   catch (e) { return ''; }
 }
-const timelapse = img('timelapse.png'), garden = img('play-garden-2000.png'), springs = img('springs.png'), rotshot = img('rot-firebreak.png'), lignin = img('lignin.png'), vitality = img('vitality.png');
+const timelapse = img('timelapse.png'), garden = img('play-garden-2000.png'), springs = img('springs.png'), rotshot = img('rot-firebreak.png'), lignin = img('lignin.png'), vitality = img('vitality.png'), predators = img('predators.png');
 
 const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>eddy — status report</title>
@@ -40,7 +40,7 @@ code{background:#1c2027;padding:1px 5px;border-radius:4px;font-size:12px}
 
 <div class="verdict">
 <p class="lede" style="margin-top:0"><b>Verdict: the whole vision is built — a complete, integrated, legible game of entropy and life, waiting only for your eyes.</b></p>
-<p>What began as a prototype is now the entire thing we set out to make, and it holds together. You tend conditions — springs, the shape of the land — and a living, evolving, self-extending food web computes itself, legibly and thermodynamically honestly. The receipts: <b>your choices move the score 3.8×</b> (it is not boring); the world <b>measures at the edge of chaos</b> (Wolfram Class&nbsp;4 + Bak self-organized criticality, every seed); <b>predation is a keystone</b> (a hunter <i>raises</i> diversity — Paine 1966); an <b>antagonist that pushes back</b> (the rot — diversity becomes a literal firebreak, and a monoculture rots from within, unbidden); <b>terrain</b> (basins concentrate flow, walls firebreak, a fresh world arrives as a landscape); and <b>compounds</b> (lignin locks away where humus piles, and a white-rot specialist <i>evolves</i> to crack it — the food web extending itself a third time). And it is <b>legible</b> now: the food web read as guilds, each creature sized by its vitality so the world visibly breathes, an advisor and a narrated chronicle of self-organized-criticality cascades. <b>78 headless assertions</b>, all green; everything balanced and performance-checked as a whole. The one thing left undone is the one thing only you can do: <b>open it.</b></p>
+<p>What began as a prototype is now the entire thing we set out to make, and it holds together. You tend conditions — springs, the shape of the land — and a living, evolving, self-extending food web computes itself, legibly and thermodynamically honestly. The receipts: <b>your choices move the score 3.8×</b> (it is not boring); the world <b>measures at the edge of chaos</b> (Wolfram Class&nbsp;4 + Bak self-organized criticality, every seed); <b>predation is a keystone</b> (a hunter <i>raises</i> diversity — Paine 1966); an <b>antagonist that pushes back</b> (the rot — diversity becomes a literal firebreak, and a monoculture rots from within, unbidden); <b>terrain</b> (basins concentrate flow, walls firebreak, a fresh world arrives as a landscape); and <b>compounds</b> (lignin locks away where humus piles, and a white-rot specialist <i>evolves</i> to crack it — the food web extending itself a third time). And it is <b>legible</b> now: the food web read as guilds, each creature sized by its vitality so the world visibly breathes, an advisor and a narrated chronicle of self-organized-criticality cascades. <b>90 headless assertions</b>, all green; everything balanced and performance-checked as a whole. The one thing left undone is the one thing only you can do: <b>open it.</b></p>
 </div>
 
 <h2>The antagonist — diversity as a firebreak</h2>
@@ -51,6 +51,19 @@ code{background:#1c2027;padding:1px 5px;border-radius:4px;font-size:12px}
 <img src="${lignin}" alt="lignin, the recalcitrant compound, and the white-rot that cracks it">
 <p class="cap">The woody-brown zone (centre, around the humus spring) is <b>lignin</b> — recalcitrant humus that piled too high and locked away, inedible to ordinary life. Turn compounds on and the world does the rest unbidden: a heritable <code>crack</code> trait climbs under selection (0.33→0.62) because the lignin is free food to anything that can open it, and a <b>white-rot guild evolves</b> on a resource that did not exist until the world made it — then draws it back down. The food web extending itself a third time (after decomposers from waste, hunters from prey). Richness from a fold, not a pile.</p>
 
+<h2>The kill that pays — an obligate predator, at last</h2>
+<img src="${predators}" alt="a predator guild knotting crimson at the prey-rich seams">
+<p class="cap">Hunters (crimson) knotted at the humus vein, where the prey is densest — a pack at a kill site. For
+many iterations predation could only <i>graze</i> (a nibble that left the prey alive), so a creature that tried
+to live by the kill starved; the dramatic predator–prey relationship was deferred as needing a load-bearing
+redesign. It is now built and measured: a <b>real kill</b> (a downed prey is removed, a windfall) paired with a
+<b>grazing tradeoff</b> (a hunter is a poor producer, so predator and producer are real alternative niches),
+and the breeding threshold freed so a hunter can multiply from kills alone. The result is a <b>self-sustaining
+obligate-predator guild</b> whose <code>pred</code> trait <i>evolves</i> to a stable ~0.48 — and, decisively, it
+<i>improves</i> the world's measured soul: across five seeds, diversity rises <b>14.3 → 18.1</b>, turnover
+<b>37 → 51</b> extinctions/run (a more dynamic world), still <b>Wolfram Class 4 + Bak SOC on every seed</b>.
+Predation was a keystone before (Paine); now it is a keystone that can also stand on its own.</p>
+
 <h2>The world breathes — each creature sized by its vitality</h2>
 <img src="${vitality}" alt="creatures sized by biomass — thriving large, starving small">
 <p class="cap">No longer interchangeable dots: each creature is drawn to its <b>biomass</b>, so a colony has texture — large thriving life near the source, small struggling life at the edges. You read a creature's life-stage at a glance, and the world has depth and a pulse.</p>
@@ -60,7 +73,7 @@ code{background:#1c2027;padding:1px 5px;border-radius:4px;font-size:12px}
 <p class="cap">One world at ticks 120 → 450 → 1000 → 1800: birth (springs placed, gradients bloom) → flourishing (life fills the lumen/mineral/humus niches) → maturity (dense, diverse, the ground tinting with soil life built) → senescence (finite springs drain, blooms fade to gray, life thins). The dissipative thesis, visible: <i>without renewal, entropy reclaims.</i></p>
 
 <h2>What's built &amp; proven</h2>
-<p>A complete standalone game — vanilla JS + WebGL2, zero deps, deterministic — with a pure-JS sim core (Node-tested) and a browser render/UI layer. <b>78 headless assertions</b> green; everything on <code>main</code>.</p>
+<p>A complete standalone game — vanilla JS + WebGL2, zero deps, deterministic — with a pure-JS sim core (Node-tested) and a browser render/UI layer. <b>90 headless assertions</b> green; everything on <code>main</code>.</p>
 <ul>
 <li><b>Finite material field</b> (lumen/mineral/humus) with conserved diffusion; entropy is visible (concentrated = vivid, diffuse = gray).</li>
 <li><b>One primitive</b> — a tagged consume→produce node. Springs emit; life latches, metabolizes (Mode-1), excretes; decomposers mineralize.</li>
@@ -100,7 +113,7 @@ code{background:#1c2027;padding:1px 5px;border-radius:4px;font-size:12px}
 <li><b>Depth still mostly unseen</b> — the chronicle narrates births/extinctions, but there's no <b>food-web view</b>, and evolution is subtle shading, not a watchable form.</li>
 <li><b>Creatures are interchangeable dots</b> — named diversity and ~25 generations of drift aren't legible as shape or behaviour.</li>
 <li><b>A thriving world may be too serene</b> — the antagonist hunts the careless (monocultures), but a well-tended diverse world is now largely undisturbed; the accomplished player may want a pressure of their own.</li>
-<li><b>The dramatic predator still needs a hand</b> — keystone hunting works, but a self-sustaining obligate predator (crash-and-recovery drama) wants a bigger, faster prey base.</li>
+<li><b>Stable coexistence, not yet a wild cycle</b> — the obligate predator is built and thriving (above), but the two populations damp to a steady coexistence rather than a visible boom-bust oscillation; the Lotka–Volterra limit cycle (a destabilizing functional response — the paradox of enrichment) is the next experiment.</li>
 </ul></div>
 </div>
 
@@ -116,6 +129,8 @@ code{background:#1c2027;padding:1px 5px;border-radius:4px;font-size:12px}
 <li><b>Terrain</b> — rock that pools flow into basins (1.6×) and firebreaks the rot; a fresh world arrives as a landscape. <span class="tag t-later" style="margin:0">was #4</span></li>
 <li><b>Compounds</b> — lignin, and a white-rot specialist that <i>evolves</i> to crack it; the web extends itself a third time. <span class="tag t-later" style="margin:0">was #3</span></li>
 <li><b>Depth made felt</b> — the food-web view (guilds + the white-rot), and creatures sized by vitality so the world breathes. <span class="tag t-now" style="margin:0">was #1</span></li>
+<li><b>The kill that pays</b> — the predator redesign: a real kill + a grazing tradeoff make an obligate predator viable, lifting diversity (14.3→18.1) and turnover while holding Class 4 + SOC; <code>pred</code> evolves to a stable ~0.48. <span class="tag t-soon" style="margin:0">was #2</span></li>
+<li><b>Lit from within</b> — life rendered as luminous diet-coloured orbs sized by vitality, so guilds read as constellations — the depth, made visible.</li>
 </ul>
 
 <h2>Backlog — what's left</h2>
@@ -124,8 +139,8 @@ code{background:#1c2027;padding:1px 5px;border-radius:4px;font-size:12px}
 <h3>1 · A pressure for the accomplished player <span class="tag t-soon">felt tension</span></h3>
 <p>The rot hunts the careless (a monoculture rots from within); a well-tended <i>diverse</i> world is now serene — perhaps too serene. An optional pressure that touches even a healthy world (a wandering drought, a slow gradient decay) would give mastery something to push against. A design choice, because it spends the calm a good steward earns.</p>
 
-<h3>2 · The obligate predator &amp; a co-evolution layer <span class="tag t-later">depth</span></h3>
-<p>Predation is a keystone, but the dramatic crash-and-recovery cycle is diagnosed (in the notebook) as needing a deliberately <b>prey-rich regime</b> — a core-balance retune of the edge of chaos, your call. Beyond it, an arms race: prey defences against the hunter and the cracker (Holland's offence/defence tags), a Red Queen running on top of the web.</p>
+<h3>2 · The Red Queen — now unblocked <span class="tag t-soon">co-evolution</span></h3>
+<p>The obligate predator is <b>built</b> (above), which removes the very thing the arms race was waiting on: predation is now a <i>strong</i> selective force (a hunter that kills, not nibbles). So prey defences against the hunter and the cracker (Holland's offence/defence tags) may finally evolve a Red Queen on top of the web — last cycle the defence trait sat inert because a hunter was a remote threat; a hunter that kills is not. And the wild Lotka–Volterra <b>limit cycle</b> (boom-bust drama) is now a reachable retune (a destabilizing functional response — the paradox of enrichment) rather than a blocked one.</p>
 
 <h2>What needs you</h2>
 <ul>

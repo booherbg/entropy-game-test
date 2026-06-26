@@ -36,7 +36,16 @@
 
     // Mode-1 metabolism: eat a diet-weighted bite, keep a fixed ratio as biomass,
     // excrete the surplus as humus. Matter is conserved: field loss == biomass gain.
-    const EAT = 0.4, RETAIN = 0.5, EAT_TRADEOFF = 0.0; // obligate predators (>0) starve even with mobility — prey base too small; grazing/omnivory for now
+    const EAT = 0.4, RETAIN = 0.5;
+    // the predator redesign (opt-in; off ⇒ no behaviour change, baselines byte-identical). two matched levers
+    // that together let a creature LIVE BY THE KILL — turning donor-controlled grazing into a real
+    // predator–prey cycle (the Lotka–Volterra drama the old nibble could never sustain):
+    //   richKill    — a strike that downs prey past the floor takes the WHOLE animal (a kill, not a nibble that
+    //                 leaves it grazing-alive), so prey actually FALL to predation and the hunter gets a windfall.
+    //   eatTradeoff — a hunter grazes the field poorly (eat scales down with the pred trait), so predation isn't
+    //                 free upside: you are a producer OR a hunter. this is the negative feedback that stops a
+    //                 runaway to all-predator and lets the two populations oscillate (boom on prey, bust without).
+    let richKill = false, eatTradeoff = 0.0;
     // compounds (lignin/white-rot): a heritable `crack` trait lets a "cracker" eat the recalcitrant lignin
     // nothing else can. opt-in — when off, lockStep never runs and crack never drifts (no extra rng), so
     // every measured baseline is byte-identical. when on, crackers EVOLVE wherever lignin piles up (a free
@@ -47,7 +56,7 @@
       const i = E.idx(ent.x | 0, ent.y | 0);
       // take a diet-weighted bite of each element — but predators are poor producers (they must hunt
       // to live), which is what keeps the predator/producer niche split from diffusing away.
-      const eat = EAT * (1 - (ent.pred || 0) * EAT_TRADEOFF) * (ent.composite ? COMPOSITE_EAT : 1); // composites take up more — the merger's payoff (no-op without composites)
+      const eat = EAT * (1 - (ent.pred || 0) * eatTradeoff) * (ent.composite ? COMPOSITE_EAT : 1); // composites take up more — the merger's payoff (no-op without composites); a hunter grazes poorly when eatTradeoff>0
       const tL = Math.min(eat * ent.diet[E.LUM], field.get(i, E.LUM));
       const tM = Math.min(eat * ent.diet[E.MIN], field.get(i, E.MIN));
       const tH = Math.min(eat * ent.diet[E.HUM], field.get(i, E.HUM));
@@ -149,7 +158,10 @@
       }
       const dirs = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
       for (const pr of list) {
-        if (!pr.alive || pr.pred <= 0.02 || pr.biomass >= SATIETY) continue; // sated or barely predatory → skip
+        // sated or barely predatory → skip. under richKill a hunter stays hungry until it can REPRODUCE from
+        // kills (satiety above REPRO) — otherwise an obligate hunter that can't graze is frozen below the
+        // breeding threshold and the predator population can never grow.
+        if (!pr.alive || pr.pred <= 0.02 || pr.biomass >= (richKill ? REPRO + 0.4 : SATIETY)) continue;
         const cx = pr.x | 0, cy = pr.y | 0;
         // keystone predation (Paine 1966): among reachable prey, take one of the most ABUNDANT species —
         // cropping the competitive dominant frees resource for rarer niches, so hunting raises diversity
@@ -165,7 +177,17 @@
           }
         }
         if (!prey) continue;
-        const bite = Math.min(PRED_BITE * pr.pred, prey.biomass - PREY_FLOOR);
+        let bite;
+        if (richKill) {
+          // a true kill: strike up to PRED_BITE*pred; if that downs the prey past the floor, take the WHOLE
+          // animal — the windfall that pays for being a hunter, and the removal that lets prey populations fall.
+          // a weak predator (low pred) can't down a full-grown prey in one strike, so it still only grazes it —
+          // so the grazer→killer split emerges from the pred trait itself (keystone at low pred, hunter at high).
+          bite = Math.min(PRED_BITE * pr.pred, prey.biomass);
+          if (prey.biomass - bite <= PREY_FLOOR) bite = prey.biomass; // finish it
+        } else {
+          bite = Math.min(PRED_BITE * pr.pred, prey.biomass - PREY_FLOOR); // legacy graze: a nibble; prey survives at the floor
+        }
         if (bite <= 0) continue;
         prey.biomass -= bite;
         pr.biomass += bite * PRED_RETAIN;
@@ -274,7 +296,8 @@
     }
 
     return { list, spawnFromPrimer, seedRot, step, _rng: rng, dissipated: function () { return _dissipated; },
-             setCompounds: function (v) { compounds = !!v; }, setSymbiosis: function (v) { symbiosis = !!v; } };
+             setCompounds: function (v) { compounds = !!v; }, setSymbiosis: function (v) { symbiosis = !!v; },
+             setRichKill: function (v) { richKill = !!v; }, setEatTradeoff: function (v) { eatTradeoff = +v || 0; } };
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = E;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
