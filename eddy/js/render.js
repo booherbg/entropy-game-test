@@ -97,10 +97,11 @@ in vec2 cell; in vec3 col; in float sz; out vec3 vcol; uniform vec2 grid; unifor
 void main(){ vec2 clip = vec2(cell.x/grid.x*2.0-1.0, -(cell.y/grid.y*2.0-1.0));
   gl_Position = vec4(clip,0.0,1.0); gl_PointSize = psize * sz; vcol = col; }`;
   const EFS = `#version 300 es
-precision highp float; in vec3 vcol; out vec4 frag;
+precision highp float; in vec3 vcol; out vec4 frag; uniform int mode;
 void main(){ vec2 d = gl_PointCoord - vec2(0.5); float r = length(d); if (r > 0.5) discard;
-  float core = smoothstep(0.5, 0.30, r); frag = vec4(mix(vec3(0.04,0.045,0.05), vcol, core), 1.0); }`;
-  let eprog = null, evao = null, ebuf = null, eGridU = null, ePsizeU = null, entBuf = null;
+  if (mode == 0) { float f = 1.0 - r/0.5; f = f*f*0.30; frag = vec4(vcol*f, 1.0); }      // glow halo — additive, soft quadratic falloff
+  else { float u = r/0.5, b = 1.0 - u*u*0.5; frag = vec4(vcol*b, 1.0); } }`;             // body — radial-shaded orb, bright core → dim rim
+  let eprog = null, evao = null, ebuf = null, eGridU = null, ePsizeU = null, eModeU = null, entBuf = null;
   const ECAP = 5000;
 
   // diet proportions → a vivid color (brighter than the field, so life pops as "ordered")
@@ -122,7 +123,7 @@ void main(){ vec2 d = gl_PointCoord - vec2(0.5); float r = length(d); if (r > 0.
     gl.bindAttribLocation(eprog, 0, 'cell'); gl.bindAttribLocation(eprog, 1, 'col'); gl.bindAttribLocation(eprog, 2, 'sz');
     gl.linkProgram(eprog);
     if (!gl.getProgramParameter(eprog, gl.LINK_STATUS)) throw new Error('elink: ' + gl.getProgramInfoLog(eprog));
-    eGridU = gl.getUniformLocation(eprog, 'grid'); ePsizeU = gl.getUniformLocation(eprog, 'psize');
+    eGridU = gl.getUniformLocation(eprog, 'grid'); ePsizeU = gl.getUniformLocation(eprog, 'psize'); eModeU = gl.getUniformLocation(eprog, 'mode');
     evao = gl.createVertexArray(); gl.bindVertexArray(evao);
     ebuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, ebuf);
     gl.bufferData(gl.ARRAY_BUFFER, ECAP * 6 * 4, gl.DYNAMIC_DRAW); // 6 floats/vertex: x,y,r,g,b,size
@@ -154,7 +155,14 @@ void main(){ vec2 d = gl_PointCoord - vec2(0.5); float r = length(d); if (r > 0.
     gl.bindBuffer(gl.ARRAY_BUFFER, ebuf);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, entBuf.subarray(0, n * 6));
     gl.uniform2f(eGridU, E.W, E.H);
-    gl.uniform1f(ePsizeU, Math.max(3, (gl.canvas.height / E.H) * 1.7));
+    const psize = Math.max(3, (gl.canvas.height / E.H) * 1.7);
+    // pass 1 — a luminous halo, additive in each creature's own light, so a colony glows lit-from-within
+    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);
+    gl.uniform1i(eModeU, 0); gl.uniform1f(ePsizeU, psize * 2.4);
+    gl.drawArrays(gl.POINTS, 0, n);
+    // pass 2 — the bodies as radial-shaded orbs, drawn over their own light
+    gl.disable(gl.BLEND);
+    gl.uniform1i(eModeU, 1); gl.uniform1f(ePsizeU, psize);
     gl.drawArrays(gl.POINTS, 0, n);
     gl.bindVertexArray(null);
   };
@@ -177,6 +185,7 @@ void main(){ vec2 d = gl_PointCoord - vec2(0.5); float r = length(d); if (r > 0.
     gl.bindBuffer(gl.ARRAY_BUFFER, ebuf);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, entBuf.subarray(0, n * 6));
     gl.uniform2f(eGridU, E.W, E.H);
+    gl.uniform1i(eModeU, 1); // markers draw as solid orbs (no additive halo), blend already off from the entity pass
     gl.uniform1f(ePsizeU, Math.max(7, (gl.canvas.height / E.H) * 3.0)); // bigger than creatures
     gl.drawArrays(gl.POINTS, 0, n);
     gl.bindVertexArray(null);

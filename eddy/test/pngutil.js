@@ -46,8 +46,8 @@ function renderWorld(E, sim, S) {
     const R = Math.round(c[0] * 255), G = Math.round(c[1] * 255), B = Math.round(c[2] * 255);
     for (let dy = 0; dy < S; dy++) for (let dx = 0; dx < S; dx++) { const o = (((y * S + dy) * IW) + (x * S + dx)) * 3; rgb[o] = R; rgb[o + 1] = G; rgb[o + 2] = B; }
   }
-  for (const e of sim.life.list) {
-    if (!e.alive) continue;
+  // one source of truth for a creature's size & color, so the glow pass and the core pass can't drift
+  function entAppearance(e) {
     let r = Math.max(1, Math.round(S * 0.9 * (0.5 + Math.min(e.biomass, 2) / 2 * 0.95))); // size by vitality (mirrors render.js)
     const c = E.Render.dietColor(e.diet);
     const p = (e.pred || 0) * 0.85; // predators tint toward crimson — the drama, made visible
@@ -55,11 +55,30 @@ function renderWorld(E, sim, S) {
     if (e.composite) { cr = cr * 0.55 + 0.42; cg = cg * 0.55 + 0.42; cb = cb * 0.55 + 0.40; r = Math.round(r * 1.3); } // composites glow pearl, larger
     const R = Math.min(255, (cr * 255 | 0) + 25), G = Math.min(255, (cg * 255 | 0) + 30), B = Math.min(255, (cb * 255 | 0) + 25);
     const cx = Math.round((e.x + 0.5) * S), cy = Math.round((e.y + 0.5) * S);
+    return { r, R, G, B, cx, cy };
+  }
+  // pass 1 — a soft luminous halo, additive in the creature's own light, so colonies glow lit-from-within
+  // (its own color adds toward bright; where two guilds touch, their lights mingle and whiten — energy made visible)
+  for (const e of sim.life.list) {
+    if (!e.alive) continue;
+    const a = entAppearance(e), gr = Math.round(a.r * 2.4), gr2 = gr * gr;
+    for (let dy = -gr; dy <= gr; dy++) for (let dx = -gr; dx <= gr; dx++) {
+      const d2 = dx * dx + dy * dy; if (d2 > gr2) continue;
+      const px = a.cx + dx, py = a.cy + dy; if (px < 0 || py < 0 || px >= IW || py >= IH) continue;
+      const f = 1 - Math.sqrt(d2) / gr, w = f * f * 0.30; // smooth quadratic falloff, gentle so density doesn't blow out
+      const o = (py * IW + px) * 3;
+      rgb[o] = Math.min(255, rgb[o] + a.R * w); rgb[o + 1] = Math.min(255, rgb[o + 1] + a.G * w); rgb[o + 2] = Math.min(255, rgb[o + 2] + a.B * w);
+    }
+  }
+  // pass 2 — the bodies as radially-shaded orbs (bright core dimming to the rim), drawn over their own light
+  for (const e of sim.life.list) {
+    if (!e.alive) continue;
+    const a = entAppearance(e), r = a.r, r2 = r * r;
     for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
-      const d2 = dx * dx + dy * dy; if (d2 > r * r) continue;
-      const px = cx + dx, py = cy + dy; if (px < 0 || py < 0 || px >= IW || py >= IH) continue;
-      const o = (py * IW + px) * 3, edge = d2 > (r - 1) * (r - 1);
-      rgb[o] = edge ? 10 : R; rgb[o + 1] = edge ? 11 : G; rgb[o + 2] = edge ? 12 : B;
+      const d2 = dx * dx + dy * dy; if (d2 > r2) continue;
+      const px = a.cx + dx, py = a.cy + dy; if (px < 0 || py < 0 || px >= IW || py >= IH) continue;
+      const o = (py * IW + px) * 3, b = 1 - (d2 / r2) * 0.5; // roundness: full at center, ~0.5 at rim — no black gasket
+      rgb[o] = a.R * b; rgb[o + 1] = a.G * b; rgb[o + 2] = a.B * b;
     }
   }
   for (const g of sim.gens) {

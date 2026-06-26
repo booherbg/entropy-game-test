@@ -6,6 +6,27 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-26 · lit from within — the depth was always there; it just wasn't *seen* (a render-craft note)
+
+Not a finding about the sim's behaviour but about how it *reads*, and worth the notebook because it resolves a
+named weakness: every prior report confessed the same flaw — *"creatures are interchangeable dots,"* the 13
+diets and ~25 generations of drift *"subtle shading, not felt… the depth is in the data, not the eye."* The
+data never changed. The seeing did. Each creature now lights its own neighbourhood in its own diet-colour
+(an additive halo, soft and quadratic, the body a radially-shaded orb over it), and the world that was a
+scatter of flat points resolves into **constellations of guilds**: gold lumen-eaters glowing in their gold
+nebula, a blue mineral cluster across the seam, a green humus vein between — each orb sized by its vitality,
+so a colony has texture and a pulse. The segregation by diet, the biomass spread from thriving core to
+starving edge, the three niches holding apart — all of it was computed every tick and invisible; now the eye
+reads it at a glance.
+
+The honest catch: additive light is unforgiving of crowds, and the fear was that a dense colony would blow
+out to a white smear. It doesn't — at 0.30 centre-intensity the densest maturity frame of the time-lapse
+stays legible, individual orbs distinct, and where two guilds touch their lights *mingle and whiten*, which
+reads (rightly) as energy at the boundary rather than as overload. Verified the whole arc headless before
+touching the live shader, then mirrored the exact math in WebGL (a two-pass point-sprite draw: additive halo,
+then solid orb). A reminder that legibility is not decoration — making the existing depth *visible* is itself
+moving the arrow. `shots/world.png`, `shots/timelapse.png`, `shots/play-garden-2000.png` carry the new look.
+
 ## 2026-06-26 · the Red Queen won't run on a calm sea — why the arms race (and the obligate predator) wait on one thing
 
 Reached for co-evolution next — the Red Queen (Van Valen; Holland's offence/defence tags): give prey a
