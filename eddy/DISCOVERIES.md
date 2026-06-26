@@ -6,6 +6,30 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · the land takes shape — terrain, basins, and a second kind of firebreak
+
+The thing the founding brainstorm wanted most, and the last big piece unbuilt: **spatial depth** — the SimCity
+dream of flow through shaped zones, basins, chokepoints, "where matters." Now the field has **terrain**: a
+layer of rock. Rock holds nothing and lets nothing pass — so it **blocks diffusion** (material pools against
+it, and a spring walled into a **basin** runs **1.6× richer** than the same spring in the open — denser life,
+a deliberate concentration), it **blocks life** (nothing grows into stone), and it **blocks the rot** — a
+rock wall is a **firebreak the fire cannot cross**, measured dead at zero on the far side.
+
+That last one is the quiet delight: the world now has **two** ways to firewall the antagonist. Keep your
+guilds diverse and the rot stalls at the *living* seams between them; or wall a colony off with *rock* and
+the rot stalls at the stone. Biological resilience and built resilience, the same outcome by different means
+— and a real choice in how you defend. And it deepens every placement: a spring in a bowl is a different,
+richer thing than a spring in the open; a ridge between two colonies keeps a blight in one of them. "Where"
+was already worth 3.8×; terrain gives it basins and walls to work with.
+
+It is honest engineering all the way down. The barrier layer is a **no-op when empty** — an unshaped world
+diffuses byte-for-byte as before, so every measured baseline (the edge-of-chaos, the bake-off) is untouched;
+terrain is opt-in, laid by the player's hand. It renders as stone (verified headless — a lumen spring cupped
+in a basin of rock, its gold pooled and its life packed inside, a ridge firebreaking the open colony beside
+it), it serializes, and it gives the steward a new verb: **▣ shape the land.** The map stopped being a flat
+sheet the world relaxes across; it became a place with structure to read and to build. (Next, if wanted:
+procedural terrain so a fresh world arrives already a landscape, not a blank table.)
+
 ## 2026-06-25 · the rot strikes unbidden — a monoculture rots from within
 
 The rot was a tool you could loose; now it is a threat that comes for you. **Spontaneous ignition:** when the
@@ -404,4 +428,5 @@ diversity, not decoration; the soil settles to a stable plateau (overshoot-and-s
 SOC cascades are now narrated as felt events; the impatient-primer "problem" was the dissipative thesis
 working all along — a packet can't sustain life without a flow, and the advisor now teaches that; and the
 antagonist arrived — the rot, a typed fire that makes diversity a literal firebreak (89% vs 39% culled) and
-strikes monocultures unbidden, while never touching a diverse world.)*
+strikes monocultures unbidden, while never touching a diverse world; and terrain arrived — rock that pools
+material into basins (1.6×) and walls the rot off (a second, built firebreak), with a ▣ shape-the-land verb.)*

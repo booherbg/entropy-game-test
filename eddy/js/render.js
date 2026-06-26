@@ -18,6 +18,7 @@ uniform sampler2D field; uniform int lens;
 void main(){
   vec4 s = texture(field, uv);
   vec3 e = s.rgb; float rot = s.a;
+  if (rot > 50.0) { frag = vec4(0.15, 0.14, 0.16, 1.0); return; } // rock (terrain) — alpha carries a sentinel
   float t = e.r + e.g + e.b + 1e-4;
   if (lens == 1) { frag = vec4(clamp(e,0.0,1.5)/1.5, 1.0); return; } // raw-field lens
   vec3 p = e / t;
@@ -66,9 +67,9 @@ void main(){
   };
 
   function uploadField(gl, field) {
-    const el = field.el, rot = field.rot, buf = texBuf, N = E.W * E.H;
-    // alpha carries the rot intensity to the shader (the field shader doesn't use variant) → a dark stain
-    for (let i = 0; i < N; i++) { buf[i*4] = el[i*3]; buf[i*4+1] = el[i*3+1]; buf[i*4+2] = el[i*3+2]; buf[i*4+3] = rot[i]; }
+    const el = field.el, rot = field.rot, barrier = field.barrier, buf = texBuf, N = E.W * E.H;
+    // alpha carries rot intensity → a dark stain; or a sentinel (99) for rock, which the shader draws as stone
+    for (let i = 0; i < N; i++) { buf[i*4] = el[i*3]; buf[i*4+1] = el[i*3+1]; buf[i*4+2] = el[i*3+2]; buf[i*4+3] = barrier[i] ? 99 : rot[i]; }
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, E.W, E.H, 0, gl.RGBA, gl.FLOAT, buf);
   }

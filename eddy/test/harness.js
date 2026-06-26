@@ -440,5 +440,30 @@ require('../js/advisor.js');
   ok(div === 0, 'a diverse world is never spontaneously rotted — the gate spares it (and the baseline)');
 })();
 
+(function testTerrainShapesFlowAndFirebreaks() {
+  // terrain (rock): basins concentrate material, a rock wall firebreaks the rot, and — load-bearing — an
+  // empty terrain layer leaves diffusion byte-identical (so every measured baseline is untouched).
+  const a = E.makeField(E.makeRng(9)), b = E.makeField(E.makeRng(9));
+  for (let t = 0; t < 40; t++) { a.diffuse(); b.diffuse(); }
+  let same = true; for (let i = 0; i < E.W * E.H * E.NEL; i++) if (a.el[i] !== b.el[i]) { same = false; break; }
+  ok(same, 'an empty terrain layer leaves diffusion byte-identical (baseline safe)');
+  function footprint(withBasin) {
+    const f = E.makeField(E.makeRng(5)), gens = [{ x: 80, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 10 }];
+    if (withBasin) for (let d = -9; d <= 9; d++) for (const [x, y] of [[80 + d, 41], [80 + d, 59], [71, 50 + d], [89, 50 + d]]) if (x >= 0 && y >= 0 && x < E.W && y < E.H) f.barrier[E.idx(x, y)] = 1;
+    for (let t = 0; t < 200; t++) { f.diffuse(); E.depositGenerators(f, gens); }
+    let s = 0; for (let y = 42; y <= 58; y++) for (let x = 72; x <= 88; x++) s += f.get(E.idx(x, y), E.LUM); return s;
+  }
+  const basinM = footprint(true), openM = footprint(false);
+  console.log(`   [terrain] basin pools ${(basinM / openM).toFixed(1)}x the material of open ground`);
+  ok(basinM > openM * 1.3, 'a rock basin pools material richer than open ground (where matters more)');
+  const f = E.makeField(E.makeRng(2)), life = E.makeLife(E.makeRng(2));
+  for (let x = 60; x <= 100; x++) for (let y = 46; y <= 54; y++) { if (x === 80) continue; f.add(E.idx(x, y), E.LUM, 1.0); const e = life.spawnFromPrimer(f, x, y, 0); e.biomass = 1.0; }
+  for (let y = 40; y <= 60; y++) f.barrier[E.idx(80, y)] = 1; // a wall down the middle
+  life.seedRot(f, 64, 50, 6);                                 // light the rot on the LEFT
+  for (let t = 0; t < 120; t++) life.step(f);
+  let right = 0; for (let y = 40; y <= 60; y++) for (let x = 81; x <= 100; x++) right += f.rot[E.idx(x, y)];
+  ok(right < 0.5, 'a rock wall is a firebreak — the rot cannot cross it (terrain firebreak)');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);

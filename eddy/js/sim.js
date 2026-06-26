@@ -44,6 +44,13 @@
     function dropPrimer(x, y) { return life.spawnFromPrimer(field, x | 0, y | 0, 10); } // a player's seed brings starter substrate
     function dropPredator(x, y) { return life.spawnFromPrimer(field, x | 0, y | 0, 0, 0.7); } // seed a hunter into a living patch
     function dropRot(x, y) { return life.seedRot(field, x | 0, y | 0, 5); } // light a rot — it sweeps a uniform patch, stalls at guild seams
+    function paintRock(x, y, on) { // shape the land: a small brush of rock (basins concentrate flow; walls firebreak the rot)
+      const r = 2;
+      for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+        const nx = (x | 0) + dx, ny = (y | 0) + dy; if (nx < 0 || ny < 0 || nx >= E.W || ny >= E.H) continue;
+        if (dx * dx + dy * dy <= r * r) field.barrier[E.idx(nx, ny)] = on ? 1 : 0;
+      }
+    }
 
     function stats() {
       const live = life.list.filter(e => e.alive);
@@ -61,7 +68,7 @@
       return h >>> 0;
     }
 
-    return { field, life, gens, tick, addGenerator, dropPrimer, dropPredator, dropRot, stats, hash,
+    return { field, life, gens, tick, addGenerator, dropPrimer, dropPredator, dropRot, paintRock, stats, hash,
              burnRate: function () { return burnRate; },
              setAutoRot: function (v) { autoRot = !!v; }, autoRot: function () { return autoRot; },
              serialize() { return E.serializeSim(field, life, gens, seed); } };
@@ -73,7 +80,7 @@
     return {
       v: 1, seed: seed >>> 0,
       gens: gens.map(g => Object.assign({}, g)),
-      field: { el: Array.from(field.el), variant: Array.from(field.variant), soil: Array.from(field.soil), rot: Array.from(field.rot), rotType: Array.from(field.rotType) },
+      field: { el: Array.from(field.el), variant: Array.from(field.variant), soil: Array.from(field.soil), rot: Array.from(field.rot), rotType: Array.from(field.rotType), barrier: Array.from(field.barrier) },
       life: life.list.filter(e => e.alive).map(e => ({
         id: e.id, x: e.x, y: e.y, diet: Array.from(e.diet),
         biomass: e.biomass, age: e.age, gen: e.gen, pred: e.pred,
@@ -87,6 +94,7 @@
     if (obj.field.soil) field.soil.set(obj.field.soil);
     if (obj.field.rot) field.rot.set(obj.field.rot);
     if (obj.field.rotType) field.rotType.set(obj.field.rotType);
+    if (obj.field.barrier) field.barrier.set(obj.field.barrier);
     const life = E.makeLife(E.makeRng(1));
     for (const e of obj.life) {
       life.list.push({

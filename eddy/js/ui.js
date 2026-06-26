@@ -28,6 +28,7 @@
     btn.primer    = mkBtn('✦ primer',    () => { tool = 'primer'; refresh(); });
     btn.hunter    = mkBtn('⚔ hunter',    () => { tool = 'hunter'; refresh(); });
     btn.rot       = mkBtn('☣ rot',       () => { tool = 'rot'; refresh(); });
+    btn.rock      = mkBtn('▣ rock',      () => { tool = 'rock'; refresh(); });
     btn.inspect   = mkBtn('◌ inspect',   () => { tool = 'inspect'; refresh(); });
     btn.lens      = mkBtn('◉ lens',      () => { E.Render.lens = (E.Render.lens === 'world' ? 'rawfield' : 'world'); refresh(); });
     btn.play      = mkBtn('❚❚ pause',    () => { main.setPlaying(!main.isPlaying()); refresh(); });
@@ -35,7 +36,7 @@
     btn.aspect    = mkBtn('◎ aspect',    () => { if (main.cycleAspect) main.cycleAspect(); refresh(); });
 
     function refresh() {
-      ['generator', 'primer', 'hunter', 'rot', 'inspect'].forEach(k => btn[k].classList.toggle('on', tool === k));
+      ['generator', 'primer', 'hunter', 'rot', 'rock', 'inspect'].forEach(k => btn[k].classList.toggle('on', tool === k));
       btn.lens.classList.toggle('on', E.Render.lens === 'rawfield');
       btn.play.textContent = main.isPlaying() ? '❚❚ pause' : '▶ play';
       if (main.aspectName) btn.aspect.textContent = '◎ ' + main.aspectName();
@@ -47,6 +48,7 @@
         tool === 'primer'    ? 'click a surplus patch to seed life — it latches to the local blend' :
         tool === 'hunter'    ? 'click inside a living colony to seed a hunter — it eats other life (crimson)' :
         tool === 'rot'       ? 'loose a rot — it sweeps a monoculture but stalls at the seams between guilds; diversity is your firebreak' :
+        tool === 'rock'      ? 'shape the land — lay rock to wall off a basin (material pools richer) or a firebreak (rock stops the rot); click rock to clear it' :
         tool === 'inspect'   ? 'click near a creature to read what it is and why' : '';
     }
 
@@ -66,6 +68,8 @@
         s.dropPredator(cell.x, cell.y);
       } else if (tool === 'rot') {
         s.dropRot(cell.x, cell.y); // a controlled burn — free, but it mostly hurts unless you wield it against a monoculture
+      } else if (tool === 'rock') {
+        s.paintRock(cell.x, cell.y, !s.field.isBarrier(cell.x, cell.y)); // toggle: lay rock, or clear it if already rock
       } else if (tool === 'inspect' && E.UI.inspectAt) {
         E.UI.inspectAt(s, cell); // Task 14
       }

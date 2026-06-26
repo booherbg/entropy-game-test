@@ -79,6 +79,7 @@
     function reproduce(field, ent) {
       if (list.length >= LIFE_CAP) return;
       const { nx, ny } = neighborCell(ent);
+      if (field.barrier[E.idx(nx, ny)]) return; // can't grow into rock (no-op where there's no terrain)
       const local = localBlend(field, E.idx(nx, ny));
       const diet = new Float32Array(E.NEL);
       let s = 0;
@@ -95,7 +96,7 @@
     // mobility: hunters roam toward prey (down a prey-gradient), producers stay rooted. movement
     // scales with the pred trait, so the world's motion IS the hunters following the herd — and an
     // obligate predator can now follow prey instead of eating out its patch and starving.
-    function move() {
+    function move(field) {
       const occ = new Map();
       for (const e of list) { if (!e.alive) continue; const k = E.idx(e.x | 0, e.y | 0); let a = occ.get(k); if (!a) { a = []; occ.set(k, a); } a.push(e); }
       const dirs = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
@@ -105,6 +106,7 @@
         let best = -1, bx = cx, by = cy;
         for (const [dx, dy] of dirs) {
           const nx = cx + dx, ny = cy + dy; if (nx < 0 || ny < 0 || nx >= E.W || ny >= E.H) continue;
+          if (field.barrier[E.idx(nx, ny)]) continue; // hunters can't enter rock (no-op without terrain)
           const a = occ.get(E.idx(nx, ny)); let score = 0;
           if (a) for (const e of a) if (e !== h && e.alive && e.pred < h.pred - 0.05 && e.biomass > PREY_FLOOR) score += e.biomass;
           if (score > best) { best = score; bx = nx; by = ny; } // ties keep current (dirs[0]) → stay-bias
@@ -174,6 +176,7 @@
         const r = rot[i]; if (r <= ROT_MIN) continue;
         const T = rotType[i], x = i % E.W, y = (i / E.W) | 0;
         const spreadTo = (ni) => {
+          if (field.barrier[ni]) return; // rock is a firebreak — the rot cannot cross it (terrain firebreak)
           const dn = dom[ni], mult = dn === T ? ROT_SAME : (dn < 0 ? ROT_EMPTY : ROT_CROSS);
           const c = r * ROT_SPREAD * mult; if (c <= 0) return;
           add[ni] += c; if (c > best[ni]) { best[ni] = c; addType[ni] = T; }
@@ -193,7 +196,7 @@
       }
     }
     function step(field) {
-      move();
+      move(field);
       predate(field);
       rotStep(field);
       for (const ent of list) {

@@ -40,6 +40,7 @@ function renderWorld(E, sim, S) {
     if (st > 0) { const br = [0.24, 0.17, 0.10]; c = [c[0] * (1 - st) + br[0] * st, c[1] * (1 - st) + br[1] * st, c[2] * (1 - st) + br[2] * st]; }
     const rt = Math.min((sim.field.rot ? sim.field.rot[ci] : 0) / 1.5, 0.82); // the rot stain (mirrors the shader)
     if (rt > 0) { const rc = [0.14, 0.05, 0.06]; c = [c[0] * (1 - rt) + rc[0] * rt, c[1] * (1 - rt) + rc[1] * rt, c[2] * (1 - rt) + rc[2] * rt]; }
+    if (sim.field.barrier && sim.field.barrier[ci]) c = [0.15, 0.14, 0.16]; // rock (terrain) — overrides
     const R = Math.round(c[0] * 255), G = Math.round(c[1] * 255), B = Math.round(c[2] * 255);
     for (let dy = 0; dy < S; dy++) for (let dx = 0; dx < S; dx++) { const o = (((y * S + dy) * IW) + (x * S + dx)) * 3; rgb[o] = R; rgb[o + 1] = G; rgb[o + 2] = B; }
   }
