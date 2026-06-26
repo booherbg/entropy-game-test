@@ -336,6 +336,15 @@ require('../js/score.js');
   ok(fw.lumen > 0 && fw.mineral > 0, 'both producer guilds are read from the two springs');
   ok(fw.decomposers > 0, 'the decomposer guild (arisen from waste) is read');
   ok(fw.links.length >= 3, 'the food-web links (the flows carrying matter) are listed');
+  // with compounds, the white-rot/cracker guild shows up in the food web too
+  const cs = E.makeSim(7);
+  cs.addGenerator({ x: 75, y: 50, el: E.HUM, rate: 10, proj: 'radial', radius: 14 });
+  cs.addGenerator({ x: 55, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+  for (let k = 0; k < 40; k++) { cs.field.diffuse(); E.depositGenerators(cs.field, cs.gens); }
+  cs.dropPrimer(55, 50); cs.setCompounds(true);
+  for (let t = 0; t < 2000; t++) cs.tick();
+  const fwc = E.foodWeb(cs);
+  ok(fwc.crackers > 0 && /white-rot/.test(fwc.links.join(' ')), 'the white-rot guild is read into the food web once it evolves');
 })();
 
 require('../js/economy.js');

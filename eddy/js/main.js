@@ -79,7 +79,8 @@
       + row('lum', fw.lumen, 'eat lumen')
       + row('min', fw.mineral, 'eat mineral')
       + row('hum', fw.decomposers, 'recycle waste')
-      + row('red', fw.hunters, 'hunt the living');
+      + row('red', fw.hunters, 'hunt the living')
+      + row('lig', fw.crackers, 'crack lignin');
   }
 
   function renderScore() {

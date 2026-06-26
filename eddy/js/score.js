@@ -35,20 +35,22 @@
   E.foodWeb = function (sim) {
     const live = sim.life.list.filter(e => e.alive);
     const guild = [0, 0, 0], biomass = [0, 0, 0];
-    let hunters = 0;
+    let hunters = 0, crackers = 0;
     for (const e of live) {
       let d = 0; for (let k = 1; k < E.NEL; k++) if (e.diet[k] > e.diet[d]) d = k;
       guild[d]++; biomass[d] += e.biomass;
       if ((e.pred || 0) > 0.4) hunters++;
+      if ((e.crack || 0) > 0.3) crackers++; // white-rot specialists, on the locked lignin
     }
     const links = []; // the flows carrying matter right now
     if (guild[E.LUM]) links.push('lumen → ' + guild[E.LUM] + ' producers');
     if (guild[E.MIN]) links.push('mineral → ' + guild[E.MIN] + ' producers');
     if (guild[E.HUM]) links.push(guild[E.HUM] + ' decomposers ← waste');
     if (hunters) links.push(hunters + ' hunters → prey');
+    if (crackers) links.push(crackers + ' white-rot → lignin');
     return {
       total: live.length,
-      lumen: guild[E.LUM], mineral: guild[E.MIN], decomposers: guild[E.HUM], hunters,
+      lumen: guild[E.LUM], mineral: guild[E.MIN], decomposers: guild[E.HUM], hunters, crackers,
       biomass: biomass.map(b => Math.round(b * 10) / 10),
       links,
     };
