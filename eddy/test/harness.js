@@ -465,5 +465,35 @@ require('../js/advisor.js');
   ok(right < 0.5, 'a rock wall is a firebreak — the rot cannot cross it (terrain firebreak)');
 })();
 
+(function testFullIntegration() {
+  // everything at once — terrain, auto-rot, hunters, the economy, the chronicle — must coexist for a long
+  // run with no NaN, no crash, no collapse. the cross-feature safety net the per-mechanic tests can't give.
+  const sim = E.makeSim(7);
+  sim.addGenerator({ x: 55, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+  sim.addGenerator({ x: 95, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 16 });
+  sim.addGenerator({ x: 75, y: 30, el: E.HUM, rate: 5, proj: 'vein', angle: 0.4, length: 30 });
+  for (let d = -10; d <= 10; d++) sim.paintRock(72, 50 + d, true); // a ridge through the world
+  for (let k = 0; k < 40; k++) { sim.field.diffuse(); E.depositGenerators(sim.field, sim.gens); }
+  sim.dropPrimer(55, 50); sim.dropPrimer(95, 50);
+  sim.setAutoRot(true);
+  const eco = E.makeEconomy ? E.makeEconomy() : null, chr = E.makeChronicle ? E.makeChronicle() : null;
+  for (let t = 1; t <= 2000; t++) {
+    sim.tick();
+    if (t === 500) for (let i = 0; i < 4; i++) sim.dropPredator(54 + i % 3, 49 + (i / 3 | 0));
+    if (t === 900) sim.dropRot(95, 50); // and a player-loosed rot mid-run
+    if (eco) eco.income(sim);
+    if (chr && t % 20 === 0) chr.observe(sim, t);
+  }
+  let nan = false;
+  for (let i = 0; i < sim.field.el.length; i++) if (!isFinite(sim.field.el[i])) { nan = true; break; }
+  for (const e of sim.life.list) if (e.alive && !isFinite(e.biomass)) nan = true;
+  const alive = sim.life.list.reduce((n, e) => n + (e.alive ? 1 : 0), 0);
+  const sc = E.score ? E.score(sim) : { diversity: 0 };
+  console.log(`   [integration] 2000 ticks, every system live: alive ${alive}, diversity ${sc.diversity}, finite ${!nan}`);
+  ok(!nan, 'no NaN/Inf anywhere after 2000 ticks with every mechanic active at once');
+  ok(alive > 5 && alive < 4000, 'the full integrated world stays alive and bounded');
+  ok(sc.diversity >= 3, 'diversity persists through terrain + rot + predation + economy together');
+})();
+
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURE(S)`);
 process.exit(fails ? 1 : 0);
