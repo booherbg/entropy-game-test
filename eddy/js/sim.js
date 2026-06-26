@@ -15,7 +15,7 @@
       gens = [];
     }
 
-    let burnRate = 0, lastDiss = 0, ticks = 0, autoRot = false;
+    let burnRate = 0, lastDiss = 0, ticks = 0, autoRot = false, compounds = false;
     // spontaneous rot: a MONOCULTURE rots from within (uniformity = vulnerability) — the antagonist striking
     // unbidden. gated so a diverse world is NEVER touched, and (default OFF) so every measured baseline is
     // byte-identical; the live game turns it on. the gate is checked with no rng unless it passes.
@@ -36,6 +36,7 @@
       E.depositGenerators(field, gens);
       life.step(field);
       field.soilStep();
+      if (compounds) field.lockStep(); // lignin forms only when compounds are on → baselines untouched
       E.fertilityStep(field, life, rng);
       const d = life.dissipated(); burnRate += ((d - lastDiss) - burnRate) * 0.1; lastDiss = d; // smoothed 2nd-law flux
       ticks++; maybeIgnite();
@@ -71,6 +72,7 @@
     return { field, life, gens, tick, addGenerator, dropPrimer, dropPredator, dropRot, paintRock, stats, hash,
              burnRate: function () { return burnRate; },
              setAutoRot: function (v) { autoRot = !!v; }, autoRot: function () { return autoRot; },
+             setCompounds: function (v) { compounds = !!v; life.setCompounds(v); },
              serialize() { return E.serializeSim(field, life, gens, seed); } };
   };
 
@@ -80,10 +82,10 @@
     return {
       v: 1, seed: seed >>> 0,
       gens: gens.map(g => Object.assign({}, g)),
-      field: { el: Array.from(field.el), variant: Array.from(field.variant), soil: Array.from(field.soil), rot: Array.from(field.rot), rotType: Array.from(field.rotType), barrier: Array.from(field.barrier) },
+      field: { el: Array.from(field.el), variant: Array.from(field.variant), soil: Array.from(field.soil), rot: Array.from(field.rot), rotType: Array.from(field.rotType), barrier: Array.from(field.barrier), locked: Array.from(field.locked) },
       life: life.list.filter(e => e.alive).map(e => ({
         id: e.id, x: e.x, y: e.y, diet: Array.from(e.diet),
-        biomass: e.biomass, age: e.age, gen: e.gen, pred: e.pred,
+        biomass: e.biomass, age: e.age, gen: e.gen, pred: e.pred, crack: e.crack || 0,
       })),
     };
   };
@@ -95,11 +97,12 @@
     if (obj.field.rot) field.rot.set(obj.field.rot);
     if (obj.field.rotType) field.rotType.set(obj.field.rotType);
     if (obj.field.barrier) field.barrier.set(obj.field.barrier);
+    if (obj.field.locked) field.locked.set(obj.field.locked);
     const life = E.makeLife(E.makeRng(1));
     for (const e of obj.life) {
       life.list.push({
         id: e.id, x: e.x, y: e.y, diet: new Float32Array(e.diet),
-        biomass: e.biomass, age: e.age, gen: e.gen, alive: true, pred: e.pred || 0,
+        biomass: e.biomass, age: e.age, gen: e.gen, alive: true, pred: e.pred || 0, crack: e.crack || 0,
       });
     }
     const gens = (obj.gens || []).map(g => Object.assign({}, g));

@@ -104,6 +104,7 @@
     if (!sim) sim = freshSim();
     E.Main.sim = sim;
     if (sim.setAutoRot) sim.setAutoRot(true); // the live game faces the antagonist (a monoculture rots unbidden)
+    if (sim.setCompounds) sim.setCompounds(true); // and grows compounds (lignin a white-rot specialist evolves to crack)
     chronicle = (E.makeChronicle ? E.makeChronicle() : null);
     economy = (E.makeEconomy ? E.makeEconomy() : null);
     if (E.Render && E.Render.init) E.Render.init(gl);
@@ -122,7 +123,7 @@
   E.Main.isPlaying = () => playing;
   E.Main.setPlaying = (v) => { playing = !!v; };
   E.Main.getSim = () => sim;
-  E.Main.replaceSim = (s) => { sim = s; E.Main.sim = s; if (s.setAutoRot) s.setAutoRot(true); acc = 0; simTicks = 0; advice = null; lastAdviceTick = -999; chronicle = (E.makeChronicle ? E.makeChronicle() : null); economy = (E.makeEconomy ? E.makeEconomy() : null); };
+  E.Main.replaceSim = (s) => { sim = s; E.Main.sim = s; if (s.setAutoRot) s.setAutoRot(true); if (s.setCompounds) s.setCompounds(true); acc = 0; simTicks = 0; advice = null; lastAdviceTick = -999; chronicle = (E.makeChronicle ? E.makeChronicle() : null); economy = (E.makeEconomy ? E.makeEconomy() : null); };
   E.Main.newWorld = () => { if (E.Persist) E.Persist.clear(); E.Main.replaceSim(freshSim()); if (E.UI && E.UI._refresh) E.UI._refresh(); };
   E.Main.cycleAspect = () => { aspect = (aspect + 1) % ((E.ASPECTS && E.ASPECTS.length) || 1); };
   E.Main.aspectName = () => (E.ASPECTS ? E.ASPECTS[aspect % E.ASPECTS.length].name : '');

@@ -38,6 +38,8 @@ function renderWorld(E, sim, S) {
     let c = fieldColor(sim.field.el[i], sim.field.el[i + 1], sim.field.el[i + 2]);
     const st = Math.min((sim.field.soil ? sim.field.soil[ci] : 0) * 0.7, 0.55);
     if (st > 0) { const br = [0.24, 0.17, 0.10]; c = [c[0] * (1 - st) + br[0] * st, c[1] * (1 - st) + br[1] * st, c[2] * (1 - st) + br[2] * st]; }
+    const lig = Math.min((sim.field.locked ? sim.field.locked[ci] : 0) / 6, 0.7); // lignin — woody brown (mirrors the shader)
+    if (lig > 0) { const lc = [0.20, 0.13, 0.05]; c = [c[0] * (1 - lig) + lc[0] * lig, c[1] * (1 - lig) + lc[1] * lig, c[2] * (1 - lig) + lc[2] * lig]; }
     const rt = Math.min((sim.field.rot ? sim.field.rot[ci] : 0) / 1.5, 0.82); // the rot stain (mirrors the shader)
     if (rt > 0) { const rc = [0.14, 0.05, 0.06]; c = [c[0] * (1 - rt) + rc[0] * rt, c[1] * (1 - rt) + rc[1] * rt, c[2] * (1 - rt) + rc[2] * rt]; }
     if (sim.field.barrier && sim.field.barrier[ci]) c = [0.15, 0.14, 0.16]; // rock (terrain) — overrides

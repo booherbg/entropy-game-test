@@ -6,6 +6,31 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-25 · the web extends itself a third time — white-rot evolves on the lignin (compounds)
+
+The last of the founding dreams, the one held longest for fear of clutter: **emergent resource chains** —
+"a compound that is more than its parts," weird and unexpected, *but not at the cost of principal
+simplicity.* Built it as the canon's own example, **lignin and white-rot**, and kept it to one new resource
+*state* and one heritable *trait* — no fourth element, just a fold in what's already there. Where humus
+piles **high**, a fraction locks into **lignin** — recalcitrant, inedible, seeping back only at a crawl.
+And life carries a `crack` trait: a **cracker** can eat the lignin nothing else can touch.
+
+Then the world did the rest, unbidden. Turn compounds on over a humus-rich garden and **lignin accumulates**
+(to ~5,000) where the decomposers pile their waste — and the **`crack` trait climbs on its own**, 0.33 → 0.5
+→ **0.62**, because where lignin lies it is free food and selection finds it. A **white-rot guild evolves**
+(sixty-odd crackers) on a resource that did not exist until the world made it — and then *draws it back down*
+(5,000 → 25) as the specialists consume the locked store. Humus → lignin → a cracker that evolves to open it
+→ the lignin spent: a whole loop, authored by no one. It is the **third time the food web has extended
+itself** — decomposers from waste, hunters from prey, and now white-rot from the recalcitrant compound its
+own decay laid down. The thesis, breathing again.
+
+And it is honest and it is small. Conserved end to end (humus ↔ locked ↔ biomass, to floating point); **off
+by default** so no measured baseline moves a bit (the edge-of-chaos is exactly where it was, the `crack`
+trait drawing no rng until compounds are lit); visible as a **woody-brown zone** you can read on the map (a
+new substance, not a hidden number); and on in the live world. One resource state, one trait — and out of
+them, a creature that eats wood. Richness from a fold, not a pile. (`E.makeField` lockStep, the `crack`
+trait, `sim.setCompounds`; harness 76.)
+
 ## 2026-06-25 · why the obligate predator won't come — it's bodies, not material
 
 Terrain gave a fresh idea for the oldest deferred dream — a true **obligate predator** (one that lives only
@@ -449,7 +474,9 @@ bigger/faster prey base — the long-standing predator-prey balance problem).*
 *5. Mode-2 foundation is in (soil accretes & conserves, and settles to a stable plateau over 6000 ticks).
 Remaining: the full biogenic legacy — energy-aware soil release so accreted ground can revive a dead patch,
 not just feed the matter guilds.*
-*6. More graduation features: compounds & the co-evolution layer, the rules/incentive layer.*
+*6. **Compounds SHIPPED** (lignin/white-rot, above) — a recalcitrant resource a cracker species evolves to
+open; the food web extends onto it unbidden. Remaining graduation: a deeper co-evolution/arms-race layer
+(prey defences vs the cracker/hunter), and the rules/incentive layer.*
 *(Answered 2026-06-25: the food web self-extends; the dissipative model keeps it diverse & bounded; two
 overlapping springs breed a persistent blend species; the world renders legibly; finite springs make
 placement a consequential decision; the world measures at the edge of chaos (Class 4 + SOC); player
@@ -458,5 +485,7 @@ diversity, not decoration; the soil settles to a stable plateau (overshoot-and-s
 SOC cascades are now narrated as felt events; the impatient-primer "problem" was the dissipative thesis
 working all along — a packet can't sustain life without a flow, and the advisor now teaches that; and the
 antagonist arrived — the rot, a typed fire that makes diversity a literal firebreak (89% vs 39% culled) and
-strikes monocultures unbidden, while never touching a diverse world; and terrain arrived — rock that pools
-material into basins (1.6×) and walls the rot off (a second, built firebreak), with a ▣ shape-the-land verb.)*
+strikes monocultures unbidden, while never touching a diverse world; terrain arrived — rock that pools
+material into basins (1.6×) and walls the rot off (a second, built firebreak), with a ▣ shape-the-land verb;
+and compounds arrived — lignin, a recalcitrant resource a white-rot specialist evolves to crack (the food
+web extends itself a third time).)*

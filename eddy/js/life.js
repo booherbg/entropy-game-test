@@ -29,7 +29,7 @@
       const diet = localBlend(field, i);              // latch: eat what's in surplus here (incl. the starter)
       // pred0>0 seeds a predator (it lives by hunting, not the field) — a player decision; its
       // descendants' pred still drifts, so the predator/prey arms race can evolve from there.
-      const ent = { id: nextId++, x, y, diet, biomass: pred0 ? 1.0 : 0.5, age: 0, gen: 1, alive: true, pred: pred0 || 0 };
+      const ent = { id: nextId++, x, y, diet, biomass: pred0 ? 1.0 : 0.5, age: 0, gen: 1, alive: true, pred: pred0 || 0, crack: 0 };
       list.push(ent);
       return ent;
     }
@@ -37,6 +37,12 @@
     // Mode-1 metabolism: eat a diet-weighted bite, keep a fixed ratio as biomass,
     // excrete the surplus as humus. Matter is conserved: field loss == biomass gain.
     const EAT = 0.4, RETAIN = 0.5, EAT_TRADEOFF = 0.0; // obligate predators (>0) starve even with mobility — prey base too small; grazing/omnivory for now
+    // compounds (lignin/white-rot): a heritable `crack` trait lets a "cracker" eat the recalcitrant lignin
+    // nothing else can. opt-in — when off, lockStep never runs and crack never drifts (no extra rng), so
+    // every measured baseline is byte-identical. when on, crackers EVOLVE wherever lignin piles up (a free
+    // food bonus there), so a white-rot specialist guild arises unbidden on the locked resource.
+    let compounds = false;
+    const CRACK_MIN = 0.2, CRACK_RATE = 0.4, MUT_CRACK = 0.06;
     function metabolize(field, ent) {
       const i = E.idx(ent.x | 0, ent.y | 0);
       // take a diet-weighted bite of each element — but predators are poor producers (they must hunt
@@ -56,6 +62,14 @@
       field.add(i, E.HUM, (tL + tM) * ex);
       field.add(i, E.LUM, tH * ex * 0.5);
       field.add(i, E.MIN, tH * ex * 0.5);
+      // a cracker eats the recalcitrant lignin no ordinary life can touch (compounds only) — conserved:
+      // locked → biomass + excreted humus. a free bonus where lignin piles, so `crack` is selected for there.
+      if (compounds && (ent.crack || 0) > CRACK_MIN && field.locked[i] > 1e-6) {
+        const got = Math.min(CRACK_RATE * ent.crack, field.locked[i]);
+        field.locked[i] -= got;
+        ent.biomass += got * RETAIN;
+        field.add(i, E.HUM, got * (1 - RETAIN));
+      }
     }
     // reproduction, mutation toward the local blend, and death → mineralization.
     const REPRO = 2.0, MUT = 0.25, UPKEEP = 0.15, LIFE_CAP = 4000;
@@ -86,8 +100,10 @@
       for (let k = 0; k < E.NEL; k++) { diet[k] = ent.diet[k] * (1 - MUT) + local[k] * MUT; s += diet[k]; }
       for (let k = 0; k < E.NEL; k++) diet[k] /= (s || 1); // renormalize
       const pred = Math.max(0, Math.min(1, ent.pred + (rng() * 2 - 1) * MUT_PRED)); // predatory trait drifts; selection shapes it
+      let crack = ent.crack || 0;
+      if (compounds) crack = Math.max(0, Math.min(1, crack + (rng() * 2 - 1) * MUT_CRACK)); // crack drifts ONLY when compounds on (no extra rng off → baseline byte-identical)
       ent.biomass *= 0.5;                                  // split biomass with the child (conserved)
-      list.push({ id: nextId++, x: nx, y: ny, diet, biomass: ent.biomass, age: 0, gen: ent.gen + 1, alive: true, pred });
+      list.push({ id: nextId++, x: nx, y: ny, diet, biomass: ent.biomass, age: 0, gen: ent.gen + 1, alive: true, pred, crack });
     }
     // life eats life: tag-matched exchange (v1 = predation). a predatory entity takes a bite of a
     // less-predatory neighbour's biomass — predator gains, the rest returns to humus (conserved).
@@ -216,7 +232,8 @@
       }
     }
 
-    return { list, spawnFromPrimer, seedRot, step, _rng: rng, dissipated: function () { return _dissipated; } };
+    return { list, spawnFromPrimer, seedRot, step, _rng: rng, dissipated: function () { return _dissipated; },
+             setCompounds: function (v) { compounds = !!v; } };
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = E;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -18,7 +18,8 @@ uniform sampler2D field; uniform int lens;
 void main(){
   vec4 s = texture(field, uv);
   vec3 e = s.rgb; float rot = s.a;
-  if (rot > 50.0) { frag = vec4(0.15, 0.14, 0.16, 1.0); return; } // rock (terrain) — alpha carries a sentinel
+  if (rot > 50.0) { frag = vec4(0.15, 0.14, 0.16, 1.0); return; } // rock (terrain) — alpha sentinel
+  float lignin = rot < 0.0 ? -rot : 0.0; rot = max(rot, 0.0); // negative alpha carries lignin (recalcitrant humus)
   float t = e.r + e.g + e.b + 1e-4;
   if (lens == 1) { frag = vec4(clamp(e,0.0,1.5)/1.5, 1.0); return; } // raw-field lens
   vec3 p = e / t;
@@ -29,6 +30,7 @@ void main(){
   vec3 gray = vec3(0.17,0.18,0.20);
   float bright = clamp(0.18 + 0.82*min(t,1.5)/1.5, 0.10, 1.0);
   vec3 col = mix(gray, hue, sat) * bright;
+  col = mix(col, vec3(0.20,0.13,0.05), clamp(lignin, 0.0, 0.7));    // lignin — a woody, recalcitrant brown
   col = mix(col, vec3(0.14,0.05,0.06), clamp(rot/1.5, 0.0, 0.82)); // the rot — a dark stain creeping over the world
   frag = vec4(col, 1.0);
 }`;
@@ -67,9 +69,9 @@ void main(){
   };
 
   function uploadField(gl, field) {
-    const el = field.el, rot = field.rot, barrier = field.barrier, buf = texBuf, N = E.W * E.H;
-    // alpha carries rot intensity → a dark stain; or a sentinel (99) for rock, which the shader draws as stone
-    for (let i = 0; i < N; i++) { buf[i*4] = el[i*3]; buf[i*4+1] = el[i*3+1]; buf[i*4+2] = el[i*3+2]; buf[i*4+3] = barrier[i] ? 99 : rot[i]; }
+    const el = field.el, rot = field.rot, barrier = field.barrier, locked = field.locked, buf = texBuf, N = E.W * E.H;
+    // alpha: rock=99 sentinel; else rot intensity (positive → dark stain); else lignin (negative → woody brown)
+    for (let i = 0; i < N; i++) { buf[i*4] = el[i*3]; buf[i*4+1] = el[i*3+1]; buf[i*4+2] = el[i*3+2]; buf[i*4+3] = barrier[i] ? 99 : (rot[i] > 0 ? rot[i] : -Math.min(locked[i], 6) / 6); }
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, E.W, E.H, 0, gl.RGBA, gl.FLOAT, buf);
   }
