@@ -181,6 +181,23 @@ require('../js/persist.js');
   const sim2 = E.makeSim(0, JSON.parse(JSON.stringify(snap)));
   sim2.tick();
   ok(sim2.stats().alive >= 0 && sim2.gens.length === 1, 'a restored sim rehydrates and ticks');
+  // ALL the layered state must survive the round-trip — terrain, rot, lignin, and the crack trait,
+  // not just the base field. (these were each wired into serialize separately; this catches a dropped one.)
+  const s = E.makeSim(7);
+  s.addGenerator({ x: 55, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+  s.addGenerator({ x: 75, y: 50, el: E.HUM, rate: 10, proj: 'radial', radius: 14 });
+  for (let d = -8; d <= 8; d++) s.paintRock(40, 50 + d, true); // terrain
+  for (let k = 0; k < 40; k++) { s.field.diffuse(); E.depositGenerators(s.field, s.gens); }
+  s.dropPrimer(55, 50); s.setCompounds(true);
+  for (let t = 0; t < 700; t++) s.tick();   // grow lignin + crackers
+  s.dropRot(55, 50); for (let t = 0; t < 10; t++) s.tick(); // and an active rot
+  const r = E.deserializeSim(JSON.parse(JSON.stringify(s.serialize())));
+  const sumA = (a) => { let x = 0; for (let i = 0; i < a.length; i++) x += a[i]; return x; };
+  approx(sumA(r.field.barrier), sumA(s.field.barrier), 1e-6, 'terrain (rock) survives the round-trip');
+  approx(sumA(r.field.rot), sumA(s.field.rot), 1e-3, 'the rot survives the round-trip');
+  approx(sumA(r.field.locked), sumA(s.field.locked), 1e-3, 'lignin (locked humus) survives the round-trip');
+  const crackSum = (life) => life.list.filter(e => e.alive).reduce((x, e) => x + (e.crack || 0), 0);
+  approx(crackSum(r.life), crackSum(s.life), 1e-3, 'the crack trait survives the round-trip (a saved white-rot world stays white-rot)');
 })();
 
 (function testEdgeOfChaosSweep() {
