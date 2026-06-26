@@ -4,7 +4,10 @@
   E.Main = {};
 
   let gl = null, sim = null, playing = true, stepOnce = false, last = 0, acc = 0, simTicks = 0, chronicle = null, aspect = 0, economy = null;
-  let advice = null, lastAdviceTick = -999;
+  let advice = null, lastAdviceTick = -999, lastMilestoneN = 0;
+  // each milestone summons the voice that named it — the canon quoted at the instant the world demonstrates it
+  const MILESTONE_MURMUR = [['symbiogenesis', 4], ['cascade', 9], ['hunters', 0], ['decomposer', 1], ['rot', 2]];
+  function murmurForMilestone(text) { for (const [kw, i] of MILESTONE_MURMUR) if (text.indexOf(kw) >= 0) return i; return -1; }
   const TICK_MS = 60; // sim cadence; render runs every frame
 
   function resize() {
@@ -36,6 +39,13 @@
       ro.textContent = `${playing ? '▶' : '❚❚'}  alive ${s.alive}${web} · diets ${s.speciesApprox}` + (chronicle ? ` · witnessed ${chronicle.codex.size}` : '');
     }
     if (chronicle) renderChronicle();
+    if (chronicle && chronicle.milestones.length > lastMilestoneN) { // a new milestone — summon its murmur
+      for (let i = lastMilestoneN; i < chronicle.milestones.length; i++) {
+        const mi = murmurForMilestone(chronicle.milestones[i].text);
+        if (mi >= 0 && E.UI && E.UI.surfaceMurmur) E.UI.surfaceMurmur(mi);
+      }
+      lastMilestoneN = chronicle.milestones.length;
+    }
     if (E.score) renderScore();
     if (E.foodWeb) renderFoodWeb();
     if (E.advise && (!advice || simTicks - lastAdviceTick >= 60)) { advice = E.advise(sim); lastAdviceTick = simTicks; }
@@ -126,7 +136,7 @@
   E.Main.isPlaying = () => playing;
   E.Main.setPlaying = (v) => { playing = !!v; };
   E.Main.getSim = () => sim;
-  E.Main.replaceSim = (s) => { sim = s; E.Main.sim = s; if (s.setAutoRot) s.setAutoRot(true); if (s.setCompounds) s.setCompounds(true); if (s.setSymbiosis) s.setSymbiosis(true); acc = 0; simTicks = 0; advice = null; lastAdviceTick = -999; chronicle = (E.makeChronicle ? E.makeChronicle() : null); economy = (E.makeEconomy ? E.makeEconomy() : null); };
+  E.Main.replaceSim = (s) => { sim = s; E.Main.sim = s; if (s.setAutoRot) s.setAutoRot(true); if (s.setCompounds) s.setCompounds(true); if (s.setSymbiosis) s.setSymbiosis(true); acc = 0; simTicks = 0; advice = null; lastAdviceTick = -999; lastMilestoneN = 0; chronicle = (E.makeChronicle ? E.makeChronicle() : null); economy = (E.makeEconomy ? E.makeEconomy() : null); };
   E.Main.newWorld = () => { if (E.Persist) E.Persist.clear(); E.Main.replaceSim(freshSim()); if (E.UI && E.UI._refresh) E.UI._refresh(); };
   E.Main.cycleAspect = () => { aspect = (aspect + 1) % ((E.ASPECTS && E.ASPECTS.length) || 1); };
   E.Main.aspectName = () => (E.ASPECTS ? E.ASPECTS[aspect % E.ASPECTS.length].name : '');

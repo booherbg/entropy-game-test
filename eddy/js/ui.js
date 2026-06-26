@@ -108,9 +108,12 @@
     surfaceMurmur();
   };
 
-  function surfaceMurmur() {
+  // surface a murmur — a specific one when `i` is given (a milestone summoning the voice that named it),
+  // else the next in the gathered sequence (on inspect). E.UI.surfaceMurmur lets the loop call it on a milestone.
+  E.UI.surfaceMurmur = surfaceMurmur;
+  function surfaceMurmur(i) {
     const m = document.getElementById('murmur'); if (!m || !E.Content || !E.Content.murmur) return;
-    const q = E.Content.murmur(murmurN++);
+    const q = E.Content.murmur(i != null ? i : murmurN++);
     m.innerHTML = q.q + (q.by ? `<span class="by">— ${q.by}</span>` : '<span class="by">— the voice that gathered them</span>');
     m.style.opacity = '0.62';
     clearTimeout(surfaceMurmur._t);
