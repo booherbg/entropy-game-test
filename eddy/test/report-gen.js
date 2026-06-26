@@ -6,7 +6,7 @@ function img(name) {
   try { return 'data:image/png;base64,' + fs.readFileSync(dir + name).toString('base64'); }
   catch (e) { return ''; }
 }
-const timelapse = img('timelapse.png'), garden = img('play-garden-2000.png'), springs = img('springs.png'), rotshot = img('rot-firebreak.png');
+const timelapse = img('timelapse.png'), garden = img('play-garden-2000.png'), springs = img('springs.png'), rotshot = img('rot-firebreak.png'), lignin = img('lignin.png'), vitality = img('vitality.png');
 
 const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>eddy — status report</title>
@@ -39,20 +39,28 @@ code{background:#1c2027;padding:1px 5px;border-radius:4px;font-size:12px}
 <div class="date">status report · 2026-06-25 (continued) · built autonomously from the depth-redesign spec</div>
 
 <div class="verdict">
-<p class="lede" style="margin-top:0"><b>Verdict: it crossed from <i>toy</i> toward <i>game</i> this iteration — and it now has the receipts.</b></p>
-<p>The thesis was never in doubt: you tend conditions and a living, evolving, self-extending food web computes itself — legibly, deterministically, thermodynamically honestly. What was in doubt was whether it's a <i>game</i>. Three new measurements answer yes. <b>Your choices move the score 3.8×</b> — a considered layout vastly out-flourishes a lazy one (it is not boring). <b>The world measures at the edge of chaos</b> — Wolfram Class&nbsp;4 with Bak self-organized-criticality cascades, on every seed. And <b>the hunter is now a keystone lever</b> (Paine 1966): cropping the dominant species <i>raises</i> diversity, so predation is strategy, not decoration. The newest, and the strongest "it's a game": an <b>antagonist that pushes back</b> — a rot that sweeps a monoculture end to end (89% culled) but <i>firebreaks</i> at the seams of a diverse world (39%), and now <b>strikes monocultures unbidden</b>. Played live, a uniform world lives a boom-bust life of rot and regrowth; a varied one is serene. Diversity is finally shield, immunity, and firewall — not just a number on a panel. A goal layer (three aspects + a flow economy) and a SimCity-style <b>advisor</b> read the world back to you. What still wants <i>you</i>: your eyes on the live WebGL build, and a depth that is <b>felt</b>, not only measured — to the naked eye the world is still three coloured clouds.</p>
+<p class="lede" style="margin-top:0"><b>Verdict: the whole vision is built — a complete, integrated, legible game of entropy and life, waiting only for your eyes.</b></p>
+<p>What began as a prototype is now the entire thing we set out to make, and it holds together. You tend conditions — springs, the shape of the land — and a living, evolving, self-extending food web computes itself, legibly and thermodynamically honestly. The receipts: <b>your choices move the score 3.8×</b> (it is not boring); the world <b>measures at the edge of chaos</b> (Wolfram Class&nbsp;4 + Bak self-organized criticality, every seed); <b>predation is a keystone</b> (a hunter <i>raises</i> diversity — Paine 1966); an <b>antagonist that pushes back</b> (the rot — diversity becomes a literal firebreak, and a monoculture rots from within, unbidden); <b>terrain</b> (basins concentrate flow, walls firebreak, a fresh world arrives as a landscape); and <b>compounds</b> (lignin locks away where humus piles, and a white-rot specialist <i>evolves</i> to crack it — the food web extending itself a third time). And it is <b>legible</b> now: the food web read as guilds, each creature sized by its vitality so the world visibly breathes, an advisor and a narrated chronicle of self-organized-criticality cascades. <b>78 headless assertions</b>, all green; everything balanced and performance-checked as a whole. The one thing left undone is the one thing only you can do: <b>open it.</b></p>
 </div>
 
 <h2>The antagonist — diversity as a firebreak</h2>
 <img src="${rotshot}" alt="the rot firebreaking at guild seams">
 <p class="cap">A rot (the dark stain) lit in the gold lumen colony, mid-sweep: it has eaten that patch down to almost nothing — while the blue mineral colony (right) and green humus colony (top) sit pristine a few cells away. A fire of one guild's type can't cross into another, so a monoculture is swept end to end (89% culled) and a diverse world firebreaks it to a single patch (39%). Diversity, made into resilience you can see.</p>
 
+<h2>Compounds — the world makes something only an evolved specialist can eat</h2>
+<img src="${lignin}" alt="lignin, the recalcitrant compound, and the white-rot that cracks it">
+<p class="cap">The woody-brown zone (centre, around the humus spring) is <b>lignin</b> — recalcitrant humus that piled too high and locked away, inedible to ordinary life. Turn compounds on and the world does the rest unbidden: a heritable <code>crack</code> trait climbs under selection (0.33→0.62) because the lignin is free food to anything that can open it, and a <b>white-rot guild evolves</b> on a resource that did not exist until the world made it — then draws it back down. The food web extending itself a third time (after decomposers from waste, hunters from prey). Richness from a fold, not a pile.</p>
+
+<h2>The world breathes — each creature sized by its vitality</h2>
+<img src="${vitality}" alt="creatures sized by biomass — thriving large, starving small">
+<p class="cap">No longer interchangeable dots: each creature is drawn to its <b>biomass</b>, so a colony has texture — large thriving life near the source, small struggling life at the edges. You read a creature's life-stage at a glance, and the world has depth and a pulse.</p>
+
 <h2>The world, alive (a world's whole arc)</h2>
 <img src="${timelapse}" alt="time-lapse">
 <p class="cap">One world at ticks 120 → 450 → 1000 → 1800: birth (springs placed, gradients bloom) → flourishing (life fills the lumen/mineral/humus niches) → maturity (dense, diverse, the ground tinting with soil life built) → senescence (finite springs drain, blooms fade to gray, life thins). The dissipative thesis, visible: <i>without renewal, entropy reclaims.</i></p>
 
 <h2>What's built &amp; proven</h2>
-<p>A complete standalone game — vanilla JS + WebGL2, zero deps, deterministic — with a pure-JS sim core (Node-tested) and a browser render/UI layer. <b>59 headless assertions</b> green; everything on <code>main</code>.</p>
+<p>A complete standalone game — vanilla JS + WebGL2, zero deps, deterministic — with a pure-JS sim core (Node-tested) and a browser render/UI layer. <b>78 headless assertions</b> green; everything on <code>main</code>.</p>
 <ul>
 <li><b>Finite material field</b> (lumen/mineral/humus) with conserved diffusion; entropy is visible (concentrated = vivid, diffuse = gray).</li>
 <li><b>One primitive</b> — a tagged consume→produce node. Springs emit; life latches, metabolizes (Mode-1), excretes; decomposers mineralize.</li>
@@ -105,27 +113,24 @@ code{background:#1c2027;padding:1px 5px;border-radius:4px;font-size:12px}
 <li><b>Edge of chaos, measured</b> — Class-4 + SOC, swept across seeds; and a strategy bake-off proving choices matter 3.8×. <span class="tag t-later" style="margin:0">was #6</span></li>
 <li><b>The fragile start, fixed</b> — the opening pre-builds its gradient so the first seed takes; long-run stability confirmed to 6,000 ticks.</li>
 <li><b>The antagonist — the rot</b> — a typed fire that sweeps monocultures, firebreaks at guild seams, and strikes the careless unbidden. <span class="tag t-now" style="margin:0">was #1</span></li>
+<li><b>Terrain</b> — rock that pools flow into basins (1.6×) and firebreaks the rot; a fresh world arrives as a landscape. <span class="tag t-later" style="margin:0">was #4</span></li>
+<li><b>Compounds</b> — lignin, and a white-rot specialist that <i>evolves</i> to crack it; the web extends itself a third time. <span class="tag t-later" style="margin:0">was #3</span></li>
+<li><b>Depth made felt</b> — the food-web view (guilds + the white-rot), and creatures sized by vitality so the world breathes. <span class="tag t-now" style="margin:0">was #1</span></li>
 </ul>
 
-<h2>Backlog — research-grounded next moves</h2>
-<p>Drawn from the project's own foundations (Holland's Echo, Kauffman's NK, Wolfram/Langton's edge of chaos, Bak's self-organized criticality, Ray's Tierra) and the playtest gaps. Re-prioritized.</p>
+<h2>Backlog — what's left</h2>
+<p>Almost the whole research-grounded plan (Holland's Echo, Kauffman's NK, Wolfram/Langton's edge of chaos, Bak's SOC, Ray's Tierra) is now built and tested. What remains either needs your hand on the tiller or is a deliberate balance choice — there is no obvious next thing left to build blind:</p>
 
-<h3>1 · Make the depth <i>felt</i>, not just measured <span class="tag t-now">biggest lever</span></h3>
-<p>Now the biggest remaining lever. The richness is real and even <i>measured</i>, but the eye still sees three coloured clouds. Render species as distinct <b>forms</b> that visibly <b>move / graze / interact</b> (Wolfram Class-4 made watchable), add a <b>food-web view</b> (who eats whom), and surface the live criticality + the rot's spread. Emergence must be <i>seen</i> or it reads as noise. (Needs the browser — so it pairs with your visual pass.)</p>
+<h3>1 · A pressure for the accomplished player <span class="tag t-soon">felt tension</span></h3>
+<p>The rot hunts the careless (a monoculture rots from within); a well-tended <i>diverse</i> world is now serene — perhaps too serene. An optional pressure that touches even a healthy world (a wandering drought, a slow gradient decay) would give mastery something to push against. A design choice, because it spends the calm a good steward earns.</p>
 
-<h3>2 · A pressure for the accomplished, &amp; the self-sustaining predator <span class="tag t-soon">felt tension</span></h3>
-<p>The rot hunts the careless (monocultures), but a well-tended diverse world is now serene — perhaps too serene. Give the accomplished player a pressure of their own (a drought that wanders, a slow gradient decay, Bak <b>cascades</b> made felt). And finish the food web: an <b>obligate predator that sustains its own guild</b> (real crash-and-recovery, no re-seeding) — which still wants a bigger, faster prey base.</p>
-
-<h3>3 · Compounds &amp; co-evolution <span class="tag t-later">depth</span></h3>
-<p>Recalcitrant resources that lock up where blends concentrate and only a "cracker" species can crack open (lignin × white-rot). Weird emergent resource chains — designed, awaiting your steer on keeping principal simplicity.</p>
-
-<h3>4 · Terrain &amp; the full biogenic legacy <span class="tag t-later">depth</span></h3>
-<p>Give the field <b>topology</b> (channels, barriers, slopes) so <i>where</i> matters (chokepoints, structured space); and make accreted <b>soil</b> revive a dead patch, not just feed the matter-guilds (energy-aware release).</p>
+<h3>2 · The obligate predator &amp; a co-evolution layer <span class="tag t-later">depth</span></h3>
+<p>Predation is a keystone, but the dramatic crash-and-recovery cycle is diagnosed (in the notebook) as needing a deliberately <b>prey-rich regime</b> — a core-balance retune of the edge of chaos, your call. Beyond it, an arms race: prey defences against the hunter and the cracker (Holland's offence/defence tags), a Red Queen running on top of the web.</p>
 
 <h2>What needs you</h2>
 <ul>
-<li><b>Your eyes on the live game</b> — open <code>eddy/index.html</code>. I can verify the design headlessly (and the renderer mirrors the shader), but not that the WebGL itself runs, nor the feel. This is the one thing I genuinely cannot do.</li>
-<li><b>A steer on priority</b> — I'd start with #1 (an antagonist) as the biggest remaining lever for felt tension, then #2 (make it watchable). Compounds (#3) await your call on simplicity.</li>
+<li><b>Your eyes on the live game</b> — open <code>eddy/index.html</code>. Everything is logic-proven and the headless renderer mirrors the shader, but only you can confirm the WebGL itself runs and the feel is right. This is the one thing I genuinely cannot do — and now the only thing standing between a thoroughly-proven design and a confirmed-playable game.</li>
+<li><b>A steer on where next</b> — the obligate-predator balance, an endgame pressure, a co-evolution arms race, or somewhere new entirely.</li>
 </ul>
 
 <p class="foot">eddy is a successor to LOOPHOLE — it does not depict its themes, it is them, entropy and dissipation and the loophole, in code. Built across many autonomous iterations; the lab notebook (<code>eddy/DISCOVERIES.md</code>) holds the findings — now including the soul, measured — and the genesis doc the dialogue that made it.</p>
