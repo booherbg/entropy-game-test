@@ -26,6 +26,14 @@ at your seams** (defended). Diversity is no longer a number on a panel you might
 your immunity, and your firewall, all at once. The Weaver was always the point; now neglecting her has a
 cost that finds you on its own.
 
+And played out — 3000 ticks, the antagonist live — it is the drama the report said was missing. A
+**monoculture** world (one lumen spring, ~100% one guild) **ignites eight times**, its population swinging
+**0 → 142 → crash → regrow → rot again**: a boom-bust life, the green goo purged and reborn on a loop. The
+**diverse** world beside it (three guilds, ~38% each) **ignites zero times** across the same span — serene
+at ~13 niches, alive holding 85–164. One rule, and the careless world gets tension and consequence while
+the considered one earns peace. After setup there is now something to lose, and a reason it was worth
+tending well.
+
 ## 2026-06-25 · the rot arrives — an antagonist that pushes back, and makes diversity a *shield*
 
 The blight was reverted with a promise (below): the antagonist wanted a different substrate — the **field**,
