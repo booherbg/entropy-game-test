@@ -37,6 +37,7 @@
     }
     if (chronicle) renderChronicle();
     if (E.score) renderScore();
+    if (E.foodWeb) renderFoodWeb();
     if (E.advise && (!advice || simTicks - lastAdviceTick >= 60)) { advice = E.advise(sim); lastAdviceTick = simTicks; }
     renderAdvisor();
     requestAnimationFrame(frame);
@@ -66,6 +67,19 @@
     const el = document.getElementById('advisor'); if (!el || !advice) return;
     el.className = advice.level;
     el.innerHTML = '<span class="lead">the advisor</span>' + advice.text;
+  }
+
+  function renderFoodWeb() {
+    const el = document.getElementById('foodweb'); if (!el) return;
+    const fw = E.foodWeb(sim);
+    const max = Math.max(1, fw.lumen, fw.mineral, fw.decomposers, fw.hunters), W = 88;
+    const row = (cls, n, lbl) => n > 0
+      ? `<div class="fw-row"><span class="fw-bar ${cls}" style="width:${Math.round(n / max * W)}px"></span><span class="fw-n">${n}</span> <span class="fw-lbl">${lbl}</span></div>` : '';
+    el.innerHTML = '<div class="fw-title">the food web</div>'
+      + row('lum', fw.lumen, 'eat lumen')
+      + row('min', fw.mineral, 'eat mineral')
+      + row('hum', fw.decomposers, 'recycle waste')
+      + row('red', fw.hunters, 'hunt the living');
   }
 
   function renderScore() {

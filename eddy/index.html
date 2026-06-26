@@ -66,6 +66,14 @@
   #advisor .lead { display: block; opacity: .5; font-size: 10.5px; text-transform: uppercase;
     letter-spacing: 1.2px; margin-bottom: 2px; }
   #advisor.warn { color: #e8a85a; } #advisor.tip { color: #8fc0e8; } #advisor.good { color: #9fd98f; }
+
+  /* the food web — a compact trophic panel (who eats whom, sized by population), right side below the score */
+  #foodweb { position: absolute; top: 140px; right: 12px; width: 178px; z-index: 4; pointer-events: none; opacity: .82; }
+  #foodweb .fw-title { opacity: .55; font-size: 10.5px; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 5px; }
+  #foodweb .fw-row { font-size: 11px; margin: 3px 0; white-space: nowrap; }
+  #foodweb .fw-bar { display: inline-block; height: 8px; border-radius: 2px; vertical-align: middle; margin-right: 5px; min-width: 2px; }
+  #foodweb .fw-n { color: #e8e4da; } #foodweb .fw-lbl { opacity: .5; font-size: 10px; }
+  #foodweb .lum { background: #ebb446; } #foodweb .min { background: #6fb0f0; } #foodweb .hum { background: #7cc878; } #foodweb .red { background: #e0604c; }
 </style>
 </head>
 <body>
@@ -79,6 +87,7 @@
     </div>
     <div id="hint"></div>
     <div id="score"></div>
+    <div id="foodweb"></div>
     <div id="chronicle"></div>
     <div id="murmur"></div>
     <div id="advisor"></div>
