@@ -44,9 +44,9 @@ function renderWorld(E, sim, S) {
     const R = Math.round(c[0] * 255), G = Math.round(c[1] * 255), B = Math.round(c[2] * 255);
     for (let dy = 0; dy < S; dy++) for (let dx = 0; dx < S; dx++) { const o = (((y * S + dy) * IW) + (x * S + dx)) * 3; rgb[o] = R; rgb[o + 1] = G; rgb[o + 2] = B; }
   }
-  const r = Math.floor(S * 0.9);
   for (const e of sim.life.list) {
     if (!e.alive) continue;
+    const r = Math.max(1, Math.round(S * 0.9 * (0.5 + Math.min(e.biomass, 2) / 2 * 0.95))); // size by vitality (mirrors render.js)
     const c = E.Render.dietColor(e.diet);
     const p = (e.pred || 0) * 0.85; // predators tint toward crimson — the drama, made visible
     const cr = c[0] * (1 - p) + 0.92 * p, cg = c[1] * (1 - p) + 0.16 * p, cb = c[2] * (1 - p) + 0.16 * p;

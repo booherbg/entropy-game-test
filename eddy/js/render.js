@@ -91,9 +91,9 @@ void main(){
 
   // ── entities: distinct, diet-colored sprites that sit ABOVE the field ──
   const EVS = `#version 300 es
-in vec2 cell; in vec3 col; out vec3 vcol; uniform vec2 grid; uniform float psize;
+in vec2 cell; in vec3 col; in float sz; out vec3 vcol; uniform vec2 grid; uniform float psize;
 void main(){ vec2 clip = vec2(cell.x/grid.x*2.0-1.0, -(cell.y/grid.y*2.0-1.0));
-  gl_Position = vec4(clip,0.0,1.0); gl_PointSize = psize; vcol = col; }`;
+  gl_Position = vec4(clip,0.0,1.0); gl_PointSize = psize * sz; vcol = col; }`;
   const EFS = `#version 300 es
 precision highp float; in vec3 vcol; out vec4 frag;
 void main(){ vec2 d = gl_PointCoord - vec2(0.5); float r = length(d); if (r > 0.5) discard;
@@ -117,17 +117,18 @@ void main(){ vec2 d = gl_PointCoord - vec2(0.5); float r = length(d); if (r > 0.
     eprog = gl.createProgram();
     gl.attachShader(eprog, compile(gl, gl.VERTEX_SHADER, EVS));
     gl.attachShader(eprog, compile(gl, gl.FRAGMENT_SHADER, EFS));
-    gl.bindAttribLocation(eprog, 0, 'cell'); gl.bindAttribLocation(eprog, 1, 'col');
+    gl.bindAttribLocation(eprog, 0, 'cell'); gl.bindAttribLocation(eprog, 1, 'col'); gl.bindAttribLocation(eprog, 2, 'sz');
     gl.linkProgram(eprog);
     if (!gl.getProgramParameter(eprog, gl.LINK_STATUS)) throw new Error('elink: ' + gl.getProgramInfoLog(eprog));
     eGridU = gl.getUniformLocation(eprog, 'grid'); ePsizeU = gl.getUniformLocation(eprog, 'psize');
     evao = gl.createVertexArray(); gl.bindVertexArray(evao);
     ebuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, ebuf);
-    gl.bufferData(gl.ARRAY_BUFFER, ECAP * 5 * 4, gl.DYNAMIC_DRAW);
-    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 20, 0);
-    gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 20, 8);
+    gl.bufferData(gl.ARRAY_BUFFER, ECAP * 6 * 4, gl.DYNAMIC_DRAW); // 6 floats/vertex: x,y,r,g,b,size
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 24, 0);
+    gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 24, 8);
+    gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 24, 20);
     gl.bindVertexArray(null);
-    entBuf = new Float32Array(ECAP * 5);
+    entBuf = new Float32Array(ECAP * 6);
   };
 
   E.Render._drawEntities = function (sim, gl) {
@@ -135,16 +136,17 @@ void main(){ vec2 d = gl_PointCoord - vec2(0.5); float r = length(d); if (r > 0.
     const list = sim.life.list; let n = 0;
     for (let k = 0; k < list.length && n < ECAP; k++) {
       const e = list[k]; if (!e.alive) continue;
-      const c = E.Render.dietColor(e.diet), p = (e.pred || 0) * 0.85, o = n * 5; // predators tint crimson
+      const c = E.Render.dietColor(e.diet), p = (e.pred || 0) * 0.85, o = n * 6; // predators tint crimson
       entBuf[o] = e.x; entBuf[o+1] = e.y;
       entBuf[o+2] = c[0] * (1 - p) + 0.92 * p; entBuf[o+3] = c[1] * (1 - p) + 0.16 * p; entBuf[o+4] = c[2] * (1 - p) + 0.16 * p;
+      entBuf[o+5] = 0.5 + Math.min(e.biomass, 2) / 2 * 0.95; // size by vitality — thriving large, starving small
       n++;
     }
     if (n === 0) return;
     gl.useProgram(eprog);
     gl.bindVertexArray(evao);
     gl.bindBuffer(gl.ARRAY_BUFFER, ebuf);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, entBuf.subarray(0, n * 5));
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, entBuf.subarray(0, n * 6));
     gl.uniform2f(eGridU, E.W, E.H);
     gl.uniform1f(ePsizeU, Math.max(3, (gl.canvas.height / E.H) * 1.7));
     gl.drawArrays(gl.POINTS, 0, n);
@@ -160,14 +162,14 @@ void main(){ vec2 d = gl_PointCoord - vec2(0.5); float r = length(d); if (r > 0.
     for (const g of sim.gens) {
       if (n >= ECAP) break;
       const frac = (g.r0 && isFinite(g.r0)) ? Math.max(0, Math.min(1, g.reservoir / g.r0)) : 1;
-      const br = 0.3 + 0.7 * frac, c = COL[g.el] || [0.8, 0.8, 0.8], o = n * 5;
-      entBuf[o] = g.x; entBuf[o + 1] = g.y; entBuf[o + 2] = c[0] * br; entBuf[o + 3] = c[1] * br; entBuf[o + 4] = c[2] * br; n++;
+      const br = 0.3 + 0.7 * frac, c = COL[g.el] || [0.8, 0.8, 0.8], o = n * 6;
+      entBuf[o] = g.x; entBuf[o + 1] = g.y; entBuf[o + 2] = c[0] * br; entBuf[o + 3] = c[1] * br; entBuf[o + 4] = c[2] * br; entBuf[o + 5] = 1.0; n++;
     }
     if (!n) return;
     gl.useProgram(eprog);
     gl.bindVertexArray(evao);
     gl.bindBuffer(gl.ARRAY_BUFFER, ebuf);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, entBuf.subarray(0, n * 5));
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, entBuf.subarray(0, n * 6));
     gl.uniform2f(eGridU, E.W, E.H);
     gl.uniform1f(ePsizeU, Math.max(7, (gl.canvas.height / E.H) * 3.0)); // bigger than creatures
     gl.drawArrays(gl.POINTS, 0, n);
