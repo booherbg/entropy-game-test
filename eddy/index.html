@@ -94,6 +94,10 @@
   #intro .begin { display: block; width: 100%; margin-top: 16px; background: #c9772b; color: #10131a; border: none;
     border-radius: 8px; padding: 12px; font-size: 16px; font-family: inherit; cursor: pointer; }
   #intro .begin:hover { background: #e0883a; }
+  #intro .legend { display: flex; flex-wrap: wrap; gap: 7px 14px; margin: 7px 0 4px; font-size: 12.5px; }
+  #intro .legend span { display: inline-flex; align-items: center; opacity: .9; }
+  #intro .legend i { width: 11px; height: 11px; border-radius: 50%; margin-right: 5px; display: inline-block; box-shadow: 0 0 5px currentColor; }
+  #intro .legend i.dia { border-radius: 2px; transform: rotate(45deg); width: 9px; height: 9px; box-shadow: none; }
 
   /* phone layout — keep the panels from burying the world */
   @media (max-width: 680px) {
@@ -138,6 +142,16 @@
         <li>▣ <b>rock</b> — shape the land: basins pool flow, walls break the rot.</li>
         <li>◌ <b>inspect</b> — tap a creature to read what it is, what it eats, and why.</li>
       </ul>
+      <div class="cap">reading the world</div>
+      <div class="legend">
+        <span style="color:#ebb446"><i></i>lumen-eater</span>
+        <span style="color:#6fb0f0"><i></i>mineral-eater</span>
+        <span style="color:#7cc878"><i></i>humus / decomposer</span>
+        <span style="color:#e0604c"><i></i>hunter</span>
+        <span style="color:#e8e0c8"><i></i>composite (two as one)</span>
+        <span style="color:#e8e4da"><i class="dia"></i>your spring</span>
+      </div>
+      <p style="font-size:12px;opacity:.62">a bigger, brighter dot is healthier life. the whole scene warms amber when the world runs hot and cools blue when cold — life works to keep it temperate.</p>
       <p style="font-size:12px;opacity:.62">the <span style="color:#9fd98f">chronicle</span> (left) narrates what emerges; the <span style="color:#8fc0e8">advisor</span> (lower-right) suggests a next move. reopen this any time with <b>?</b>.</p>
       <button class="begin" id="introBegin">begin</button>
     </div></div>
