@@ -70,8 +70,9 @@
 
   function renderChronicle() {
     const el = document.getElementById('chronicle'); if (!el) return;
-    const ms = chronicle.milestones.map(e => `<div class="ev milestone">★ ${e.text}</div>`).join('');
-    const rec = chronicle.recent(5).filter(e => e.kind !== 'milestone').map(e => `<div class="ev ${e.kind}">${e.text}</div>`).join('');
+    // keep it a glance, not a wall: the few most-recent milestones (the pinned highlights) + a few recent events
+    const ms = chronicle.milestones.slice(-3).map(e => `<div class="ev milestone">★ ${e.text}</div>`).join('');
+    const rec = chronicle.recent(8).filter(e => e.kind !== 'milestone').slice(0, 3).map(e => `<div class="ev ${e.kind}">${e.text}</div>`).join('');
     el.innerHTML = ms + rec;
   }
 
@@ -134,6 +135,18 @@
     window.addEventListener('resize', resize);
     setInterval(function () { if (E.Persist) E.Persist.save(sim); }, 5000);
     window.addEventListener('beforeunload', function () { if (E.Persist) E.Persist.save(sim); });
+
+    // orientation: a first-time visitor meets the intro (world paused behind it) so the game doesn't just
+    // "start"; the ? button reopens it any time. seen-state in localStorage so it's a once-per-browser greeting.
+    var introEl = document.getElementById('intro'), beginBtn = document.getElementById('introBegin');
+    function syncUI() { if (E.UI && E.UI._refresh) E.UI._refresh(); }
+    function showIntro() { if (introEl) introEl.classList.add('show'); playing = false; syncUI(); }
+    function hideIntro() { if (introEl) introEl.classList.remove('show'); playing = true; syncUI(); try { localStorage.setItem('eddy.introSeen', '1'); } catch (e) {} }
+    if (beginBtn) beginBtn.onclick = hideIntro;
+    E.Main.showIntro = showIntro;
+    var seen = null; try { seen = localStorage.getItem('eddy.introSeen'); } catch (e) {}
+    if (!seen) showIntro();
+
     requestAnimationFrame(frame);
   }
 
