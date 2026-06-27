@@ -39,6 +39,19 @@
     { q: 'the entire range of living matter on earth could be regarded as a single living entity, capable of manipulating the earth’s atmosphere to suit its overall needs.', by: 'james lovelock, gaia (1979)' },
     { q: 'i did not write these. i gathered them — from physicists and poets, nearly all long dead. what was mine was the choosing, and the order.', by: null },
   ];
+  // the world's "turns" — the emergent phenomena to draw out (the player's gentle objective). keys match
+  // the chronicle's `seen` flags; the glyph row lights up as each is first witnessed. cryptic-until-evoked on
+  // purpose: the chronicle narrates the full reveal when it happens — this is just the progress, the lure.
+  E.Content.TURNS = [
+    { key: 'hunter',     glyph: '⚔', label: 'life eats life' },
+    { key: 'decomposer', glyph: '♻', label: 'decay recycled' },
+    { key: 'rot',        glyph: '☣', label: 'the rot, contained' },
+    { key: 'cascade',    glyph: '⚡', label: 'an avalanche' },
+    { key: 'symbiosis',  glyph: '∞', label: 'two became one' },
+    { key: 'pack',       glyph: '✷', label: 'a pack rises' },
+    { key: 'gaia',       glyph: '⊕', label: 'the climate held' },
+  ];
+
   E.Content.murmur = function (i) {
     const L = E.Content.MURMURS.length;
     return E.Content.MURMURS[((i % L) + L) % L];

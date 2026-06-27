@@ -293,16 +293,18 @@ require('../js/content.js'); require('../js/chronicle.js');
   sim.addGenerator({ x: 100, y: 50, el: E.MIN, rate: 8, proj: 'radial', radius: 16 });
   sim.dropPrimer(60, 50); sim.dropPrimer(100, 50);
   const chr = E.makeChronicle();
+  ok(chr.turnsSeen() === 0 && chr.seen && chr.seen.hunter === false, 'a fresh world has drawn out none of its turns (the objective starts at 0)');
   for (let t = 1; t <= 800; t++) {
     sim.tick();
     if (t === 400) for (let i = 0; i < 6; i++) sim.dropPredator(54 + i % 3, 49 + (i / 3 | 0));
     if (t % 20 === 0) chr.observe(sim, t);
   }
   const births = chr.events.filter(e => e.kind === 'born').length;
-  console.log(`   [chronicle] ${chr.codex.size} species witnessed, ${births} births, ${chr.events.filter(e => e.kind === 'milestone').length} milestones, ${chr.aliveCount()} alive now`);
+  console.log(`   [chronicle] ${chr.codex.size} species witnessed, ${births} births, ${chr.events.filter(e => e.kind === 'milestone').length} milestones, ${chr.turnsSeen()} turns drawn out, ${chr.aliveCount()} alive now`);
   ok(births >= 3, 'the chronicle witnesses species being born');
   ok(chr.codex.size >= 3, 'the codex records the species witnessed');
   ok(chr.milestones.length >= 1, 'a milestone is recorded (first hunters / first decomposer)');
+  ok(chr.turnsSeen() >= 1 && chr.seen.hunter === true, 'the world draws out its turns — hunters were evoked, and the objective counts it (turnsSeen rises)');
 })();
 
 (function testChronicleNamesCascades() {
