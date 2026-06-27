@@ -38,10 +38,15 @@
         ? { level: 'tip', text: 'lignin is locking the humus away — recalcitrant, nothing ordinary can eat it. give it time: a white-rot cracker will evolve to open it.' }
         : { level: 'good', text: `your white-rot guild (${crackers}) is cracking the lignin — the food web has reached even the locked resource.` };
     }
-    // 3. one guild crowding the web → the keystone lesson (a hunter opens room) or widen the palette
+    // 3. one guild crowding the web. teach the FOUNDATIONAL move first (a varied palette of springs), and only
+    // once the player has offered more than one element fall back to the keystone-hunter lesson — so a brand-new
+    // single-spring world isn't told to "drop a hunter" before it's even learned to vary its springs.
     if (domFrac > 0.7 && diversity < 12) {
+      const springEls = new Set(sim.gens.filter(g => !g.r0 || !isFinite(g.r0) || g.reservoir > 0).map(g => g.el));
+      if (springEls.size < 2)
+        return { level: 'tip', text: `the ${ELN[domG]} guild is nearly the whole world — place a spring of a different element (try ${ELN[(domG + 1) % 3]} or ${ELN[(domG + 2) % 3]}) to grow new kinds of life.` };
       return hunters < 3
-        ? { level: 'tip', text: `the ${ELN[domG]} guild is crowding the web (${Math.round(domFrac * 100)}%) — a hunter dropped in would crop the crowd and open room for rarer niches.` }
+        ? { level: 'tip', text: `the ${ELN[domG]} guild is crowding the web (${Math.round(domFrac * 100)}%) — drop a hunter in to crop the crowd and open room for rarer niches (a keystone).` }
         : { level: 'tip', text: `the ${ELN[domG]} guild dominates — set a spring of a different element to seed new niches.` };
     }
     // 3. much life but few niches → the overlap lesson

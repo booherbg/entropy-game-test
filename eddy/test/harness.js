@@ -436,6 +436,7 @@ require('../js/advisor.js');
   const am = E.advise(mono);
   console.log(`   [advisor] mono → ${am.level}: ${am.text}`);
   ok(valid(am) && am.level === 'tip' && /lumen/.test(am.text), 'advisor flags a one-element world as crowded (a tip)');
+  ok(/different element|mineral|humus/.test(am.text) && !/hunter/.test(am.text), 'a single-spring world is taught the FOUNDATIONAL move (vary the palette) before any advanced one (no premature "drop a hunter")');
   // full garden to maturity → balanced web → a 'good' reading of the emergence
   const gar = E.makeSim(7);
   gar.addGenerator({ x: 55, y: 50, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
