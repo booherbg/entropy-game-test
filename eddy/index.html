@@ -75,6 +75,14 @@
   #foodweb .fw-n { color: #e8e4da; } #foodweb .fw-lbl { opacity: .5; font-size: 10px; }
   #foodweb .lum { background: #ebb446; } #foodweb .min { background: #6fb0f0; } #foodweb .hum { background: #7cc878; } #foodweb .red { background: #e0604c; } #foodweb .lig { background: #a9772b; } #foodweb .comp { background: #e8e0c8; }
 
+  /* the world's turns — the player's gentle objective, a progress row of emergent phenomena to draw out */
+  #turns { position: absolute; top: 44px; left: 50%; transform: translateX(-50%); z-index: 5; text-align: center;
+    pointer-events: none; }
+  #turns .tt { opacity: .5; font-size: 9.5px; text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 2px; }
+  #turns .row { font-size: 16px; letter-spacing: 5px; }
+  #turns .t { opacity: .2; transition: opacity .8s, color .8s; }
+  #turns .t.on { opacity: 1; color: #f0b870; text-shadow: 0 0 8px rgba(240,184,112,.5); }
+
   /* intro / help — the orientation a new player needs (what is this, what's my goal, what can I do) */
   #intro { position: absolute; inset: 0; z-index: 20; display: none; align-items: center; justify-content: center;
     background: rgba(8,9,12,.84); padding: 16px; }
@@ -109,6 +117,7 @@
     #murmur { max-width: 80%; bottom: 56px; }          /* lift the murmur clear of the advisor */
     #advisor { max-width: 60%; }
     #score .big { font-size: 20px; }
+    #turns { top: 40px; } #turns .row { font-size: 14px; letter-spacing: 3px; }
     #intro .card { padding: 18px 16px; }
   }
 </style>
@@ -123,6 +132,7 @@
       <span class="readout" id="readout"></span>
     </div>
     <div id="hint"></div>
+    <div id="turns"></div>
     <div id="score"></div>
     <div id="foodweb"></div>
     <div id="chronicle"></div>
@@ -132,7 +142,7 @@
     <div id="intro"><div class="card">
       <h2>eddy <small>· a loophole</small></h2>
       <p class="lead">you tend a small world. life here feeds on a finite field of three materials — and wherever a material pools, life arises on its own, adapts to what's there, and weaves a food web no one designed.</p>
-      <div class="goal"><b>your goal</b> — cultivate a living, diverse world and keep it alive. left alone, a world runs down (that is entropy); you tend the conditions that let it renew. the score, top-right, tracks what you're cultivating.</div>
+      <div class="goal"><b>your goal</b> — cultivate a living, diverse world and keep it alive (left alone, it runs down — that is entropy). and draw out its <b>turns</b>: the moments the world takes on its own — life learning to hunt, two becoming one, the climate held in balance. the row up top lights as you evoke each; how many can you bring forth?</div>
       <div class="cap">what you can do — pick a tool up top, then tap the world</div>
       <ul>
         <li>◈ <b>generator</b> — place a finite spring of one material (☀ lumen · ◆ mineral · ♻ humus). life gathers where it flows — but it runs dry, so tend new ones.</li>

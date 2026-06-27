@@ -49,6 +49,7 @@
       lastMilestoneN = chronicle.milestones.length;
     }
     if (E.score) renderScore();
+    if (chronicle) renderTurns();
     if (E.foodWeb) renderFoodWeb();
     if (E.advise && (!advice || simTicks - lastAdviceTick >= 60)) { advice = E.advise(sim); lastAdviceTick = simTicks; }
     renderAdvisor();
@@ -95,6 +96,13 @@
       + row('red', fw.hunters, 'hunt the living')
       + row('lig', fw.crackers, 'crack lignin')
       + row('comp', fw.composites, 'two as one');
+  }
+
+  function renderTurns() {
+    const el = document.getElementById('turns'); if (!el || !chronicle || !chronicle.seen || !E.Content || !E.Content.TURNS) return;
+    const seen = chronicle.seen, n = chronicle.turnsSeen(), total = E.Content.TURNS.length;
+    const row = E.Content.TURNS.map(t => `<span class="t ${seen[t.key] ? 'on' : ''}" title="${seen[t.key] ? t.label : 'a turn not yet drawn out'}">${t.glyph}</span>`).join('');
+    el.innerHTML = `<div class="tt">the world's turns · ${n}/${total}</div><div class="row">${row}</div>`;
   }
 
   function renderScore() {
