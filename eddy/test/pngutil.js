@@ -29,6 +29,15 @@ function fieldColor(l, m, h) {
   return [(0.17 * (1 - sat) + hr * sat) * bright, (0.18 * (1 - sat) + hg * sat) * bright, (0.20 * (1 - sat) + hb * sat) * bright];
 }
 function genColor(el) { return [[242, 199, 82], [107, 168, 245], [128, 214, 118]][el] || [200, 200, 200]; }
+// the clime → an atmospheric wash: per-channel gain + a small additive that tints even the dark void.
+// neutral (null) at the habitable optimum; warm/amber above, cool/blue below. shared shape with render.js.
+function climeTint(clime) {
+  const dev = Math.max(-0.45, Math.min(0.6, clime - 0.5));
+  if (Math.abs(dev) < 0.02) return null;
+  if (dev > 0) return { gr: 1 + dev * 0.40, gg: 1 + dev * 0.06, gb: 1 - dev * 0.45, ar: dev * 22, ag: dev * 6, ab: 0 };
+  const d = -dev;
+  return { gr: 1 - d * 0.30, gg: 1 - d * 0.06, gb: 1 + d * 0.28, ar: 0, ag: d * 4, ab: d * 26 };
+}
 
 // render one world into a fresh RGB buffer at scale S. returns { rgb, w, h }.
 function renderWorld(E, sim, S) {
@@ -90,6 +99,16 @@ function renderWorld(E, sim, S) {
       const o = (py * IW + px) * 3, edge = md > R2 - 2;
       if (edge) { rgb[o] = 235; rgb[o + 1] = 236; rgb[o + 2] = 242; } else { rgb[o] = (gc[0] * br) | 0; rgb[o + 1] = (gc[1] * br) | 0; rgb[o + 2] = (gc[2] * br) | 0; }
     }
+  }
+  // the clime, made atmosphere (Gaia): a warm amber wash when the world runs hot, a cool blue when it runs
+  // cold, neutral when life holds it temperate. a final wash over everything — the light of the sky itself.
+  // (mirrors render.js's climeTint; no-op at the optimum, and when Gaia is off clime() is a flat 0.5.)
+  const clime = sim.clime ? sim.clime() : 0.5;
+  const t = climeTint(clime);
+  if (t) for (let i = 0; i < rgb.length; i += 3) {
+    rgb[i] = Math.max(0, Math.min(255, rgb[i] * t.gr + t.ar));
+    rgb[i + 1] = Math.max(0, Math.min(255, rgb[i + 1] * t.gg + t.ag));
+    rgb[i + 2] = Math.max(0, Math.min(255, rgb[i + 2] * t.gb + t.ab));
   }
   return { rgb, w: IW, h: IH };
 }
