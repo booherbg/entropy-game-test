@@ -291,11 +291,22 @@
     }
     // Gaia feedback: the biomass-weighted mean albedo signal (light=+, dark=−) cools/warms the clime, opposing
     // the external forcing. homeostasis is the fixed point where life's albedo composition exactly cancels it.
+    // the forcing RAMPS IN over GAIA_RAMP ticks — the faint young sun: a sparse new world establishes under a
+    // gentle sun and only meets the full warming once there's a biosphere to regulate it (real solar
+    // brightening; the original Daisyworld ramps luminosity too). without this, the warming cooks the fragile
+    // single-spring opening before life can take hold.
+    let gaiaTicks = 0;
+    const GAIA_RAMP = 1200, GAIA_BREF = 50; // ramp ticks; biomass at which the world feels the full sun
     function climeStep() {
+      gaiaTicks++;
       let bw = 0, sig = 0;
       for (const e of list) if (e.alive) { bw += e.biomass; sig += e.biomass * (albedoOf(e) - 0.5); }
       const mean = bw > 0 ? sig / bw : 0;       // biomass-weighted mean albedo signal, in [-0.5, 0.5]
-      clime += forcing - K_FEEDBACK * mean;     // light life (mean>0) cools; dark warms
+      // the warming a biosphere feels scales with that biosphere: a sparse/struggling world (low biomass) feels
+      // little forcing and so can't be cooked before it establishes; a lush world meets the full sun. with the
+      // ramp, this makes the opening robust while keeping Gaia's regulation real once the world is rich.
+      const f = forcing * Math.min(1, gaiaTicks / GAIA_RAMP) * Math.min(1, bw / GAIA_BREF);
+      clime += f - K_FEEDBACK * mean;           // light life (mean>0) cools; dark warms
       if (clime < 0) clime = 0; else if (clime > 2) clime = 2;
     }
     function step(field) {
