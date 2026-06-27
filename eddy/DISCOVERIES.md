@@ -6,6 +6,39 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-26 · the map is an oasis, and that's load-bearing — why "fill the empty world" fails
+
+Watched the live world play and measured what I saw: at maturity life occupies only **~15 of 96 coarse cells
+(~16% of the map)**, and the occupied set barely changes (occupancy churn **0.014** — a frozen blob). Eighty-four
+percent of the world is permanently empty. The temporal pulse is real but gentle (predator–prey wobbles at cv
+~0.14, ~750-tick period — the big swing is the one-time establishment, not a limit cycle). So the felt
+staticness is **spatial**: life pins to the resource halos around the springs and never colonizes the rest.
+
+The cause is simple once measured: `fertilityStep` only spawns where surplus already exceeds a threshold, and
+surplus only exists near springs — so there is nowhere else to live. The obvious fix is to put resource
+everywhere: **weathering**, a slow map-wide mineral release (real geology, the planet's distributed nutrient
+source). Built it opt-in, swept the rate, measured against four gates. **It failed three of them, and the way it
+failed is the finding.**
+
+The map *did* fill (footprint 96/96) — but: (1) it filled as a **frozen full sheet** (churn ~0): a uniform
+floor makes a uniform world, frozen-empty just becomes frozen-full, no shifting mosaic. (2) Population
+**exploded ~20–26×** (107 → ~2800) into a mineral-eater **monoculture**, and diversity *dropped* (18 → 14, and
+to 5 at higher rates). (3) The killer: a **bare world with no springs at all scored as well as the spring-tended
+one** — springs fell to **1.0×**. Weathering completely trivialized the player's only lever. And it can't be
+tuned away: a rate spread over 16,000 cells dwarfs a handful of point springs at any level that sustains life,
+so distributed resource is *fundamentally* incompatible with point-source stewardship.
+
+Two things crystallize from this. First, **the oasis is load-bearing, not a defect** — the whole game is
+"steward the flows"; making resource free everywhere doesn't enrich the world, it deletes the reason to act
+(and the measured 3.8× strategy gap with it). The empty map is the canvas the player paints by placing springs,
+and the starting world being a single oasis is *correct*. Second, **a living, shifting map — if we ever want one
+— cannot come from a static resource floor.** It would need heterogeneity that *moves*: cycling/drifting
+resource plumes, or a disturbance→recolonization mosaic *within* the oases (intermediate-disturbance, Connell
+1978), never a uniform sheet. That's a genuine design fork — fuller world vs. oasis stewardship — and one for
+the curator's eye now that the game is live to look at, not for ramming in blind. Reverted; the oasis stands,
+better understood. (The third bold swing this session disconfirmed by its own measurement — after the prey-rich
+regime and the Red Queen. Each wrong guess, precisely caught, is worth more than an unmeasured "feature.")
+
 ## 2026-06-26 · the world keeps itself habitable — Gaia, emergent (Daisyworld runs)
 
 The biggest canon in eddy's lineage that the game had *not* yet embodied: Gaia — Lovelock & Margulis's claim
