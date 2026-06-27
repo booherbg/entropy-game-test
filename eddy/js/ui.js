@@ -34,6 +34,7 @@
     btn.play      = mkBtn('❚❚ pause',    () => { main.setPlaying(!main.isPlaying()); refresh(); });
     btn.fresh     = mkBtn('✛ new',       () => { if (main.newWorld) main.newWorld(); });
     btn.aspect    = mkBtn('◎ aspect',    () => { if (main.cycleAspect) main.cycleAspect(); refresh(); });
+    btn.help      = mkBtn('? guide',     () => { if (main.showIntro) main.showIntro(); });
 
     function refresh() {
       ['generator', 'primer', 'hunter', 'rot', 'rock', 'inspect'].forEach(k => btn[k].classList.toggle('on', tool === k));
