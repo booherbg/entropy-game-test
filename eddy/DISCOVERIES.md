@@ -6,6 +6,37 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-26 · the world keeps itself habitable — Gaia, emergent (Daisyworld runs)
+
+The biggest canon in eddy's lineage that the game had *not* yet embodied: Gaia — Lovelock & Margulis's claim
+that life collectively regulates its planet toward habitability. The game had *local* niche construction (soil,
+terrain) but nothing *global*, nothing self-regulating. So I built the minimal honest version — Daisyworld
+(Watson & Lovelock 1983) — and asked the only question that matters: does homeostasis **emerge**, or does it
+have to be hand-held?
+
+The mechanism is one global `clime` (a temperature) pushed by an external `forcing` (a brightening sun), plus a
+heritable `albedo` on each creature: light life shifts its *local* temperature down, dark life up, and
+metabolism is best when that local temperature sits at the habitable optimum. Crucially there is **no global
+coordination** — each creature just grows where it personally does best. The collective albedo then nudges the
+clime. That's the whole of it.
+
+It works — and the first build *didn't*, which is the interesting part. With slow albedo drift from a uniform
+start, the forcing outran evolution and the clime ran to the rails (dead world). Daisyworld needs **standing
+variation and a fast response**, not a slow climb: widening the albedo mutation (so there's always light and
+dark life for selection to seize) and sharpening the habitability curve turned a runaway into regulation. Then
+the signature appears clean: under a warming that would drive the clime to **2.1**, life holds it at **0.50–0.51
+for the whole run** — and across a *range* of forcings (it regulates a band, then fails past it: an honest,
+finite Gaian envelope, exactly as the real Daisyworld has). Selfish local growth, global stability, no one
+steering. The thing Lovelock was mocked for, falling out of the model for free.
+
+And — the part I most wanted to be true — it does **not** cost the edge of chaos. Measured across 5 seeds
+against the no-Gaia baseline: still Wolfram Class 4 + Bak SOC on every seed, with diversity actually up
+(14.3 → 15.6) and turnover up (37 → 48). A second global homeostat layered on the world leaves it *more* alive,
+not more frozen. Opt-in and gated like the rest (off ⇒ albedo never drifts, clime inert, baselines
+byte-identical); on in the live game as a gentle brightening sun the world quietly holds the line against, with
+the temperature shown in the HUD and the moment it's first proven summoning Lovelock's own words into the
+murmurs. The planet, keeping itself alive — now in the simulation, not just the citation.
+
 ## 2026-06-26 · watched it play — the dynamism is real, but it hides in the numbers (so I surfaced the pack)
 
 Overdue step in the loop's own method: after building two big mechanics (the kill, the glow), I stopped and

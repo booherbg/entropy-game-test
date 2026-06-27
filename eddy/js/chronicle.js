@@ -9,7 +9,7 @@
     const codex = new Map();  // name -> { name, diet, pred, firstTick, lastTick, peak, count, alive }
     const events = [];        // { tick, kind, text }  (kind: born | extinct | milestone) — recent feed, capped
     const milestones = [];    // rare, important — kept uncapped and pinned
-    let sawHunter = false, sawDecomposer = false, sawCascade = false, sawRot = false, sawSymbiosis = false, sawPack = false;
+    let sawHunter = false, sawDecomposer = false, sawCascade = false, sawRot = false, sawSymbiosis = false, sawPack = false, sawGaia = false;
     const extHist = [];                          // extinctions per observation, to spot a wave above baseline
     const CASCADE_MIN = 8, CASCADE_MULT = 1.3;   // a cascade = >=8 lost at once AND >1.3x the recent rate (baseline churn ~5/obs)
     const PACK_MIN = 8, PACK_FRAC = 0.22;        // a pack = hunters become a real GUILD (>=8 and >=22% of the living), not one lone hunter
@@ -67,6 +67,14 @@
       if (!sawDecomposer) { for (const [, c] of cur) { const d = c.diet; if (d[E.HUM] > d[E.LUM] && d[E.HUM] > d[E.MIN]) { sawDecomposer = true; emit(tick, 'milestone', 'a decomposer arose from the waste — the food web extends itself'); break; } } }
       if (!sawRot && sim.field.rotTotal && sim.field.rotTotal() > 8) { sawRot = true; emit(tick, 'milestone', 'a rot has taken hold — but it stalls at the seams between guilds. diversity is your firebreak'); }
       if (!sawSymbiosis) { for (const e of sim.life.list) if (e.alive && e.composite) { sawSymbiosis = true; emit(tick, 'milestone', 'two became one — symbiogenesis: a composite now lives by what neither could alone (Margulis)'); break; } }
+      // Gaia: once a thriving world has tuned its albedo (off-path albedo never leaves 0.5) and HOLDS the clime
+      // near the optimum after enough ticks that the brightening sun would otherwise have driven it out of band,
+      // homeostasis is proven — name it. (gated on tick so the trivial initial clime=0.5 doesn't count.)
+      if (!sawGaia && sim.clime && tick >= 800) {
+        let aliveN = 0, regulating = false;
+        for (const e of sim.life.list) if (e.alive) { aliveN++; if (Math.abs((e.albedo != null ? e.albedo : 0.5) - 0.5) > 1e-6) regulating = true; }
+        if (regulating && aliveN >= 60 && Math.abs(sim.clime() - 0.5) < 0.1) { sawGaia = true; emit(tick, 'milestone', 'the world holds its temperature — life tunes its albedo to keep the clime habitable against the brightening sun (Gaia: homeostasis, Lovelock & Margulis)'); }
+      }
     }
     function recent(n) { return events.slice(-(n || 6)).reverse(); }
     function aliveCount() { let a = 0; for (const r of codex.values()) if (r.alive) a++; return a; }

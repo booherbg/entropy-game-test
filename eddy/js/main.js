@@ -6,7 +6,7 @@
   let gl = null, sim = null, playing = true, stepOnce = false, last = 0, acc = 0, simTicks = 0, chronicle = null, aspect = 0, economy = null;
   let advice = null, lastAdviceTick = -999, lastMilestoneN = 0;
   // each milestone summons the voice that named it — the canon quoted at the instant the world demonstrates it
-  const MILESTONE_MURMUR = [['pack', 12], ['symbiogenesis', 4], ['cascade', 9], ['hunters', 0], ['decomposer', 1], ['rot', 2]];
+  const MILESTONE_MURMUR = [['Gaia', 13], ['pack', 12], ['symbiogenesis', 4], ['cascade', 9], ['hunters', 0], ['decomposer', 1], ['rot', 2]];
   function murmurForMilestone(text) { for (const [kw, i] of MILESTONE_MURMUR) if (text.indexOf(kw) >= 0) return i; return -1; }
   const TICK_MS = 60; // sim cadence; render runs every frame
 
@@ -36,7 +36,9 @@
       const s = sim.stats();
       let web = '';
       if (E.foodWeb) { const fw = E.foodWeb(sim); web = ` · ☀${fw.lumen} ◆${fw.mineral} ♻${fw.decomposers}` + (fw.hunters ? ` ⚔${fw.hunters}` : ''); } // the food web, live
-      ro.textContent = `${playing ? '▶' : '❚❚'}  alive ${s.alive}${web} · diets ${s.speciesApprox}` + (chronicle ? ` · witnessed ${chronicle.codex.size}` : '');
+      let clm = ''; // the planet's temperature — Gaia holds it temperate against the brightening sun
+      if (sim.clime) { const c = sim.clime(); clm = ` · 🌡${c.toFixed(2)} ${Math.abs(c - 0.5) < 0.12 ? 'temperate' : (c > 0.5 ? 'warming' : 'cooling')}`; }
+      ro.textContent = `${playing ? '▶' : '❚❚'}  alive ${s.alive}${web} · diets ${s.speciesApprox}${clm}` + (chronicle ? ` · witnessed ${chronicle.codex.size}` : '');
     }
     if (chronicle) renderChronicle();
     if (chronicle && chronicle.milestones.length > lastMilestoneN) { // a new milestone — summon its murmur
@@ -119,6 +121,7 @@
     if (sim.setCompounds) sim.setCompounds(true); // and grows compounds (lignin a white-rot specialist evolves to crack)
     if (sim.setSymbiosis) sim.setSymbiosis(true); // and allows symbiogenesis (complementary life merges into composites)
     if (sim.setRichKill) { sim.setRichKill(true); sim.setEatTradeoff(0.45); } // and a real kill (obligate hunters live by it; predation nearly doubles diversity)
+    if (sim.setGaia) { sim.setGaia(true); sim.setClimeForcing(0.0002); } // the sun slowly brightens; life regulates the clime by its albedo (Gaia — homeostasis emerges)
     chronicle = (E.makeChronicle ? E.makeChronicle() : null);
     economy = (E.makeEconomy ? E.makeEconomy() : null);
     if (E.Render && E.Render.init) E.Render.init(gl);
@@ -137,7 +140,7 @@
   E.Main.isPlaying = () => playing;
   E.Main.setPlaying = (v) => { playing = !!v; };
   E.Main.getSim = () => sim;
-  E.Main.replaceSim = (s) => { sim = s; E.Main.sim = s; if (s.setAutoRot) s.setAutoRot(true); if (s.setCompounds) s.setCompounds(true); if (s.setSymbiosis) s.setSymbiosis(true); if (s.setRichKill) { s.setRichKill(true); s.setEatTradeoff(0.45); } acc = 0; simTicks = 0; advice = null; lastAdviceTick = -999; lastMilestoneN = 0; chronicle = (E.makeChronicle ? E.makeChronicle() : null); economy = (E.makeEconomy ? E.makeEconomy() : null); };
+  E.Main.replaceSim = (s) => { sim = s; E.Main.sim = s; if (s.setAutoRot) s.setAutoRot(true); if (s.setCompounds) s.setCompounds(true); if (s.setSymbiosis) s.setSymbiosis(true); if (s.setRichKill) { s.setRichKill(true); s.setEatTradeoff(0.45); } if (s.setGaia) { s.setGaia(true); s.setClimeForcing(0.0002); } acc = 0; simTicks = 0; advice = null; lastAdviceTick = -999; lastMilestoneN = 0; chronicle = (E.makeChronicle ? E.makeChronicle() : null); economy = (E.makeEconomy ? E.makeEconomy() : null); };
   E.Main.newWorld = () => { if (E.Persist) E.Persist.clear(); E.Main.replaceSim(freshSim()); if (E.UI && E.UI._refresh) E.UI._refresh(); };
   E.Main.cycleAspect = () => { aspect = (aspect + 1) % ((E.ASPECTS && E.ASPECTS.length) || 1); };
   E.Main.aspectName = () => (E.ASPECTS ? E.ASPECTS[aspect % E.ASPECTS.length].name : '');

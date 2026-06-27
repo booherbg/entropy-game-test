@@ -29,7 +29,7 @@
       const diet = localBlend(field, i);              // latch: eat what's in surplus here (incl. the starter)
       // pred0>0 seeds a predator (it lives by hunting, not the field) — a player decision; its
       // descendants' pred still drifts, so the predator/prey arms race can evolve from there.
-      const ent = { id: nextId++, x, y, diet, biomass: pred0 ? 1.0 : 0.5, age: 0, gen: 1, alive: true, pred: pred0 || 0, crack: 0, symb: 0, composite: false };
+      const ent = { id: nextId++, x, y, diet, biomass: pred0 ? 1.0 : 0.5, age: 0, gen: 1, alive: true, pred: pred0 || 0, crack: 0, symb: 0, composite: false, albedo: 0.5 };
       list.push(ent);
       return ent;
     }
@@ -56,7 +56,11 @@
       const i = E.idx(ent.x | 0, ent.y | 0);
       // take a diet-weighted bite of each element — but predators are poor producers (they must hunt
       // to live), which is what keeps the predator/producer niche split from diffusing away.
-      const eat = EAT * (1 - (ent.pred || 0) * eatTradeoff) * (ent.composite ? COMPOSITE_EAT : 1); // composites take up more — the merger's payoff (no-op without composites); a hunter grazes poorly when eatTradeoff>0
+      // habitability (Gaia): metabolism is best when the creature's LOCAL temp (clime shifted by its albedo)
+      // sits at the optimum — light life runs cooler, dark warmer. ×1 when gaia is off (baseline untouched).
+      let hab = 1;
+      if (gaia) { const localT = clime + K_LOCAL * (0.5 - albedoOf(ent)); hab = Math.max(HAB_MIN, 1 - HAB_WIDTH * Math.abs(localT - CLIME_OPT)); }
+      const eat = EAT * (1 - (ent.pred || 0) * eatTradeoff) * (ent.composite ? COMPOSITE_EAT : 1) * hab; // composites take up more — the merger's payoff (no-op without composites); a hunter grazes poorly when eatTradeoff>0; habitability scales it under Gaia
       const tL = Math.min(eat * ent.diet[E.LUM], field.get(i, E.LUM));
       const tM = Math.min(eat * ent.diet[E.MIN], field.get(i, E.MIN));
       const tH = Math.min(eat * ent.diet[E.HUM], field.get(i, E.HUM));
@@ -99,6 +103,15 @@
     // guilds). opt-in — off ⇒ no symbioseStep, no symb drift (no rng), no composites ⇒ baselines identical.
     let symbiosis = false;
     const MUT_SYMB = 0.06, SYMB_RATE = 0.5, SYMB_BASE = 0.12, COMPOSITE_UPKEEP = 1.2, COMPOSITE_EAT = 1.5; // the merger's windfall: a composite's two metabolisms take up more (the eukaryote's aerobic gain), so partnership pays where BOTH foods meet — but its higher upkeep makes it a loss in a pure zone (specialists keep the edges)
+    // Gaia / Daisyworld (Lovelock & Margulis), opt-in. a global CLIME drifts under external FORCING; each
+    // creature carries a heritable ALBEDO that shifts its LOCAL temperature (light = cooling, dark = warming),
+    // and metabolism is best when that local temp sits at the habitable optimum. so when the world runs hot,
+    // light life is nearer its optimum → it thrives → its albedo spreads → the world COOLS back: homeostasis
+    // emerges from selfish local growth, no global coordination (the Daisyworld result, Watson & Lovelock 1983).
+    // off ⇒ no albedo drift (no rng), habitability ×1, clime inert → baselines byte-identical.
+    let gaia = false, clime = 0.5, forcing = 0;
+    const CLIME_OPT = 0.5, MUT_ALBEDO = 0.13, K_LOCAL = 0.8, HAB_WIDTH = 2.2, HAB_MIN = 0.12, K_FEEDBACK = 0.06; // wide albedo mutation keeps standing light/dark variation for selection to act on FAST (the Daisyworld response)
+    function albedoOf(e) { return e.albedo != null ? e.albedo : 0.5; }
     function domElem(diet) { let d = 0; for (let k = 1; k < E.NEL; k++) if (diet[k] > diet[d]) d = k; return d; }
     function neighborCell(ent) {
       const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
@@ -121,8 +134,10 @@
       if (compounds) crack = Math.max(0, Math.min(1, crack + (rng() * 2 - 1) * MUT_CRACK)); // crack drifts ONLY when compounds on (no extra rng off → baseline byte-identical)
       let symb = ent.symb || 0;
       if (symbiosis) symb = Math.max(0, Math.min(1, symb + (rng() * 2 - 1) * MUT_SYMB)); // symb drifts ONLY when symbiosis on (gated → no rng off)
+      let albedo = albedoOf(ent);
+      if (gaia) albedo = Math.max(0, Math.min(1, albedo + (rng() * 2 - 1) * MUT_ALBEDO)); // albedo drifts ONLY under Gaia (gated → no rng off); selection tunes it to the clime
       ent.biomass *= 0.5;                                  // split biomass with the child (conserved)
-      list.push({ id: nextId++, x: nx, y: ny, diet, biomass: ent.biomass, age: 0, gen: ent.gen + 1, alive: true, pred, crack, symb, composite: ent.composite || false });
+      list.push({ id: nextId++, x: nx, y: ny, diet, biomass: ent.biomass, age: 0, gen: ent.gen + 1, alive: true, pred, crack, symb, composite: ent.composite || false, albedo });
     }
     // life eats life: tag-matched exchange (v1 = predation). a predatory entity takes a bite of a
     // less-predatory neighbour's biomass — predator gains, the rest returns to humus (conserved).
@@ -264,7 +279,8 @@
             const tot = a.biomass + b.biomass, d = new Float32Array(E.NEL); let s = 0; // a swallows b → a composite
             for (let k = 0; k < E.NEL; k++) { d[k] = (a.diet[k] * a.biomass + b.diet[k] * b.biomass) / (tot || 1); s += d[k]; }
             for (let k = 0; k < E.NEL; k++) d[k] /= (s || 1);
-            a.diet = d; a.biomass = tot; a.composite = true;                    // it now eats both — more than its sum
+            const newAlb = (albedoOf(a) * a.biomass + albedoOf(b) * b.biomass) / (tot || 1); // albedo blends by biomass too
+            a.diet = d; a.biomass = tot; a.composite = true; a.albedo = newAlb; // it now eats both — more than its sum
             a.symb = Math.min(1, Math.max(a.symb || 0, b.symb || 0) + 0.05);    // the partnership reinforces the taste
             a.pred = Math.max(a.pred || 0, b.pred || 0); a.crack = Math.max(a.crack || 0, b.crack || 0); // inherits the best of both
             b.alive = false;                                                   // absorbed — biomass already in a (conserved)
@@ -272,6 +288,15 @@
           }
         }
       }
+    }
+    // Gaia feedback: the biomass-weighted mean albedo signal (light=+, dark=−) cools/warms the clime, opposing
+    // the external forcing. homeostasis is the fixed point where life's albedo composition exactly cancels it.
+    function climeStep() {
+      let bw = 0, sig = 0;
+      for (const e of list) if (e.alive) { bw += e.biomass; sig += e.biomass * (albedoOf(e) - 0.5); }
+      const mean = bw > 0 ? sig / bw : 0;       // biomass-weighted mean albedo signal, in [-0.5, 0.5]
+      clime += forcing - K_FEEDBACK * mean;     // light life (mean>0) cools; dark warms
+      if (clime < 0) clime = 0; else if (clime > 2) clime = 2;
     }
     function step(field) {
       move(field);
@@ -288,6 +313,7 @@
         if (ent.biomass <= 1e-6) { field.add(i, E.HUM, Math.max(0, ent.biomass)); ent.alive = false; }
         ent.age++;
       }
+      if (gaia) climeStep(); // Gaia: life's collective albedo nudges the clime back against the external forcing
       // occasionally compact the dead to bound memory
       const liveCount = list.reduce((n, e) => n + (e.alive ? 1 : 0), 0);
       if (list.length > 64 && list.length > 2 * liveCount) {
@@ -297,7 +323,9 @@
 
     return { list, spawnFromPrimer, seedRot, step, _rng: rng, dissipated: function () { return _dissipated; },
              setCompounds: function (v) { compounds = !!v; }, setSymbiosis: function (v) { symbiosis = !!v; },
-             setRichKill: function (v) { richKill = !!v; }, setEatTradeoff: function (v) { eatTradeoff = +v || 0; } };
+             setRichKill: function (v) { richKill = !!v; }, setEatTradeoff: function (v) { eatTradeoff = +v || 0; },
+             setGaia: function (v) { gaia = !!v; }, setClimeForcing: function (v) { forcing = +v || 0; }, clime: function () { return clime; },
+             setClime: function (v) { clime = +v || 0; } };
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = E;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

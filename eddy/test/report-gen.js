@@ -7,6 +7,7 @@ function img(name) {
   catch (e) { return ''; }
 }
 const timelapse = img('timelapse.png'), garden = img('play-garden-2000.png'), springs = img('springs.png'), rotshot = img('rot-firebreak.png'), lignin = img('lignin.png'), vitality = img('vitality.png'), predators = img('predators.png');
+const gaiaSVG = require('./gaia-chart.js').buildSVG(); // the Daisyworld regulation chart, computed live as inline SVG
 
 const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>eddy — status report</title>
@@ -36,12 +37,17 @@ code{background:#1c2027;padding:1px 5px;border-radius:4px;font-size:12px}
 </style></head><body><div class="wrap">
 
 <h1>LOOPHOLE · the successor <span style="opacity:.5">(working name: eddy)</span></h1>
-<div class="date">status report · 2026-06-25 (continued) · built autonomously from the depth-redesign spec</div>
+<div class="date">status report · 2026-06-26 · built autonomously from the depth-redesign spec</div>
+<p style="margin:0 0 18px"><a href="index.html" style="display:inline-block;background:#c9772b;color:#10131a;text-decoration:none;padding:9px 16px;border-radius:7px;font-size:14px">▶ play it live — open the game</a> <span style="opacity:.5;font-size:12px;font-style:italic">deployed beside this report; tap on any device with WebGL2</span></p>
 
 <div class="verdict">
 <p class="lede" style="margin-top:0"><b>Verdict: the whole vision is built — a complete, integrated, legible game of entropy and life, waiting only for your eyes.</b></p>
-<p>What began as a prototype is now the entire thing we set out to make, and it holds together. You tend conditions — springs, the shape of the land — and a living, evolving, self-extending food web computes itself, legibly and thermodynamically honestly. The receipts: <b>your choices move the score 3.8×</b> (it is not boring); the world <b>measures at the edge of chaos</b> (Wolfram Class&nbsp;4 + Bak self-organized criticality, every seed); <b>predation is a keystone</b> (a hunter <i>raises</i> diversity — Paine 1966); an <b>antagonist that pushes back</b> (the rot — diversity becomes a literal firebreak, and a monoculture rots from within, unbidden); <b>terrain</b> (basins concentrate flow, walls firebreak, a fresh world arrives as a landscape); and <b>compounds</b> (lignin locks away where humus piles, and a white-rot specialist <i>evolves</i> to crack it — the food web extending itself a third time). And it is <b>legible</b> now: the food web read as guilds, each creature sized by its vitality so the world visibly breathes, an advisor and a narrated chronicle of self-organized-criticality cascades. <b>92 headless assertions</b>, all green; everything balanced and performance-checked as a whole. The one thing left undone is the one thing only you can do: <b>open it.</b></p>
+<p>What began as a prototype is now the entire thing we set out to make, and it holds together. You tend conditions — springs, the shape of the land — and a living, evolving, self-extending food web computes itself, legibly and thermodynamically honestly. The receipts: <b>your choices move the score 3.8×</b> (it is not boring); the world <b>measures at the edge of chaos</b> (Wolfram Class&nbsp;4 + Bak self-organized criticality, every seed); <b>predation is a keystone</b> (a hunter <i>raises</i> diversity — Paine 1966); an <b>antagonist that pushes back</b> (the rot — diversity becomes a literal firebreak, and a monoculture rots from within, unbidden); <b>terrain</b> (basins concentrate flow, walls firebreak, a fresh world arrives as a landscape); and <b>compounds</b> (lignin locks away where humus piles, and a white-rot specialist <i>evolves</i> to crack it — the food web extending itself a third time); <b>an obligate predator</b> that lives by the kill (its <code>pred</code> evolving to a stable equilibrium, lifting diversity); and <b>Gaia</b> (life regulates the planet's temperature against a brightening sun — homeostasis, emergent). And it is <b>legible</b> now: the food web read as guilds, each creature sized by its vitality so the world visibly breathes, an advisor and a narrated chronicle of self-organized-criticality cascades. <b>97 headless assertions</b>, all green; everything balanced and performance-checked as a whole. The one thing left undone is the one thing only you can do: <b>open it.</b></p>
 </div>
+
+<h2>Gaia — the world keeps itself habitable <span class="tag t-now" style="margin-left:0">new</span></h2>
+${gaiaSVG}
+<p class="cap">The biggest idea in the lineage that wasn't yet <i>in</i> the game: Gaia (Lovelock &amp; Margulis) — life collectively regulating its planet toward habitability. Now it runs, as a minimal Daisyworld. A global <b>clime</b> (temperature) is pushed by a brightening sun; each creature carries a heritable <b>albedo</b> (light cools its patch, dark warms it) and grows best when its local temperature sits at the optimum — <i>with no global coordination at all</i>. The result above: a warming that would drive the clime to <b>2.1</b> (red, the world without life) is held by life at <b>0.50</b> (blue) for the entire run, inside the habitable band. <b>Homeostasis emerges from selfish local growth</b> — the thing Lovelock was mocked for, falling out of the model for free. And it doesn't cost the world's soul: measured across five seeds it stays <b>Class 4 + SOC</b>, with diversity and turnover both <i>up</i>. The planet, keeping itself alive — in the simulation now, not just the citation.</p>
 
 <h2>The antagonist — diversity as a firebreak</h2>
 <img src="${rotshot}" alt="the rot firebreaking at guild seams">
@@ -73,7 +79,7 @@ Predation was a keystone before (Paine); now it is a keystone that can also stan
 <p class="cap">One world at ticks 120 → 450 → 1000 → 1800: birth (springs placed, gradients bloom) → flourishing (life fills the lumen/mineral/humus niches) → maturity (dense, diverse, the ground tinting with soil life built) → senescence (finite springs drain, blooms fade to gray, life thins). The dissipative thesis, visible: <i>without renewal, entropy reclaims.</i></p>
 
 <h2>What's built &amp; proven</h2>
-<p>A complete standalone game — vanilla JS + WebGL2, zero deps, deterministic — with a pure-JS sim core (Node-tested) and a browser render/UI layer. <b>92 headless assertions</b> green; everything on <code>main</code>.</p>
+<p>A complete standalone game — vanilla JS + WebGL2, zero deps, deterministic — with a pure-JS sim core (Node-tested) and a browser render/UI layer. <b>97 headless assertions</b> green; everything on <code>main</code>.</p>
 <ul>
 <li><b>Finite material field</b> (lumen/mineral/humus) with conserved diffusion; entropy is visible (concentrated = vivid, diffuse = gray).</li>
 <li><b>One primitive</b> — a tagged consume→produce node. Springs emit; life latches, metabolizes (Mode-1), excretes; decomposers mineralize.</li>

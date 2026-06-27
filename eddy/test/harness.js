@@ -668,6 +668,34 @@ require('../js/advisor.js');
   ok(gOn.div > gOff.div, 'redesign ON ⇒ the real kill keeps predation a keystone — the hunted world is more diverse (Paine 1966)');
 })();
 
+(function testGaiaHomeostasis() {
+  // Gaia / Daisyworld (opt-in): under a steady warming FORCING, life should evolve its albedo to hold the
+  // CLIME near the habitable optimum — homeostasis emerging from selfish local growth, no global coordination.
+  // OFF ⇒ albedo never drifts (stays exactly 0.5) and the clime is inert → baselines byte-identical.
+  function world(gaia, forcing) {
+    const s = E.makeSim(7);
+    if (gaia) { s.setGaia(true); s.setClimeForcing(forcing); }
+    s.addGenerator({ x: 70, y: 50, el: E.LUM, rate: 9, proj: 'radial', radius: 20, reservoir: 1e9, r0: 1e9 });
+    s.addGenerator({ x: 90, y: 50, el: E.MIN, rate: 9, proj: 'radial', radius: 20, reservoir: 1e9, r0: 1e9 });
+    s.dropPrimer(70, 50); s.dropPrimer(90, 50);
+    for (let t = 0; t < 4000; t++) s.tick();
+    let alive = 0, drift = 0; for (const e of s.life.list) if (e.alive) { alive++; if (Math.abs((e.albedo != null ? e.albedo : 0.5) - 0.5) > 1e-9) drift++; }
+    return { clime: s.clime(), alive, drift };
+  }
+  // (a) OFF: the clime never moves and no albedo ever drifts — the baseline is untouched
+  const off = world(false, 0);
+  ok(off.clime === 0.5 && off.drift === 0, 'Gaia OFF (default) ⇒ clime inert at 0.5 and albedo never drifts — baselines untouched');
+  // (b) ON, warming: the forcing would drive the clime to 0.5 + 0.0004*4000 = 2.1 unregulated; life holds it
+  const warm = world(true, 0.0004);
+  const unregulated = 0.5 + 0.0004 * 4000;
+  console.log(`   [gaia] warming forcing would reach clime ${unregulated.toFixed(1)} unregulated — life held it at ${warm.clime.toFixed(2)} (${warm.alive} alive, ${warm.drift} with drifted albedo)`);
+  ok(unregulated > 1.5, 'sanity: the chosen forcing really would run the clime away without life');
+  ok(Math.abs(warm.clime - 0.5) < 0.2 && warm.alive > 40, 'Gaia ON ⇒ life regulates the clime near the optimum against the forcing, and survives — homeostasis emerges (Daisyworld, Lovelock & Watson)');
+  ok(warm.drift > 0, 'Gaia ON ⇒ albedo evolves (life tunes its reflectivity — the mechanism of the regulation)');
+  // (c) the canon: the Gaia milestone maps to Lovelock's voice
+  ok(/lovelock/.test((E.Content.murmur(13).by || '').toLowerCase()), 'the Gaia voice (Lovelock, 1979) sits at the mapped murmur index — the regulation summons it');
+})();
+
 (function testFullIntegration() {
   // everything at once — terrain, auto-rot, hunters, the economy, the chronicle — must coexist for a long
   // run with no NaN, no crash, no collapse. the cross-feature safety net the per-mechanic tests can't give.
@@ -679,6 +707,10 @@ require('../js/advisor.js');
   for (let k = 0; k < 40; k++) { sim.field.diffuse(); E.depositGenerators(sim.field, sim.gens); }
   sim.dropPrimer(55, 50); sim.dropPrimer(95, 50);
   sim.setAutoRot(true);
+  if (sim.setRichKill) { sim.setRichKill(true); sim.setEatTradeoff(0.45); } // the full live flag-set, all at once
+  if (sim.setSymbiosis) sim.setSymbiosis(true);
+  if (sim.setCompounds) sim.setCompounds(true);
+  if (sim.setGaia) { sim.setGaia(true); sim.setClimeForcing(0.0002); }
   const eco = E.makeEconomy ? E.makeEconomy() : null, chr = E.makeChronicle ? E.makeChronicle() : null;
   for (let t = 1; t <= 2000; t++) {
     sim.tick();

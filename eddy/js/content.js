@@ -36,6 +36,7 @@
     { q: 'order for free: in vast webs of interacting parts, order arises not against the odds but as their natural, expected expression.', by: 'stuart kauffman, at home in the universe (1995)' },
     { q: 'we are here to witness the creation and to abet it.', by: 'annie dillard' },
     { q: 'just as a deer herd lives in mortal fear of its wolves, so does a mountain live in mortal fear of its deer.', by: 'aldo leopold, thinking like a mountain (1949)' },
+    { q: 'the entire range of living matter on earth could be regarded as a single living entity, capable of manipulating the earth’s atmosphere to suit its overall needs.', by: 'james lovelock, gaia (1979)' },
     { q: 'i did not write these. i gathered them — from physicists and poets, nearly all long dead. what was mine was the choosing, and the order.', by: null },
   ];
   E.Content.murmur = function (i) {

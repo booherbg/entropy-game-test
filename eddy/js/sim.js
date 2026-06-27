@@ -75,6 +75,7 @@
              setCompounds: function (v) { compounds = !!v; life.setCompounds(v); },
              setSymbiosis: function (v) { life.setSymbiosis(v); },
              setRichKill: function (v) { life.setRichKill(v); }, setEatTradeoff: function (v) { life.setEatTradeoff(v); },
+             setGaia: function (v) { life.setGaia(v); }, setClimeForcing: function (v) { life.setClimeForcing(v); }, clime: function () { return life.clime(); },
              serialize() { return E.serializeSim(field, life, gens, seed); } };
   };
 
@@ -82,12 +83,12 @@
   // so set()-ing them back into a Float32Array reproduces the originals bit-for-bit.
   E.serializeSim = function (field, life, gens, seed) {
     return {
-      v: 1, seed: seed >>> 0,
+      v: 1, seed: seed >>> 0, clime: life.clime ? life.clime() : 0.5,
       gens: gens.map(g => Object.assign({}, g)),
       field: { el: Array.from(field.el), variant: Array.from(field.variant), soil: Array.from(field.soil), rot: Array.from(field.rot), rotType: Array.from(field.rotType), barrier: Array.from(field.barrier), locked: Array.from(field.locked) },
       life: life.list.filter(e => e.alive).map(e => ({
         id: e.id, x: e.x, y: e.y, diet: Array.from(e.diet),
-        biomass: e.biomass, age: e.age, gen: e.gen, pred: e.pred, crack: e.crack || 0, symb: e.symb || 0, composite: !!e.composite,
+        biomass: e.biomass, age: e.age, gen: e.gen, pred: e.pred, crack: e.crack || 0, symb: e.symb || 0, composite: !!e.composite, albedo: e.albedo != null ? e.albedo : 0.5,
       })),
     };
   };
@@ -104,9 +105,10 @@
     for (const e of obj.life) {
       life.list.push({
         id: e.id, x: e.x, y: e.y, diet: new Float32Array(e.diet),
-        biomass: e.biomass, age: e.age, gen: e.gen, alive: true, pred: e.pred || 0, crack: e.crack || 0, symb: e.symb || 0, composite: !!e.composite,
+        biomass: e.biomass, age: e.age, gen: e.gen, alive: true, pred: e.pred || 0, crack: e.crack || 0, symb: e.symb || 0, composite: !!e.composite, albedo: e.albedo != null ? e.albedo : 0.5,
       });
     }
+    if (obj.clime != null && life.setClime) life.setClime(obj.clime); // restore the planet's temperature
     const gens = (obj.gens || []).map(g => Object.assign({}, g));
     return { field, life, gens };
   };
