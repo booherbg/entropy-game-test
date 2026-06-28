@@ -6,6 +6,30 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-28 · the whole holds — every system at once still sits at the edge of chaos
+
+A health-check I'd never actually run: I'd measured each mechanism's criticality in isolation (predation,
+Gaia) but never the **entire live configuration at once** — auto-rot + compounds + symbiosis + the obligate-
+predator redesign + Gaia with the faint-young-sun, all on, the literal flag-set `main.js` boots. That's the
+thing the player runs, and emergent systems can interact in ways no single test catches, so the whole needed
+its own measurement. It holds, cleanly, on every seed (5 seeds × 4000 ticks):
+
+- **Class 4 + Bak SOC, every seed** — mean diversity 18.3, cv 0.13 (stable count), floor 7 (never collapses),
+  turnover 64 extinctions/run (live churn beneath the steady count), avalanches 2.5× heavy-tailed over uniform.
+  The richest config yet measured — *more* diverse and more dynamic than any single mechanism alone, still at
+  the edge, not tipped into chaos.
+- **All five worlds alive, all five climate-regulated** (clime 0.50–0.51 against the brightening sun) — Gaia
+  holds even amid predation, rot, symbiosis and compounds all pulling on the same world.
+- **6.0 of 7 turns drawn out on their own** — with just the standard three springs and one seeded predator, the
+  world evokes six of its seven emergent phenomena unprompted within 4000 ticks. The objective ("draw out the
+  turns") is genuinely reachable by play, not a checklist of rarities; the seventh (usually the pack or a late
+  cascade) is the one that rewards a deliberate hand.
+
+The quiet result is the important one: a year's worth of layered mechanisms — combat, cooperation, decay,
+disturbance, climate — coexist in one world without any of them swamping the others or flattening the soul. The
+edge of chaos wasn't a property of the early simple model that the additions eroded; it's robust to the full
+stack. The integrated whole is more alive than its parts, and still measured.
+
 ## 2026-06-26 · the map is an oasis, and that's load-bearing — why "fill the empty world" fails
 
 Watched the live world play and measured what I saw: at maturity life occupies only **~15 of 96 coarse cells
