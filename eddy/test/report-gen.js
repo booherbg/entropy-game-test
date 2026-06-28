@@ -37,13 +37,25 @@ code{background:#1c2027;padding:1px 5px;border-radius:4px;font-size:12px}
 </style></head><body><div class="wrap">
 
 <h1>LOOPHOLE · the successor <span style="opacity:.5">(working name: eddy)</span></h1>
-<div class="date">status report · 2026-06-26 · built autonomously from the depth-redesign spec</div>
+<div class="date">status report · 2026-06-27 · built autonomously from the depth-redesign spec</div>
 <p style="margin:0 0 18px"><a href="index.html" style="display:inline-block;background:#c9772b;color:#10131a;text-decoration:none;padding:9px 16px;border-radius:7px;font-size:14px">▶ play it live — open the game</a> <span style="opacity:.5;font-size:12px;font-style:italic">deployed beside this report; tap on any device with WebGL2</span></p>
 
 <div class="verdict">
-<p class="lede" style="margin-top:0"><b>Verdict: the whole vision is built — a complete, integrated, legible game of entropy and life, waiting only for your eyes.</b></p>
-<p>What began as a prototype is now the entire thing we set out to make, and it holds together. You tend conditions — springs, the shape of the land — and a living, evolving, self-extending food web computes itself, legibly and thermodynamically honestly. The receipts: <b>your choices move the score 3.8×</b> (it is not boring); the world <b>measures at the edge of chaos</b> (Wolfram Class&nbsp;4 + Bak self-organized criticality, every seed); <b>predation is a keystone</b> (a hunter <i>raises</i> diversity — Paine 1966); an <b>antagonist that pushes back</b> (the rot — diversity becomes a literal firebreak, and a monoculture rots from within, unbidden); <b>terrain</b> (basins concentrate flow, walls firebreak, a fresh world arrives as a landscape); and <b>compounds</b> (lignin locks away where humus piles, and a white-rot specialist <i>evolves</i> to crack it — the food web extending itself a third time); <b>an obligate predator</b> that lives by the kill (its <code>pred</code> evolving to a stable equilibrium, lifting diversity); and <b>Gaia</b> (life regulates the planet's temperature against a brightening sun — homeostasis, emergent). And it is <b>legible</b> now: the food web read as guilds, each creature sized by its vitality so the world visibly breathes, an advisor and a narrated chronicle of self-organized-criticality cascades. <b>97 headless assertions</b>, all green; everything balanced and performance-checked as a whole. The one thing left undone is the one thing only you can do: <b>open it.</b></p>
+<p class="lede" style="margin-top:0"><b>Verdict: the simulation is complete and deep — and after your first playtest, the <i>game</i> around it is catching up: it's live, it onboards, it has an objective.</b></p>
+<p>The world-model is the whole thing we set out to make, and it holds together: you tend conditions and a living, evolving, self-extending food web computes itself, thermodynamically honestly. The receipts — <b>choices move the score 3.8×</b>; the world <b>sits at the edge of chaos</b> (Wolfram Class&nbsp;4 + Bak self-organized criticality, every seed); <b>predation is a keystone</b> (a hunter <i>raises</i> diversity, Paine 1966) and now also a <b>self-sustaining obligate predator</b>; an <b>antagonist</b> (the rot, firebroken by diversity); <b>terrain</b>; <b>compounds</b> (lignin + an evolved white-rot); and <b>Gaia</b> (life holds the planet's temperature against a brightening sun — homeostasis, emergent). <b>100 headless assertions</b>, all green.</p>
+<p>Then you opened it — the first real playtest — and named the gap exactly: the simulation is deep, but as a <i>game</i> it was mute (it just started; a crowded screen; no stated objective). That was true, and it's the work now. <b>It's deployed and playable on any device</b>; it <b>onboards</b> (an intro states the goal, explains every tool, and shows a colour key for reading the world); it has a <b>legible objective</b> — <i>draw out the world's turns</i>; the advisor teaches the foundational move first; and the screen is decluttered for a phone. The sim was the hard part and it's done; the game layer is young but real, and now iterating with your eyes on it.</p>
 </div>
+
+<h2>The game, made legible — from your first playtest <span class="tag t-now" style="margin-left:0">new</span></h2>
+<p>You opened the live build and said it plainly: a lot is clearly happening, but as a game it's opaque — it starts the moment the page loads, the screen is crowded, and there's no telling what your choices or objectives are. Exactly right, and it became the work. The first pass, all live:</p>
+<ul>
+<li><b>It onboards.</b> A first visit now pauses the world behind an intro that states the goal, explains every tool, and gives a colour key for <i>reading the world</i> (gold = lumen-eater, blue = mineral, green = humus/decomposer, crimson = hunter, pearl = composite). Reopen any time with <b>? guide</b>.</li>
+<li><b>It has an objective.</b> Soft before (cultivate-and-witness); now legible: <b>draw out the world's turns</b> — the emergent phenomena it can take on its own. A row up top reads <code>the world's turns · N/7</code> and lights a glyph (⚔ ♻ ☣ ⚡ ∞ ✷ ⊕) as each is first evoked — staying cryptic until then, so the chronicle still gives the full reveal. Direction, without spoiling the wonder, and true to the contemplative-sandbox soul (witness, not "win").</li>
+<li><b>It guides.</b> The advisor now teaches the foundational move (vary your springs) before advanced ones, instead of telling a brand-new world to "drop a hunter."</li>
+<li><b>It fits a phone.</b> The chronicle is capped to a glance, the toolbar scrolls instead of crowding, and the panels no longer bury the canvas.</li>
+<li><b>And the climate is felt</b> — the whole scene warms amber when the world runs hot, cools blue when cold, neutral when life holds it temperate (Gaia, as light).</li>
+</ul>
+<p>The honest status: the simulation was the hard, deep part and it's done; the <i>game</i> layer — onboarding, objective, legibility — is young but real and live. The open question is now yours: keep the objective this gentle (witness the turns), or push toward harder directed goals?</p>
 
 <h2>Gaia — the world keeps itself habitable <span class="tag t-now" style="margin-left:0">new</span></h2>
 ${gaiaSVG}
@@ -79,7 +91,7 @@ Predation was a keystone before (Paine); now it is a keystone that can also stan
 <p class="cap">One world at ticks 120 → 450 → 1000 → 1800: birth (springs placed, gradients bloom) → flourishing (life fills the lumen/mineral/humus niches) → maturity (dense, diverse, the ground tinting with soil life built) → senescence (finite springs drain, blooms fade to gray, life thins). The dissipative thesis, visible: <i>without renewal, entropy reclaims.</i></p>
 
 <h2>What's built &amp; proven</h2>
-<p>A complete standalone game — vanilla JS + WebGL2, zero deps, deterministic — with a pure-JS sim core (Node-tested) and a browser render/UI layer. <b>97 headless assertions</b> green; everything on <code>main</code>.</p>
+<p>A complete standalone game — vanilla JS + WebGL2, zero deps, deterministic — with a pure-JS sim core (Node-tested) and a browser render/UI layer, deployed live. <b>100 headless assertions</b> green; everything on <code>main</code>.</p>
 <ul>
 <li><b>Finite material field</b> (lumen/mineral/humus) with conserved diffusion; entropy is visible (concentrated = vivid, diffuse = gray).</li>
 <li><b>One primitive</b> — a tagged consume→produce node. Springs emit; life latches, metabolizes (Mode-1), excretes; decomposers mineralize.</li>
@@ -115,7 +127,7 @@ Predation was a keystone before (Paine); now it is a keystone that can also stan
 <li>It's honest — conserved, deterministic, reproducible surprise; the advisor reads it back to you.</li>
 </ul></div>
 <div class="card weak"><h3>What's weak</h3><ul>
-<li><b>Unverified by a human eye</b> — none of the live UI (the advisor, the chronicle + cascades, the rot stain + ☣ tool, the score/economy panels) has run in a real browser; the headless renderer mirrors the shader, but the WebGL itself wants confirming.</li>
+<li><b>The game layer is young</b> — now playtested once and onboarded, but the objective (draw out the turns) is fresh and untuned; whether it reads as a goal worth chasing wants your eyes. The deep sim is the proven part; the game around it is days old.</li>
 <li><b>Depth still mostly unseen</b> — the chronicle narrates births/extinctions, but there's no <b>food-web view</b>, and evolution is subtle shading, not a watchable form.</li>
 <li><b>Creatures are interchangeable dots</b> — named diversity and ~25 generations of drift aren't legible as shape or behaviour.</li>
 <li><b>A thriving world may be too serene</b> — the antagonist hunts the careless (monocultures), but a well-tended diverse world is now largely undisturbed; the accomplished player may want a pressure of their own.</li>
@@ -149,9 +161,11 @@ Predation was a keystone before (Paine); now it is a keystone that can also stan
 <p>With the strong predator built, I tested the arms race directly: a heritable <code>defense</code> trait, three principled mechanics. It still doesn't run — defence plateaus low whatever the predation. The blocker turns out to be one level deeper than "weak predation": an <b>adaptive valley on the benefit side</b> — intermediate armour is useless (an adjacent predator finishes the kill anyway), and fitness here is reproduction-bottlenecked, not survival-bottlenecked, so armour is near-neutral. Strong predation was necessary but not sufficient. The fix is now precisely diagnosed (in the notebook): reshape predation so <i>incremental</i> defence buys <i>incremental</i> survival — a per-encounter lethality armour gradually lowers, and predators that abandon prey they can't crack. A deliberate predation-shape change, your call. Beside it: the wild Lotka–Volterra <b>limit cycle</b> (the populations currently damp to a stable coexistence; a destabilizing functional response — the paradox of enrichment — would make them oscillate).</p>
 
 <h2>What needs you</h2>
+<p>You've opened it once — the gate that stood the whole build is cleared. What I genuinely can't do from here (no headless browser) is <i>judge the feel</i>, so this is now a tight loop: I ship, you glance, I adjust.</p>
 <ul>
-<li><b>Your eyes on the live game</b> — open <code>eddy/index.html</code>. Everything is logic-proven and the headless renderer mirrors the shader, but only you can confirm the WebGL itself runs and the feel is right. This is the one thing I genuinely cannot do — and now the only thing standing between a thoroughly-proven design and a confirmed-playable game.</li>
-<li><b>A steer on where next</b> — the obligate-predator balance, an endgame pressure, a co-evolution arms race, or somewhere new entirely.</li>
+<li><b>The objective fork</b> — keep it a calm sandbox (witness the turns, made legible and rewarding) or push toward harder directed goals (the world hands you concrete aims with a felt sense of progress)? This is the one call that most shapes what I build next.</li>
+<li><b>The feel of the first ten seconds</b> — does the intro land, does <code>the world's turns · N/7</code> read as something to chase, is the running screen legible now on your phone?</li>
+<li><b>A steer on depth, if you want it</b> — the wild predator–prey limit cycle, a co-evolution arms race, a living/shifting map, or somewhere new.</li>
 </ul>
 
 <p class="foot">eddy is a successor to LOOPHOLE — it does not depict its themes, it is them, entropy and dissipation and the loophole, in code. Built across many autonomous iterations; the lab notebook (<code>eddy/DISCOVERIES.md</code>) holds the findings — now including the soul, measured — and the genesis doc the dialogue that made it.</p>
