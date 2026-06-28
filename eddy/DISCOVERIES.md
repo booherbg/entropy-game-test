@@ -6,6 +6,33 @@ Design & soul: `docs/superpowers/specs/2026-06-24-loophole-successor-genesis.md`
 
 ---
 
+## 2026-06-28 · the paradox of enrichment, dissolved by space — why there's no wild limit cycle (and that's good)
+
+The last deferred predator thread: the obligate predator damps to *stable coexistence*, not the dramatic
+boom-bust *limit cycle* (Lotka–Volterra). The textbook route to the cycle is the **paradox of enrichment**
+(Rosenzweig 1971): enrich the prey's carrying capacity and a Type-II predator's equilibrium goes unstable into
+oscillations that grow until extinction. eddy's predation is already Type-II (one kill per tick, satiety-capped),
+so the experiment needed *no new code* — just enrich the springs and measure. I swept spring richness 8→26 (a
+prey base scaled ~3×) across seeds, 5000 ticks each, watching the predator population's oscillation and how
+near extinction it drifts.
+
+**The paradox doesn't occur — and its absence is the finding.** Enrichment scaled the predator population
+eightfold (mean 30 → 246) while the oscillation stayed *damped at every level* (cv 0.09–0.15) and *never once
+neared extinction* (0% predator-absent samples throughout). At the **richest** end it was the **most** stable
+(cv 0.09) — the exact opposite of the paradox. The cause is the world's 2D body: predator and prey cycle
+*locally*, but the patches run out of phase, and summed over the grid the booms and busts cancel. This is the
+celebrated spatial-ecology result (Hassell, Comins & May; de Roos) — **space resolves the paradox of
+enrichment** — falling out of eddy unbidden, never coded for.
+
+So the wild global limit cycle isn't a "reachable retune"; it's gracefully *precluded* by the spatial
+structure, and forcing it (synchronizing the world, stripping the refugia) would fight the world's nature and
+trade a robust ecology for an extinction-prone one. The stable coexistence — predators that persist without ever
+crashing the prey to nothing — is the better game outcome *and* the more interesting science: the drama lives at
+the local scale (a pack knotting at a kill site, prey thinning then refilling a patch), while the whole stays
+alive. The deferred thread is closed by measurement: there is no cycle to chase here, because the world already
+solved the problem that the cycle is a symptom of. (The session's fourth bold experiment answered by the world
+rather than by my guess — prey-rich regime, Red Queen, weathering, and now this.)
+
 ## 2026-06-28 · the whole holds — every system at once still sits at the edge of chaos
 
 A health-check I'd never actually run: I'd measured each mechanism's criticality in isolation (predation,

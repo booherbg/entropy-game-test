@@ -121,9 +121,11 @@ headless assertions.** See `shots/`, `report.html`, and `DISCOVERIES.md`.
 
 1. **The objective fork** — the goal is now legible ("draw out the world's turns"), but soft by design;
    whether to keep it a calm sandbox or push toward harder directed goals is the open curatorial call.
-2. **The wild predator–prey cycle** — the obligate predator is built and stable, but damps to coexistence
-   rather than a visible boom-bust *limit cycle*; the oscillation (a destabilizing functional response — the
-   paradox of enrichment) is a reachable retune.
+2. **The wild predator–prey cycle — measured closed.** The obligate predator damps to stable coexistence, and
+   that turns out to be robust: enrichment (the paradox of enrichment) does *not* destabilize it into a limit
+   cycle — the 2D spatial structure resolves the paradox (asynchronous patches cancel; richer = *more* stable,
+   never near extinction). Space gives coexistence; the drama is local, the whole stays alive. Not a thing to
+   "fix."
 3. **A living, shifting map** — the world is an oasis (life clusters at springs; ~84% of the map stays empty
    and frozen). A uniform resource floor was tried and fails (it trivializes stewardship); a living macro
    picture would need *moving* heterogeneity or a disturbance→recolonization mosaic.
