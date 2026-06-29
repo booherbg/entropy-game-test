@@ -46,6 +46,8 @@
         document.body.classList.remove('inspecting');
       }
       btn.lens.classList.toggle('on', E.Render.lens === 'rawfield');
+      const leg = document.getElementById('lenslegend'); // the field-colour legend rides with the lens
+      if (leg) leg.classList.toggle('show', E.Render.lens === 'rawfield');
       btn.play.textContent = main.isPlaying() ? '❚❚ pause' : '▶ play';
       if (main.aspectName) btn.aspect.textContent = '◎ ' + main.aspectName();
       btn.element.textContent = ELN[element];

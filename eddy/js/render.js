@@ -32,9 +32,12 @@ void main(){
   if (rot > 50.0) { frag = vec4(climeTint(vec3(0.15, 0.14, 0.16), clime, 1.0), 1.0); return; } // rock (terrain) — alpha sentinel
   float lignin = rot < 0.0 ? -rot : 0.0; rot = max(rot, 0.0); // negative alpha carries lignin (recalcitrant humus)
   float t = e.r + e.g + e.b + 1e-4;
-  if (lens == 1) { frag = vec4(clamp(e,0.0,1.5)/1.5, 1.0); return; } // raw-field lens (debug — untinted)
-  vec3 p = e / t;
   vec3 gold = vec3(0.92,0.71,0.27), blue = vec3(0.27,0.55,0.85), green = vec3(0.35,0.69,0.33);
+  if (lens == 1) { // raw-field lens — each material in its OWN world colour by magnitude (consistent with the world view: lumen→gold, mineral→blue, humus→green)
+    vec3 fc = clamp(e.r,0.0,1.5)/1.5*gold + clamp(e.g,0.0,1.5)/1.5*blue + clamp(e.b,0.0,1.5)/1.5*green;
+    frag = vec4(clamp(fc,0.0,1.0), 1.0); return;
+  }
+  vec3 p = e / t;
   vec3 hue = p.r*gold + p.g*blue + p.b*green;
   float dom = max(max(p.r,p.g),p.b);
   float sat = clamp((dom-0.3333)/0.6667, 0.0, 1.0);

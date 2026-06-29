@@ -43,13 +43,13 @@
   // the chronicle's `seen` flags; the glyph row lights up as each is first witnessed. cryptic-until-evoked on
   // purpose: the chronicle narrates the full reveal when it happens — this is just the progress, the lure.
   E.Content.TURNS = [
-    { key: 'hunter',     glyph: '⚔', label: 'life eats life' },
-    { key: 'decomposer', glyph: '♻', label: 'decay recycled' },
-    { key: 'rot',        glyph: '☣', label: 'the rot, contained' },
-    { key: 'cascade',    glyph: '⚡', label: 'an avalanche' },
-    { key: 'symbiosis',  glyph: '∞', label: 'two became one' },
-    { key: 'pack',       glyph: '✷', label: 'a pack rises' },
-    { key: 'gaia',       glyph: '⊕', label: 'the climate held' },
+    { key: 'hunter',     glyph: '⚔', cap: 'hunt',    label: 'life eats life' },
+    { key: 'decomposer', glyph: '♻', cap: 'decay',   label: 'decay recycled' },
+    { key: 'rot',        glyph: '☣', cap: 'rot',     label: 'the rot, contained' },
+    { key: 'cascade',    glyph: '⚡', cap: 'cascade', label: 'an avalanche' },
+    { key: 'symbiosis',  glyph: '∞', cap: 'merge',   label: 'two became one' },
+    { key: 'pack',       glyph: '✷', cap: 'pack',    label: 'a pack rises' },
+    { key: 'gaia',       glyph: '⊕', cap: 'climate', label: 'the climate held' },
   ];
 
   E.Content.murmur = function (i) {

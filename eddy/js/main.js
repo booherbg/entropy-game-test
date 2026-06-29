@@ -92,7 +92,8 @@
   function renderTurns() {
     const el = document.getElementById('turns'); if (!el || !chronicle || !chronicle.seen || !E.Content || !E.Content.TURNS) return;
     const seen = chronicle.seen, n = chronicle.turnsSeen(), total = E.Content.TURNS.length;
-    const row = E.Content.TURNS.map(t => `<span class="t ${seen[t.key] ? 'on' : ''}" title="${seen[t.key] ? t.label : 'a turn not yet drawn out'}">${t.glyph}</span>`).join('');
+    // glyph + a permanent caption (legible, not a cryptic rune); the caption names the goal even before it's drawn out
+    const row = E.Content.TURNS.map(t => `<span class="t ${seen[t.key] ? 'on' : ''}" title="${seen[t.key] ? t.label : 'not yet drawn out'}"><span class="g">${t.glyph}</span><span class="lab">${t.cap || ''}</span></span>`).join('');
     el.innerHTML = `<div class="tt">the world's turns · ${n}/${total}</div><div class="row">${row}</div>`;
   }
 
