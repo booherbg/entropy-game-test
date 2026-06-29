@@ -31,15 +31,6 @@
     }
     resize();
     if (E.Render && E.Render.draw) E.Render.draw(sim, gl);
-    const ro = document.getElementById('readout');
-    if (ro) {
-      const s = sim.stats();
-      let web = '';
-      if (E.foodWeb) { const fw = E.foodWeb(sim); web = ` · ☀${fw.lumen} ◆${fw.mineral} ♻${fw.decomposers}` + (fw.hunters ? ` ⚔${fw.hunters}` : ''); } // the food web, live
-      let clm = ''; // the planet's temperature — Gaia holds it temperate against the brightening sun
-      if (sim.clime) { const c = sim.clime(); clm = ` · 🌡${c.toFixed(2)} ${Math.abs(c - 0.5) < 0.12 ? 'temperate' : (c > 0.5 ? 'warming' : 'cooling')}`; }
-      ro.textContent = `${playing ? '▶' : '❚❚'}  alive ${s.alive}${web} · diets ${s.speciesApprox}${clm}` + (chronicle ? ` · witnessed ${chronicle.codex.size}` : '');
-    }
     if (chronicle) renderChronicle();
     if (chronicle && chronicle.milestones.length > lastMilestoneN) { // a new milestone — summon its murmur
       for (let i = lastMilestoneN; i < chronicle.milestones.length; i++) {
@@ -74,13 +65,13 @@
     // keep it a glance, not a wall: the few most-recent milestones (the pinned highlights) + a few recent events
     const ms = chronicle.milestones.slice(-3).map(e => `<div class="ev milestone">★ ${e.text}</div>`).join('');
     const rec = chronicle.recent(8).filter(e => e.kind !== 'milestone').slice(0, 3).map(e => `<div class="ev ${e.kind}">${e.text}</div>`).join('');
-    el.innerHTML = ms + rec;
+    el.innerHTML = (ms || rec) ? `<div class="ct cap">the chronicle</div>${ms}${rec}` : ''; // empty ⇒ hidden (:empty), no bare card at the opening
   }
 
   function renderAdvisor() {
     const el = document.getElementById('advisor'); if (!el || !advice) return;
-    el.className = advice.level;
-    el.innerHTML = '<span class="lead">the advisor</span>' + advice.text;
+    el.className = 'panel ' + advice.level; // keep the card; advice.level tints the lead
+    el.innerHTML = '<span class="lead cap">the advisor</span>' + advice.text;
   }
 
   function renderFoodWeb() {
@@ -89,7 +80,7 @@
     const max = Math.max(1, fw.lumen, fw.mineral, fw.decomposers, fw.hunters, fw.crackers, fw.composites), W = 88;
     const row = (cls, n, lbl) => n > 0
       ? `<div class="fw-row"><span class="fw-bar ${cls}" style="width:${Math.round(n / max * W)}px"></span><span class="fw-n">${n}</span> <span class="fw-lbl">${lbl}</span></div>` : '';
-    el.innerHTML = '<div class="fw-title">the food web</div>'
+    el.innerHTML = '<div class="fw-title cap">the food web</div>'
       + row('lum', fw.lumen, 'eat lumen')
       + row('min', fw.mineral, 'eat mineral')
       + row('hum', fw.decomposers, 'recycle waste')
@@ -108,10 +99,22 @@
   function renderScore() {
     const el = document.getElementById('score'); if (!el || !E.score || !E.ASPECTS) return;
     const s = E.score(sim), a = E.ASPECTS[aspect % E.ASPECTS.length];
-    el.innerHTML = `<div class="aspect">pursuing · the ${a.name}</div>`
+    const st = sim.stats ? sim.stats() : { alive: 0 };
+    let clm = ''; // the planet's temperature — Gaia holds it temperate against the brightening sun
+    if (sim.clime) {
+      const c = sim.clime(), temperate = Math.abs(c - 0.5) < 0.12;
+      const cls = temperate ? '' : (c > 0.5 ? 'warm' : 'cool');
+      const word = temperate ? 'temperate' : (c > 0.5 ? 'warming' : 'cooling');
+      clm = ` · 🌡 <span class="${cls}">${c.toFixed(2)} ${word}</span>`;
+    }
+    el.innerHTML = `<div class="aspect cap">pursuing · the ${a.name}</div>`
       + `<div class="big">${s[a.of]}</div>`
-      + `<div class="m">div <b>${s.diversity}</b> · order <b>${s.order}</b> · burn <b>${s.throughput}</b> · flourish <b>${s.flourish}</b></div>`
-      + (economy ? `<div class="m" style="margin-top:5px">flow <b style="color:#7fd0ff">${Math.round(economy.flow())}</b></div>` : '');
+      + `<div class="rule"></div>`
+      + `<div class="stat">alive <b>${st.alive}</b>${clm}</div>`
+      + `<div class="dash">div <b>${s.diversity}</b> · order <b>${s.order}</b></div>`
+      + `<div class="dash">burn <b>${s.throughput}</b> · flourish <b>${s.flourish}</b></div>`
+      + (economy ? `<div class="flow">flow <b>${Math.round(economy.flow())}</b></div>` : '')
+      + (chronicle ? `<div class="dash">witnessed <b>${chronicle.codex.size}</b> kinds</div>` : '');
   }
 
   function boot() {
