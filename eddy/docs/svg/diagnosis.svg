@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600" viewBox="0 0 1000 600" font-family="Georgia, 'Times New Roman', serif">
+  <rect width="1000" height="600" fill="#0f1115"/>
+  <text x="40" y="56" fill="#e8e4da" font-size="30">why eddy isn't fun yet — two layers that compound</text>
+  <text x="40" y="84" fill="#9a958a" font-size="15" font-style="italic">the unanimous finding of three critics who played it blind</text>
+
+  <!-- the dev's sentence -->
+  <rect x="40" y="108" width="920" height="52" rx="9" fill="#1a1d24" stroke="#343a44"/>
+  <text x="60" y="140" fill="#f0b870" font-size="18" font-style="italic">"this game just doesn't feel very fun. i can't quite tell what is going on."</text>
+
+  <!-- Layer 1 -->
+  <rect x="40" y="190" width="445" height="250" rx="11" fill="#16140f" stroke="#7a4a1e"/>
+  <text x="64" y="226" fill="#e8a85a" font-size="13" letter-spacing="2">LAYER 1 · THE "NOT FUN" LAYER</text>
+  <text x="64" y="258" fill="#e8e4da" font-size="23">there are no stakes</text>
+  <text x="64" y="292" fill="#cfc9bd" font-size="15">· the opening spring is infinite → the world</text>
+  <text x="78" y="314" fill="#cfc9bd" font-size="15">can never die</text>
+  <text x="64" y="342" fill="#cfc9bd" font-size="15">· the score only ever rises</text>
+  <text x="64" y="370" fill="#cfc9bd" font-size="15">· no clock, no goal you accepted, no loss</text>
+  <text x="64" y="404" fill="#9a958a" font-size="13.5" font-style="italic">choices matter 3.65× — but never to *you*,</text>
+  <text x="64" y="424" fill="#9a958a" font-size="13.5" font-style="italic">because neglect ends just as alive.</text>
+
+  <!-- Layer 2 -->
+  <rect x="515" y="190" width="445" height="250" rx="11" fill="#0f1418" stroke="#2c5566"/>
+  <text x="539" y="226" fill="#8fc0e8" font-size="13" letter-spacing="2">LAYER 2 · THE "CAN'T TELL" LAYER</text>
+  <text x="539" y="258" fill="#e8e4da" font-size="23">the world is unreadable</text>
+  <text x="539" y="292" fill="#cfc9bd" font-size="15">· cause → effect separated by minutes</text>
+  <text x="539" y="320" fill="#cfc9bd" font-size="15">· the "read the world" lens is debug-grade</text>
+  <text x="553" y="342" fill="#cfc9bd" font-size="15">and miscoloured (swaps the materials)</text>
+  <text x="539" y="370" fill="#cfc9bd" font-size="15">· 7 cryptic glyphs; numbers with no anchor</text>
+  <text x="539" y="404" fill="#9a958a" font-size="13.5" font-style="italic">the depth is real but lives in the data,</text>
+  <text x="539" y="424" fill="#9a958a" font-size="13.5" font-style="italic">not in the eye.</text>
+
+  <!-- compounding arrow -->
+  <path d="M262 440 L262 470 M738 440 L738 470 M262 470 L500 470 L500 492 M738 470 L500 470" stroke="#5a5650" stroke-width="2" fill="none"/>
+  <polygon points="500,506 492,490 508,490" fill="#5a5650"/>
+
+  <!-- the compound result -->
+  <rect x="220" y="512" width="560" height="64" rx="11" fill="#1a1d24" stroke="#c9772b"/>
+  <text x="500" y="540" fill="#f0b870" font-size="17" text-anchor="middle">with no stakes, there is no reason to push through the confusion —</text>
+  <text x="500" y="563" fill="#e8e4da" font-size="17" text-anchor="middle">"i poked it and nothing i understood happened."</text>
+</svg>
