@@ -66,10 +66,20 @@
   /* ── the world's turns — the objective, centred under the bar ─────────────── */
   #turns { position: absolute; top: calc(var(--bar-h) + 6px); left: 50%; transform: translateX(-50%);
     text-align: center; pointer-events: none; padding: 5px 14px; }
-  #turns .tt { opacity: .55; font-size: var(--cap); text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 3px; }
-  #turns .row { font-size: 17px; letter-spacing: 6px; }
-  #turns .t { opacity: .18; transition: opacity .8s, color .8s; }
-  #turns .t.on { opacity: 1; color: var(--amber-lit); text-shadow: 0 0 9px rgba(240,184,112,.55); }
+  #turns .tt { opacity: .55; font-size: var(--cap); text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 5px; text-align: center; }
+  #turns .row { display: flex; gap: 13px; justify-content: center; }
+  #turns .t { display: flex; flex-direction: column; align-items: center; opacity: .32; transition: opacity .8s, color .8s; }
+  #turns .t.on { opacity: 1; color: var(--amber-lit); }
+  #turns .t .g { font-size: 17px; line-height: 1; }
+  #turns .t.on .g { text-shadow: 0 0 9px rgba(240,184,112,.55); }
+  #turns .t .lab { font-size: 8.5px; text-transform: uppercase; letter-spacing: .4px; margin-top: 4px; white-space: nowrap; }
+
+  /* lens legend — shown only while the rawfield lens is active, so the field's colours are readable */
+  #lenslegend { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); display: none;
+    gap: 16px; font-size: 11px; align-items: center; }
+  #lenslegend.show { display: flex; }
+  #lenslegend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+  #lenslegend .lum { background: #ebb446; } #lenslegend .min { background: #6fb0f0; } #lenslegend .hum { background: #7cc878; }
 
   /* ── status + score card, top-right ──────────────────────────────────────── */
   #score { position: absolute; top: calc(var(--bar-h) + 10px); right: var(--gutter); width: 196px;
@@ -196,6 +206,7 @@
     <div id="foodweb" class="panel"></div>
     <div id="chronicle" class="panel"></div>
     <div id="murmur"></div>
+    <div id="lenslegend" class="panel"><span><i class="lum"></i>lumen</span><span><i class="min"></i>mineral</span><span><i class="hum"></i>humus</span></div>
     <div id="advisor" class="panel"></div>
     <div id="inspector" class="panel"></div>
     <div id="intro"><div class="card">
