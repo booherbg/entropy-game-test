@@ -5,83 +5,132 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>eddy — a loophole</title>
 <style>
-  :root { color-scheme: dark; }
+  :root {
+    color-scheme: dark;
+    /* one palette, one set of tokens — every surface and label derives from these */
+    --bg: #0f1115;
+    --ink: #e8e4da;
+    --amber: #c9772b;
+    --amber-lit: #f0b870;
+    --sky: #8fc0e8;
+    --leaf: #9fd98f;
+    --rose: #d98a8a;
+    --panel: rgba(18,21,27,.86);
+    --panel-line: rgba(232,228,218,.11);
+    --gutter: 14px;
+    --bar-h: 46px;
+    --cap: 10px;        /* caption / label size */
+    --body: 12.5px;     /* default panel body */
+  }
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; background: #0f1115; color: #e8e4da;
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
     font-family: Georgia, 'Times New Roman', serif; overflow: hidden; }
   #stage { position: fixed; inset: 0; }
   #gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block;
-    image-rendering: pixelated; background: #0f1115; }
+    image-rendering: pixelated; background: var(--bg); }
 
-  /* top toolbar */
-  #toolbar { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center;
-    gap: 8px; padding: 8px 12px; font-size: 13px; background: linear-gradient(#15181dee, #15181d00);
-    user-select: none; z-index: 5; }
-  #toolbar .title { font-size: 14px; letter-spacing: .5px; opacity: .85; margin-right: 6px; white-space: nowrap; flex: 0 0 auto; }
-  #toolbar .title small { opacity: .45; font-style: italic; }
-  .tool { padding: 5px 11px; border: 1px solid #343a44; border-radius: 6px; cursor: pointer;
-    color: #e8e4da; background: #1c2026aa; }
-  .tool:hover { border-color: #c9772b; }
-  .tool.on { border-color: #c9772b; background: rgba(201,119,43,.16); }
+  /* ── shared idiom ───────────────────────────────────────────────────────── */
+  /* every floating readout is a .panel: a translucent loam card, so the HUD reads
+     as designed surfaces over the world rather than text scattered on the canvas */
+  .panel { background: var(--panel); border: 1px solid var(--panel-line); border-radius: 10px;
+    padding: 10px 12px; box-shadow: 0 5px 14px rgba(0,0,0,.4); z-index: 5; }
+  /* one caption style everywhere: small caps, tracked, quiet */
+  .cap { opacity: .5; font-size: var(--cap); text-transform: uppercase; letter-spacing: 1.3px; }
+
+  /* ── top toolbar ────────────────────────────────────────────────────────── */
+  #toolbar { position: absolute; top: 0; left: 0; right: 0; height: var(--bar-h); display: flex;
+    align-items: center; gap: 6px; padding: 0 var(--gutter); font-size: 13px; z-index: 8;
+    background: linear-gradient(#13161bf2 55%, #13161b00); user-select: none; }
+  #toolbar .title { font-size: 15px; letter-spacing: .4px; opacity: .9; margin-right: 4px; white-space: nowrap; flex: 0 0 auto; }
+  #toolbar .title small { opacity: .42; font-style: italic; }
+  .group { display: flex; align-items: center; gap: 5px; }
+  .sep { width: 1px; height: 22px; background: var(--panel-line); margin: 0 4px; flex: 0 0 auto; }
   #toolbar .spacer { flex: 1; }
-  #toolbar .readout { font-size: 12px; opacity: .55; white-space: nowrap; }
+  .tool { padding: 5px 10px; border: 1px solid #343a44; border-radius: 6px; cursor: pointer;
+    color: var(--ink); background: #1c2026aa; white-space: nowrap; line-height: 1; transition: border-color .15s, background .15s; }
+  .tool:hover { border-color: var(--amber); }
+  .tool.on { border-color: var(--amber); background: rgba(201,119,43,.18); color: var(--amber-lit); }
+  /* generator's element/projection are sub-options of one tool — subordinate pills */
+  #genopts { transition: opacity .2s; }
+  #genopts .tool { padding: 4px 9px; font-size: 12px; border-style: dashed; border-color: #2c323c; }
+  #genopts .tool:hover { border-color: var(--amber); }
+  /* the right-hand controls (view / sim / help) are quieter than the world tools */
+  #controls .tool { padding: 5px 9px; font-size: 12.5px; background: transparent; border-color: transparent; opacity: .7; }
+  #controls .tool:hover { opacity: 1; border-color: var(--amber); }
+  #controls .tool.on { opacity: 1; background: rgba(201,119,43,.18); border-color: var(--amber); }
 
-  /* inspector */
-  #inspector { position: absolute; right: 12px; bottom: 12px; width: 230px; padding: 12px 14px;
-    background: #14171cf2; border: 1px solid #2c2f36; border-radius: 9px; font-size: 12.5px;
-    line-height: 1.5; z-index: 5; display: none; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+  /* contextual one-line hint, just under the bar on the left */
+  #hint { position: absolute; top: calc(var(--bar-h) + 6px); left: var(--gutter); font-size: 11.5px;
+    opacity: .45; font-style: italic; z-index: 4; max-width: 46%; }
+
+  /* ── the world's turns — the objective, centred under the bar ─────────────── */
+  #turns { position: absolute; top: calc(var(--bar-h) + 6px); left: 50%; transform: translateX(-50%);
+    text-align: center; pointer-events: none; padding: 5px 14px; }
+  #turns .tt { opacity: .55; font-size: var(--cap); text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 3px; }
+  #turns .row { font-size: 17px; letter-spacing: 6px; }
+  #turns .t { opacity: .18; transition: opacity .8s, color .8s; }
+  #turns .t.on { opacity: 1; color: var(--amber-lit); text-shadow: 0 0 9px rgba(240,184,112,.55); }
+
+  /* ── status + score card, top-right ──────────────────────────────────────── */
+  #score { position: absolute; top: calc(var(--bar-h) + 10px); right: var(--gutter); width: 196px;
+    text-align: right; pointer-events: none; }
+  #score .aspect { display: block; margin-bottom: 1px; }
+  #score .big { font-size: 26px; color: var(--amber-lit); line-height: 1.05; }
+  #score .rule { height: 1px; background: var(--panel-line); margin: 8px 0 7px; }
+  #score .stat { font-size: 11.5px; opacity: .82; margin: 2px 0; }
+  #score .stat b { color: var(--ink); }
+  #score .dash { font-size: 10.5px; opacity: .5; margin-top: 3px; letter-spacing: .2px; }
+  #score .dash b { color: var(--ink); opacity: 1; }
+  #score .flow { font-size: 11.5px; margin-top: 5px; opacity: .85; }
+  #score .flow b { color: #7fd0ff; }
+  #score .warm { color: var(--amber-lit); } #score .cool { color: var(--sky); }
+
+  /* ── the food web, right side below the status card ───────────────────────── */
+  #foodweb { position: absolute; top: 210px; right: var(--gutter); width: 196px; pointer-events: none; }
+  #foodweb .fw-title { margin-bottom: 6px; }
+  #foodweb .fw-row { font-size: 11px; margin: 4px 0; white-space: nowrap; }
+  #foodweb .fw-bar { display: inline-block; height: 7px; border-radius: 2px; vertical-align: middle; margin-right: 6px; min-width: 2px; }
+  #foodweb .fw-n { color: var(--ink); } #foodweb .fw-lbl { opacity: .55; font-size: 10px; }
+  #foodweb .lum { background: #ebb446; } #foodweb .min { background: #6fb0f0; } #foodweb .hum { background: #7cc878; } #foodweb .red { background: #e0604c; } #foodweb .lig { background: #a9772b; } #foodweb .comp { background: #e8e0c8; }
+
+  /* ── the chronicle — narration, top-left below the hint (clears the centred turns pill) ── */
+  #chronicle { position: absolute; top: calc(var(--bar-h) + 52px); left: var(--gutter); width: 300px;
+    font-size: 12px; line-height: 1.5; pointer-events: none; }
+  #chronicle:empty { display: none; }
+  #chronicle .ct { margin-bottom: 6px; }
+  #chronicle .ev { margin: 2px 0; opacity: .8; }
+  #chronicle .born { color: var(--leaf); }
+  #chronicle .extinct { color: var(--rose); opacity: .55; }
+  #chronicle .milestone { color: var(--amber-lit); font-style: italic; }
+  #chronicle .cascade { color: #e87a5a; font-weight: bold; opacity: .92; }
+
+  /* ── the advisor — counsellor, bottom-right, coloured by urgency ──────────── */
+  #advisor { position: absolute; right: var(--gutter); bottom: var(--gutter); max-width: 340px;
+    text-align: left; font-size: var(--body); line-height: 1.5; pointer-events: none;
+    transition: opacity .5s; }
+  #advisor .lead { display: block; margin-bottom: 3px; }
+  #advisor.warn { border-color: rgba(232,168,90,.5); } #advisor.warn .lead { color: #e8a85a; }
+  #advisor.tip .lead { color: var(--sky); } #advisor.good .lead { color: var(--leaf); }
+  body.inspecting #advisor { display: none; } /* inspector takes the corner — definitive, no fade race */
+
+  /* ── inspector — bottom-right, replaces the advisor while reading a creature ─ */
+  #inspector { position: absolute; right: var(--gutter); bottom: var(--gutter); width: 244px;
+    font-size: var(--body); line-height: 1.5; z-index: 6; display: none; }
   #inspector.show { display: block; }
   #inspector h3 { margin: 0 0 1px; font-size: 17px; font-weight: normal; }
-  #inspector .meta { opacity: .5; font-size: 11px; margin-bottom: 8px; }
+  #inspector .meta { opacity: .55; font-size: 11px; margin-bottom: 8px; }
   #inspector .row { margin: 5px 0; }
   #inspector .k { opacity: .5; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; margin-right: 6px; }
-  #inspector .why { font-style: italic; opacity: .78; margin-top: 6px; font-size: 11.5px; }
+  #inspector .why { font-style: italic; opacity: .8; margin-top: 6px; font-size: 11.5px; }
   .chip { display: inline-block; border-radius: 9px; padding: 0 7px; font-size: 11px; color: #10131a;
     font-weight: bold; margin-right: 3px; }
   .chip.lum { background: #ebb446; } .chip.min { background: #6fb0f0; } .chip.hum { background: #7cc878; }
 
-  /* a quiet murmur line, bottom-left */
-  #murmur { position: absolute; left: 14px; bottom: 14px; max-width: 42%; font-size: 12.5px;
+  /* ── a quiet murmur line, bottom-left (kept deliberately bare — it is the voice, not a panel) ── */
+  #murmur { position: absolute; left: var(--gutter); bottom: var(--gutter); max-width: 38%; font-size: 12.5px;
     font-style: italic; opacity: .4; line-height: 1.5; z-index: 4; pointer-events: none;
     transition: opacity 1.5s; }
   #murmur .by { display: block; opacity: .7; font-style: normal; font-size: 11px; margin-top: 3px; }
-
-  #hint { position: absolute; top: 46px; left: 12px; font-size: 11.5px; opacity: .4; z-index: 4; }
-  #chronicle { position: absolute; top: 68px; left: 12px; max-width: 330px; font-size: 12px; z-index: 4;
-    line-height: 1.5; pointer-events: none; }
-  #chronicle .ev { margin: 2px 0; opacity: .72; }
-  #chronicle .born { color: #9fd98f; }
-  #chronicle .extinct { color: #d98a8a; opacity: .5; }
-  #chronicle .milestone { color: #f0b870; font-style: italic; }
-  #chronicle .cascade { color: #e87a5a; font-weight: bold; opacity: .9; }
-  #score { position: absolute; top: 42px; right: 12px; z-index: 5; text-align: right; pointer-events: none; }
-  #score .aspect { opacity: .55; font-size: 10.5px; text-transform: uppercase; letter-spacing: 1.2px; }
-  #score .big { font-size: 24px; color: #f0b870; line-height: 1.1; }
-  #score .m { opacity: .5; font-size: 11px; margin-top: 2px; }
-  #score .m b { color: #e8e4da; opacity: 1; }
-
-  /* the advisor — a quiet counsellor, bottom-right, coloured by urgency */
-  #advisor { position: absolute; right: 14px; bottom: 14px; max-width: 38%; font-size: 12.5px;
-    text-align: right; line-height: 1.5; z-index: 4; pointer-events: none; opacity: .8; transition: opacity .6s; }
-  #advisor .lead { display: block; opacity: .5; font-size: 10.5px; text-transform: uppercase;
-    letter-spacing: 1.2px; margin-bottom: 2px; }
-  #advisor.warn { color: #e8a85a; } #advisor.tip { color: #8fc0e8; } #advisor.good { color: #9fd98f; }
-
-  /* the food web — a compact trophic panel (who eats whom, sized by population), right side below the score */
-  #foodweb { position: absolute; top: 140px; right: 12px; width: 178px; z-index: 4; pointer-events: none; opacity: .82; }
-  #foodweb .fw-title { opacity: .55; font-size: 10.5px; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 5px; }
-  #foodweb .fw-row { font-size: 11px; margin: 3px 0; white-space: nowrap; }
-  #foodweb .fw-bar { display: inline-block; height: 8px; border-radius: 2px; vertical-align: middle; margin-right: 5px; min-width: 2px; }
-  #foodweb .fw-n { color: #e8e4da; } #foodweb .fw-lbl { opacity: .5; font-size: 10px; }
-  #foodweb .lum { background: #ebb446; } #foodweb .min { background: #6fb0f0; } #foodweb .hum { background: #7cc878; } #foodweb .red { background: #e0604c; } #foodweb .lig { background: #a9772b; } #foodweb .comp { background: #e8e0c8; }
-
-  /* the world's turns — the player's gentle objective, a progress row of emergent phenomena to draw out */
-  #turns { position: absolute; top: 44px; left: 50%; transform: translateX(-50%); z-index: 5; text-align: center;
-    pointer-events: none; }
-  #turns .tt { opacity: .5; font-size: 9.5px; text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 2px; }
-  #turns .row { font-size: 16px; letter-spacing: 5px; }
-  #turns .t { opacity: .2; transition: opacity .8s, color .8s; }
-  #turns .t.on { opacity: 1; color: #f0b870; text-shadow: 0 0 8px rgba(240,184,112,.5); }
 
   /* intro / help — the orientation a new player needs (what is this, what's my goal, what can I do) */
   #intro { position: absolute; inset: 0; z-index: 20; display: none; align-items: center; justify-content: center;
@@ -107,22 +156,25 @@
   #intro .legend i { width: 11px; height: 11px; border-radius: 50%; margin-right: 5px; display: inline-block; box-shadow: 0 0 5px currentColor; }
   #intro .legend i.dia { border-radius: 2px; transform: rotate(45deg); width: 9px; height: 9px; box-shadow: none; }
 
-  /* phone layout — a clean vertical stack under the toolbar, nothing colliding or clipping off-screen */
+  /* phone layout — the bar scrolls horizontally; panels stack in clear bands, nothing colliding or clipping */
   @media (max-width: 680px) {
-    #toolbar { flex-wrap: nowrap; overflow-x: auto; gap: 6px; padding: 7px 8px; -webkit-overflow-scrolling: touch; }
-    #toolbar .tool { flex: 0 0 auto; padding: 6px 9px; }
+    :root { --bar-h: 44px; --gutter: 10px; }
+    #toolbar { flex-wrap: nowrap; overflow-x: auto; gap: 6px; -webkit-overflow-scrolling: touch; }
+    #toolbar .title, .group, .tool, .sep { flex: 0 0 auto; }
+    #toolbar .spacer { display: none; }                /* no elastic gap in a scroll strip */
     #toolbar .title small { display: none; }           /* just "eddy" on a phone */
-    #toolbar .readout { display: none; }               /* the long status line is the worst offender — hide it small */
-    #turns { top: 38px; }                              /* the objective: its own band, centred, alone */
-    #turns .row { font-size: 14px; letter-spacing: 3px; }
-    #score { top: 62px; right: 10px; }                 /* dropped below the turns band */
-    #score .m { display: none; }                       /* drop the div/order/burn/flow detail on a phone */
-    #score .big { font-size: 18px; }
-    #chronicle { top: 62px; max-width: 50%; font-size: 10.5px; opacity: .62; }  /* opposite the score, same band */
+    #controls .tool { border-color: #343a44; }         /* give the quiet controls an edge so they're tappable */
+    #turns { top: calc(var(--bar-h) + 4px); padding: 4px 10px; }
+    #turns .row { font-size: 15px; letter-spacing: 4px; }
+    #score { top: calc(var(--bar-h) + 46px); right: var(--gutter); width: auto; min-width: 116px; }
+    #score .dash { display: none; }                    /* drop the div/order/burn detail on a phone */
+    #score .big { font-size: 20px; }
+    #chronicle { top: calc(var(--bar-h) + 46px); width: 48%; font-size: 10.5px; opacity: .9; padding: 8px 10px; }
     #foodweb { display: none; }                        /* fold the trophic panel (it reads in the chronicle) */
     #murmur { display: none; }                         /* fold the murmur — the advisor owns the bottom on a phone */
-    #hint { top: auto; bottom: 64px; left: 12px; right: 12px; text-align: center; opacity: .5; }
-    #advisor { max-width: 66%; right: 12px; bottom: 14px; }
+    #hint { top: auto; bottom: calc(var(--gutter) + 84px); left: var(--gutter); right: var(--gutter); max-width: none; text-align: center; opacity: .5; }
+    #advisor { max-width: none; left: var(--gutter); right: var(--gutter); bottom: var(--gutter); }
+    #inspector { left: var(--gutter); right: var(--gutter); width: auto; bottom: var(--gutter); }
     #intro .card { padding: 18px 16px; }
   }
 </style>
@@ -132,18 +184,20 @@
     <canvas id="gl"></canvas>
     <div id="toolbar">
       <span class="title">eddy <small>· a loophole</small></span>
-      <!-- E.UI populates the tools -->
+      <span class="sep"></span>
+      <span id="tools" class="group"></span>      <!-- world tools: E.UI populates -->
+      <span id="genopts" class="group"></span>    <!-- generator's element/projection -->
       <span class="spacer"></span>
-      <span class="readout" id="readout"></span>
+      <span id="controls" class="group"></span>   <!-- view / sim / help -->
     </div>
     <div id="hint"></div>
-    <div id="turns"></div>
-    <div id="score"></div>
-    <div id="foodweb"></div>
-    <div id="chronicle"></div>
+    <div id="turns" class="panel"></div>
+    <div id="score" class="panel"></div>
+    <div id="foodweb" class="panel"></div>
+    <div id="chronicle" class="panel"></div>
     <div id="murmur"></div>
-    <div id="advisor"></div>
-    <div id="inspector"></div>
+    <div id="advisor" class="panel"></div>
+    <div id="inspector" class="panel"></div>
     <div id="intro"><div class="card">
       <h2>eddy <small>· a loophole</small></h2>
       <p class="lead">you tend a small world. life here feeds on a finite field of three materials — and wherever a material pools, life arises on its own, adapts to what's there, and weaves a food web no one designed.</p>

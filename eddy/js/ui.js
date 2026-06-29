@@ -12,38 +12,46 @@
 
   E.UI.init = function (canvas, sim, main) {
     let tool = 'generator', element = E.LUM, proj = 'radial';
-    const bar = document.getElementById('toolbar');
     const hint = document.getElementById('hint');
-    const spacer = bar.querySelector('.spacer');
+    // three clusters: world tools, the generator's sub-options, and the quieter view/sim controls
+    const tools = document.getElementById('tools');
+    const genopts = document.getElementById('genopts');
+    const controls = document.getElementById('controls');
     const ELN = ['lumen', 'mineral', 'humus'];
 
-    function mkBtn(label, onClick) {
+    function mkBtn(label, onClick, group) {
       const b = document.createElement('span'); b.className = 'tool'; b.textContent = label; b.onclick = onClick;
-      bar.insertBefore(b, spacer); return b;
+      (group || tools).appendChild(b); return b;
     }
     const btn = {};
-    btn.generator = mkBtn('◈ generator', () => { tool = 'generator'; refresh(); });
-    btn.element   = mkBtn('lumen',       () => { element = (element + 1) % 3; refresh(); });
-    btn.proj      = mkBtn('radial',      () => { proj = (proj === 'radial' ? 'vein' : 'radial'); refresh(); });
-    btn.primer    = mkBtn('✦ primer',    () => { tool = 'primer'; refresh(); });
-    btn.hunter    = mkBtn('⚔ hunter',    () => { tool = 'hunter'; refresh(); });
-    btn.rot       = mkBtn('☣ rot',       () => { tool = 'rot'; refresh(); });
-    btn.rock      = mkBtn('▣ rock',      () => { tool = 'rock'; refresh(); });
-    btn.inspect   = mkBtn('◌ inspect',   () => { tool = 'inspect'; refresh(); });
-    btn.lens      = mkBtn('◉ lens',      () => { E.Render.lens = (E.Render.lens === 'world' ? 'rawfield' : 'world'); refresh(); });
-    btn.play      = mkBtn('❚❚ pause',    () => { main.setPlaying(!main.isPlaying()); refresh(); });
-    btn.fresh     = mkBtn('✛ new',       () => { if (main.newWorld) main.newWorld(); });
-    btn.aspect    = mkBtn('◎ aspect',    () => { if (main.cycleAspect) main.cycleAspect(); refresh(); });
-    btn.help      = mkBtn('? guide',     () => { if (main.showIntro) main.showIntro(); });
+    btn.generator = mkBtn('◈ generator', () => { tool = 'generator'; refresh(); }, tools);
+    btn.primer    = mkBtn('✦ primer',    () => { tool = 'primer'; refresh(); }, tools);
+    btn.hunter    = mkBtn('⚔ hunter',    () => { tool = 'hunter'; refresh(); }, tools);
+    btn.rot       = mkBtn('☣ rot',       () => { tool = 'rot'; refresh(); }, tools);
+    btn.rock      = mkBtn('▣ rock',      () => { tool = 'rock'; refresh(); }, tools);
+    btn.inspect   = mkBtn('◌ inspect',   () => { tool = 'inspect'; refresh(); }, tools);
+    btn.element   = mkBtn('lumen',       () => { element = (element + 1) % 3; refresh(); }, genopts);
+    btn.proj      = mkBtn('radial',      () => { proj = (proj === 'radial' ? 'vein' : 'radial'); refresh(); }, genopts);
+    btn.lens      = mkBtn('◉ lens',      () => { E.Render.lens = (E.Render.lens === 'world' ? 'rawfield' : 'world'); refresh(); }, controls);
+    btn.play      = mkBtn('❚❚ pause',    () => { main.setPlaying(!main.isPlaying()); refresh(); }, controls);
+    btn.fresh     = mkBtn('✛ new',       () => { if (main.newWorld) main.newWorld(); }, controls);
+    btn.aspect    = mkBtn('◎ aspect',    () => { if (main.cycleAspect) main.cycleAspect(); refresh(); }, controls);
+    btn.help      = mkBtn('? guide',     () => { if (main.showIntro) main.showIntro(); }, controls);
 
     function refresh() {
       ['generator', 'primer', 'hunter', 'rot', 'rock', 'inspect'].forEach(k => btn[k].classList.toggle('on', tool === k));
+      if (tool !== 'inspect') { // leaving inspect dismisses the reading and hands the corner back to the advisor
+        const box = document.getElementById('inspector');
+        if (box) box.classList.remove('show');
+        document.body.classList.remove('inspecting');
+      }
       btn.lens.classList.toggle('on', E.Render.lens === 'rawfield');
       btn.play.textContent = main.isPlaying() ? '❚❚ pause' : '▶ play';
       if (main.aspectName) btn.aspect.textContent = '◎ ' + main.aspectName();
       btn.element.textContent = ELN[element];
       btn.proj.textContent = proj;
-      btn.element.style.opacity = btn.proj.style.opacity = (tool === 'generator' ? '1' : '0.4');
+      // the generator's options only matter when the generator is in hand — fade them otherwise
+      genopts.style.opacity = (tool === 'generator' ? '1' : '0.4');
       if (hint) hint.textContent =
         tool === 'generator' ? `click to place a ${ELN[element]} ${proj} spring — finite, it runs dry; tend the flow` :
         tool === 'primer'    ? 'click a surplus patch to seed life — it latches to the local blend' :
@@ -90,7 +98,7 @@
       const d = (e.x - cell.x) * (e.x - cell.x) + (e.y - cell.y) * (e.y - cell.y);
       if (d < bestD) { bestD = d; best = e; }
     }
-    if (!best) { box.classList.remove('show'); return; }
+    if (!best) { box.classList.remove('show'); document.body.classList.remove('inspecting'); return; }
     const e = best;
     const elName = ['lumen', 'mineral', 'humus'], cls = ['lum', 'min', 'hum'], col = ['gold', 'blue', 'green'];
     const order = [0, 1, 2].sort((a, b) => e.diet[b] - e.diet[a]);
@@ -106,6 +114,7 @@
       `<div class="why">it adapted to the ${elName[dom]} you fed here — that is why it reads ${col[dom]}. ` +
       `starve that source and it pales, shrinks, and dies back into the soil.</div>`;
     box.classList.add('show');
+    document.body.classList.add('inspecting'); // the advisor yields this corner while you read
     surfaceMurmur();
   };
 
