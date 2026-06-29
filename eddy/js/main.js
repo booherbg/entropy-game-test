@@ -51,7 +51,11 @@
     const seed = ((typeof Date !== 'undefined' && Date.now) ? Date.now() : 1) >>> 0;
     const s = E.makeSim(seed);
     const gx = (E.W * 0.4) | 0, gy = (E.H * 0.5) | 0;   // a gentle opening: one lumen spring + a primer
-    s.addGenerator({ x: gx, y: gy, el: E.LUM, rate: 8, proj: 'radial', radius: 16 });
+    // the opening spring is FINITE — the world runs down by default (entropy wins if you neglect it). it's
+    // generous enough to bootstrap, then you must tend new springs, funded by a flourishing world's flow.
+    // measured (test/stakes.js): a tended world sustains ~90+ alive; a neglected one collapses to 0 by ~t2000.
+    const OPENING_RESERVOIR = 12000;
+    s.addGenerator({ x: gx, y: gy, el: E.LUM, rate: 8, proj: 'radial', radius: 16, reservoir: OPENING_RESERVOIR, r0: OPENING_RESERVOIR });
     if (E.makeTerrain) E.makeTerrain(s.field, E.makeRng((seed ^ 0x2545f491) >>> 0), gx, gy); // a fresh world arrives as a landscape, the opening cupped in a basin
     // pre-build the gradient so the opening seed lands in real surplus and takes immediately
     // (otherwise a fresh world sits dead for hundreds of ticks while the spring slowly pools)
