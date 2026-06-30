@@ -247,5 +247,111 @@ require('../js/plant.js');
     'same seed/genome → identical plant after 100 ticks');
 })();
 
+// ---- Task 7(plan): the colony ----
+section('colony — store, upkeep, pollen→larvae spawn');
+require('../js/pollinator.js');
+require('../js/colony.js');
+
+(function testDepositRaisesStores() {
+  const c = B.makeColony(48, 60, B.makeRng(60));
+  c.deposit(2, 1.5);
+  ok(c.nectar > 0 && c.pollen > 0, 'deposit raises nectar + pollen stores');
+})();
+
+(function testSpawn() {
+  const f = B.makeField(B.makeRng(7));
+  const c = B.makeColony(48, 60, B.makeRng(61));
+  c.bees.push(B.makePollinator(B.Genome.randomKey(B.makeRng(1)), 48, 60));
+  c.bees[0].lastYield = 5; // a well-fed forager
+  c.nectar = 20; c.pollen = 20;
+  const pop0 = c.bees.length, pollen0 = c.pollen;
+  c.tick(f, [], B.makeRng(7));
+  ok(c.bees.length === pop0 + 1, 'with ample stores, tick spawns a new bee');
+  ok(c.pollen < pollen0, 'spawning spends pollen (the machinery currency)');
+})();
+
+(function testSpawnInheritsBestKey() {
+  const f = B.makeField(B.makeRng(7));
+  const c = B.makeColony(48, 60, B.makeRng(62));
+  const goodKey = B.Genome.randomKey(B.makeRng(2));
+  const b = B.makePollinator(goodKey, 48, 60); b.lastYield = 9;
+  c.bees.push(b);
+  c.bees.push(B.makePollinator(B.Genome.randomKey(B.makeRng(3)), 48, 60)); // a worse forager
+  c.bees[1].lastYield = 0;
+  c.nectar = 20; c.pollen = 20;
+  c.tick(f, [], B.makeRng(7));
+  const child = c.bees[c.bees.length - 1];
+  ok(B.match(child.key.decoder, goodKey.decoder) > 0.85, 'a spawned bee inherits the best-fed forager\'s key (mutated)');
+})();
+
+(function testGentleStarvation() {
+  const f = B.makeField(B.makeRng(7));
+  const c = B.makeColony(48, 60, B.makeRng(63));
+  for (let i = 0; i < 5; i++) c.bees.push(B.makePollinator(B.Genome.randomKey(B.makeRng(i)), 48, 60));
+  c.nectar = 0; c.pollen = 0;
+  const pop0 = c.bees.length;
+  c.tick(f, [], B.makeRng(7));
+  ok(c.bees.length === pop0 - 1, 'empty nectar starves exactly one bee (gentle, not a wipe)');
+  ok(c.bees.length > 0, 'never instantly to zero');
+})();
+
+(function testColonyDeterminism() {
+  const f1 = B.makeField(B.makeRng(7)), f2 = B.makeField(B.makeRng(7));
+  const c1 = B.makeColony(48, 60, B.makeRng(64)), c2 = B.makeColony(48, 60, B.makeRng(64));
+  for (let i = 0; i < 4; i++) { c1.bees.push(B.makePollinator(B.Genome.randomKey(B.makeRng(i)), 48, 60));
+    c2.bees.push(B.makePollinator(B.Genome.randomKey(B.makeRng(i)), 48, 60)); }
+  c1.nectar = c2.nectar = 10; c1.pollen = c2.pollen = 10;
+  for (let t = 0; t < 30; t++) { c1.tick(f1, [], B.makeRng(7)); c2.tick(f2, [], B.makeRng(7)); }
+  ok(c1.bees.length === c2.bees.length && Math.abs(c1.nectar - c2.nectar) < 1e-9,
+    'same seed → identical colony after 30 ticks');
+})();
+
+// ---- Task 6(plan): the pollinator forage loop ----
+section('pollinator — beacon forage, decode, pollinate, trail home');
+
+function riggedScene(seed) {
+  const f = B.makeField(B.makeRng(seed));
+  const g = B.Genome.randomPlant(B.makeRng(seed));
+  const fl = B.makeFlower(g, 60, 30, 1); fl.cap = 8; fl.restock(40);
+  const colony = B.makeColony(50, 32, B.makeRng(seed));
+  // a bee tuned to THIS flower (matched key), placed near
+  const key = { preference: g.beaconHue, decoder: B.Genome.decodeGrid(g),
+    forageRange: 40, speed: 1.2, dietBias: 0.5 };
+  const bee = B.makePollinator(key, 50, 32);
+  colony.bees.push(bee);
+  return { f: f, fl: fl, colony: colony, bee: bee };
+}
+
+(function testForageRoundTrip() {
+  const s = riggedScene(70);
+  let carried = false;
+  for (let t = 0; t < 400; t++) {
+    s.bee.tick(s.f, [s.fl], s.colony, B.makeRng(7));
+    if (s.bee.nectar > 0) carried = true;
+  }
+  ok(carried, 'a matched bee reaches the flower and carries nectar at some point');
+  ok(s.bee.trips >= 1, 'the bee completes at least one full forage round-trip');
+})();
+
+(function testReturnRaisesColony() {
+  const s = riggedScene(71);
+  for (let t = 0; t < 400; t++) s.bee.tick(s.f, [s.fl], s.colony, B.makeRng(7));
+  ok(s.colony.nectar > 0, 'returning foragers raise the colony nectar store');
+})();
+
+(function testLaysTrail() {
+  const s = riggedScene(72);
+  for (let t = 0; t < 200; t++) s.bee.tick(s.f, [s.fl], s.colony, B.makeRng(7));
+  ok(s.f.total('trail') > 0, 'foraging lays a recruitment trail (stigmergy)');
+})();
+
+(function testPollinatorDeterminism() {
+  const a = riggedScene(73), b = riggedScene(73);
+  for (let t = 0; t < 150; t++) { a.bee.tick(a.f, [a.fl], a.colony, B.makeRng(7));
+    b.bee.tick(b.f, [b.fl], b.colony, B.makeRng(7)); }
+  ok(Math.abs(a.bee.x - b.bee.x) < 1e-9 && Math.abs(a.colony.nectar - b.colony.nectar) < 1e-9,
+    'same seed → identical pollinator path + colony state');
+})();
+
 console.log(`\n${fails === 0 ? 'ALL PASS' : fails + ' FAILED'} — ${total - fails}/${total}`);
 process.exit(fails ? 1 : 0);
