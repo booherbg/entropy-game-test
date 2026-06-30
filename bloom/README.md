@@ -15,11 +15,19 @@ garden, or `#seed=42` to grow a specific one (the same seed always grows the sam
 - **Live mechanisms reference:** `../docs/bloom-mechanisms.html`
 - **Build plan:** `../docs/superpowers/plans/2026-06-30-bloom-prototype.md`
 
+## The merge, in one image
+
+![the merge](shots/timelapse.png)
+
+*Four moments (fumbling → native) over a filmstrip of the flower's maze (left) and the colony's key (right)
+drifting from totally different into the same pattern — selection alone, nobody painting them.*
+
 ## Run the tests
 ```
-node bloom/test/harness.js     # the deterministic assertion harness
-node bloom/test/soul.js        # the soul test: the fumbling pair co-adapts into a matched lock-and-key
-node bloom/test/shot.js 400 opening   # headless PNG of the world → bloom/shots/
+node bloom/test/harness.js     # 73 deterministic assertions on the deep behaviours
+node bloom/test/soul.js        # THE soul test: the fumbling pair co-adapts into a matched lock-and-key (5 seeds)
+node bloom/test/shot.js 2500 merged   # headless PNG of the world → bloom/shots/
+node bloom/test/timelapse.js 7        # the merge filmstrip above
 ```
 
 ## Play
