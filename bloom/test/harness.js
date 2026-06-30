@@ -152,5 +152,100 @@ require('../js/genome.js');
   ok(allOk, 'mutated genomes stay in range');
 })();
 
+// ---- Task 5(plan): the flower / signal ----
+section('flower — beacon, grid, visit reward = beaconMatch × gridMatch');
+require('../js/flower.js');
+
+(function testFlowerBuild() {
+  const g = B.Genome.randomPlant(B.makeRng(41));
+  const fl = B.makeFlower(g, 10, 10, 1);
+  ok(fl.grid.length === B.N * B.N, 'flower carries an N×N decode-grid');
+  ok(fl.beaconHue === g.beaconHue, 'flower beacon hue from genome');
+  ok(fl.nectar === 0 && fl.pollen === 0, 'flower starts unstocked');
+})();
+
+(function testRestock() {
+  const g = B.Genome.randomPlant(B.makeRng(42));
+  const fl = B.makeFlower(g, 10, 10, 1);
+  fl.restock(10);
+  ok(fl.nectar > 0 && fl.pollen > 0, 'restock fills nectar + pollen pools');
+})();
+
+(function testMatchedKeyOutEatsRandom() {
+  const g = B.Genome.randomPlant(B.makeRng(43));
+  const matchedKey = { preference: g.beaconHue, decoder: B.Genome.decodeGrid(g),
+    forageRange: 30, speed: 1, dietBias: 0.5 };
+  const randomKey = B.Genome.randomKey(B.makeRng(99));
+  const fa = B.makeFlower(g, 10, 10, 1); fa.restock(20);
+  const fb = B.makeFlower(g, 10, 10, 1); fb.restock(20);
+  const ra = fa.visit(matchedKey), rb = fb.visit(randomKey);
+  ok(ra.nectar > rb.nectar, 'a matched key out-eats a random one on the same flower');
+  ok(ra.pollination > rb.pollination, 'a matched key pollinates better');
+  ok(Math.abs(ra.pollination - 1) < 1e-9, 'a perfect key pollinates ~1');
+})();
+
+(function testVisitCappedAndDepletes() {
+  const g = B.Genome.randomPlant(B.makeRng(44));
+  const key = { preference: g.beaconHue, decoder: B.Genome.decodeGrid(g), forageRange: 30, speed: 1, dietBias: 0.5 };
+  const fl = B.makeFlower(g, 10, 10, 1); fl.restock(20);
+  const pool0 = fl.nectar;
+  const r = fl.visit(key);
+  ok(r.nectar <= pool0 + 1e-9, 'visit never returns more nectar than the pool held');
+  ok(fl.nectar < pool0, 'visit depletes the pool (collection works)');
+  ok(r.pollination >= 0 && r.pollination <= 1, 'pollination (eff) in [0,1]');
+})();
+
+// ---- Task 4(plan): the plant ----
+section('plant — photosynthesis, flowers, niche growth');
+require('../js/plant.js');
+
+(function testPhotosynthesisGainsSugar() {
+  const f = B.makeField(B.makeRng(7));
+  const p = B.makePlant(B.Genome.randomPlant(B.makeRng(50)), 20, 10, B.makeRng(50));
+  const s0 = p.sugar;
+  for (let t = 0; t < 50; t++) p.tick(f);
+  ok(p.sugar > s0 || p.flowers.length > 0, 'a lit plant gains sugar or spends it on flowers');
+})();
+
+(function testSugarBoundedNoLight() {
+  const f = B.makeField(B.makeRng(7));
+  for (let i = 0; i < f.light.length; i++) f.light[i] = 0; // no light at all
+  const p = B.makePlant(B.Genome.randomPlant(B.makeRng(51)), 20, 10, B.makeRng(51));
+  p.sugar = 5;
+  for (let t = 0; t < 200; t++) p.tick(f);
+  ok(p.sugar <= 5 + 1e-6, 'with no light, sugar never grows (respiration only drains)');
+  ok(p.sugar >= 0, 'sugar never goes negative');
+})();
+
+(function testBuildsFlower() {
+  const f = B.makeField(B.makeRng(7));
+  const p = B.makePlant(B.Genome.randomPlant(B.makeRng(52)), 20, 8, B.makeRng(52));
+  for (let t = 0; t < 300; t++) p.tick(f);
+  ok(p.flowers.length >= 1, 'plant builds at least one flower given light');
+  ok(p.flowers[0].nectar > 0, 'its flower gets stocked with nectar');
+})();
+
+(function testGrowNiche() {
+  const f = B.makeField(B.makeRng(7));
+  const p = B.makePlant(B.Genome.randomPlant(B.makeRng(53)), 20, 8, B.makeRng(53));
+  for (let t = 0; t < 300; t++) p.tick(f);
+  const before = p.flowers.length, sugarBefore = p.sugar;
+  p.sugar = 1000;
+  const grew = p.growNiche(B.makeRng(7));
+  ok(grew && p.flowers.length === before + 1, 'growNiche adds a second flower');
+  ok(p.sugar < 1000, 'growNiche costs sugar');
+  ok(p.flowers[p.flowers.length - 1].beaconHue !== p.flowers[0].beaconHue ||
+     p.niches === 2, 'the new niche is a distinct lock (or niche count advanced)');
+})();
+
+(function testPlantDeterminism() {
+  const f1 = B.makeField(B.makeRng(7)), f2 = B.makeField(B.makeRng(7));
+  const g = B.Genome.randomPlant(B.makeRng(54));
+  const p1 = B.makePlant(g, 20, 8, B.makeRng(54)), p2 = B.makePlant(g, 20, 8, B.makeRng(54));
+  for (let t = 0; t < 100; t++) { p1.tick(f1); p2.tick(f2); }
+  ok(Math.abs(p1.sugar - p2.sugar) < 1e-9 && p1.flowers.length === p2.flowers.length,
+    'same seed/genome → identical plant after 100 ticks');
+})();
+
 console.log(`\n${fails === 0 ? 'ALL PASS' : fails + ' FAILED'} — ${total - fails}/${total}`);
 process.exit(fails ? 1 : 0);
