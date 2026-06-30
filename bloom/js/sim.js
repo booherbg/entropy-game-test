@@ -66,8 +66,9 @@
             if (ri === i) ri = (ri + 1) % this.plants.length;
             // a locked flower is the player's anchor — never overwrite it (the keys must chase it)
             if (this._plantLocked(this.plants[ri])) continue;
-            const px = clamp(Math.round(this.plants[i].x + (rng() - 0.5) * 10), 4, B.W - 4);
-            const py = clamp(Math.round(this.plants[i].y + (rng() - 0.5) * 6), this.bandY0, this.bandY1);
+            // the seedling fills the slot the replaced plant leaves — the garden's layout stays stable,
+            // only the patterns evolve in place (a spread garden whose blooms slowly all match the bees)
+            const px = this.plants[ri].x, py = this.plants[ri].y;
             const np = B.makePlant(child, px, py, rng, this.plants[i].speciesId);
             np.biomass = 0.7; np.sugar = 3;  // a seed from a vigorous parent flowers quickly
             this.plants[ri] = np;
