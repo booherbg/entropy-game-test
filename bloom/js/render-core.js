@@ -65,8 +65,11 @@
     }
 
     // ── flowers: beacon glow + the generative bloom (the genome's polar expression, pixel art) ──
+    const tcF = sim.tickCount;
     for (let i = 0; i < flowers.length; i++) {
-      const fl = flowers[i], cx = Math.round((fl.x + 0.5) * S), cy = Math.round((fl.y + 0.5) * S);
+      const fl = flowers[i], cx = Math.round((fl.x + 0.5) * S);
+      const bob = Math.round(Math.sin(tcF * 0.04 + fl.x * 0.7 + fl.y * 0.3) * S * 0.4); // a gentle breathing sway
+      const cy = Math.round((fl.y + 0.5) * S) + bob;
       const bc = hueRGB(fl.beaconHue, 0.85, 0.6);
       const stock = Math.min(1, (fl.nectar + fl.pollen) / (fl.cap * 1.4 + 0.01));
       glow(cx, cy, Math.round(FR * S * 2.0), bc[0], bc[1], bc[2], 0.10 + 0.22 * fl.beaconIntensity * (0.4 + 0.6 * stock));
@@ -78,22 +81,37 @@
         const c = PAL[idx], sh = 1 - dn * 0.26;
         addPx(cx + dx, cy + dy, c[0] * sh, c[1] * sh, c[2] * sh, 0.96);
       }
+      // ── pollination sparkle: a flower being set with seed twinkles (the core event made visible) ──
+      if (fl.seedProgress > 1.2) {
+        const sp = Math.min(1, (fl.seedProgress - 1.2) / 1.8);
+        for (let k = 0; k < 5; k++) {
+          const a = (tcF * 0.15 + k * 1.257), r = RR * (0.7 + 0.5 * ((tcF * 0.08 + k) % 1));
+          const tw = (Math.sin(tcF * 0.4 + k * 2) * 0.5 + 0.5);
+          addPx(cx + Math.round(Math.cos(a) * r), cy + Math.round(Math.sin(a) * r), 255, 248, 210, sp * tw * 0.85);
+        }
+      }
       if (fl.locked) { // a small lock ring so the player sees their anchor
         const lr = RR + 2; for (let a = 0; a < 28; a++) { const th = a / 28 * B.TAU; addPx(cx + Math.round(Math.cos(th) * lr), cy + Math.round(Math.sin(th) * lr), 240, 230, 180, 0.8); }
       }
     }
 
-    // ── pollinators: small animated dots, tinted toward the beacon they prefer (camouflage you can read) ──
+    // ── pollinators: tiny animated foragers, tinted toward the beacon they prefer (camouflage you can read);
+    //    they carry a warm glow when laden, and flick wings as they fly (a few frames = "actuation") ──
+    const tcB = sim.tickCount;
     for (let c = 0; c < sim.colonies.length; c++) {
       const col = sim.colonies[c], bees = col.bees;
       for (let bi = 0; bi < bees.length; bi++) {
         const b = bees[bi], bx = Math.round((b.x + 0.5) * S), by = Math.round((b.y + 0.5) * S);
-        const tint = hueRGB(b.key.preference, 0.6, b.nectar > 0 ? 0.72 : 0.55);
-        const rr = Math.max(1, (S * 0.28) | 0);
-        for (let dy = -rr; dy <= rr; dy++) for (let dx = -rr; dx <= rr; dx++) if (dx * dx + dy * dy <= rr * rr) addPx(bx + dx, by + dy, tint[0], tint[1], tint[2], 0.92);
-        // a faint wing flick (animation cue) — two specks offset by phase
-        const ph = ((b.age + bi) % 6) < 3 ? 1 : -1;
-        addPx(bx + ph * (rr + 1), by - 1, 235, 235, 240, 0.5);
+        const laden = b.nectar > 0 || b.pollen > 0;
+        const tint = hueRGB(b.key.preference, 0.62, laden ? 0.74 : 0.54);
+        if (laden) glow(bx, by, Math.max(2, (S * 0.6) | 0), 250, 220, 150, 0.22); // a forager carrying reward glows
+        const rr = Math.max(1, (S * 0.26) | 0);
+        for (let dy = -rr; dy <= rr; dy++) for (let dx = -rr; dx <= rr; dx++) if (dx * dx + dy * dy <= rr * rr + 1) addPx(bx + dx, by + dy, tint[0], tint[1], tint[2], 0.94);
+        // wings: two pale specks flicking open/closed by phase (animation)
+        const open = ((tcB + bi * 3) % 4) < 2 ? rr + 1 : rr;
+        addPx(bx - open, by - 1, 240, 240, 248, 0.55); addPx(bx + open, by - 1, 240, 240, 248, 0.55);
+        // a dark head dot toward travel — reads as a creature, not a blob
+        addPx(bx, by - rr, 30, 26, 22, 0.6);
       }
       // ── the colony: a ring brightening with its nectar store ──
       const cx = Math.round((col.x + 0.5) * S), cy = Math.round((col.y + 0.5) * S);
