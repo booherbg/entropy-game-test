@@ -33,6 +33,8 @@
         }
       },
 
+      _plantLocked: function (p) { for (let i = 0; i < p.flowers.length; i++) if (p.flowers[i].locked) return true; return false; },
+
       allFlowers: function () {
         const a = [];
         for (let pi = 0; pi < this.plants.length; pi++) {
@@ -62,6 +64,8 @@
           if (child && this.plants.length > 1) {
             let ri = randint(rng, 0, this.plants.length - 1);
             if (ri === i) ri = (ri + 1) % this.plants.length;
+            // a locked flower is the player's anchor — never overwrite it (the keys must chase it)
+            if (this._plantLocked(this.plants[ri])) continue;
             const px = clamp(Math.round(this.plants[i].x + (rng() - 0.5) * 10), 4, B.W - 4);
             const py = clamp(Math.round(this.plants[i].y + (rng() - 0.5) * 6), this.bandY0, this.bandY1);
             const np = B.makePlant(child, px, py, rng, this.plants[i].speciesId);
