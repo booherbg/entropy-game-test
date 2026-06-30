@@ -7,7 +7,8 @@
   // A flower offers nectar + pollen and, when pollinated (pollen carried between same-species flowers),
   // sets SEED — the plant's reproduction. Progress = the tree grows niches (1 → 2 here): each niche is a
   // new flower (a new lock) awaiting a key.
-  const PHOTO_K = 0.06;          // sugar per tick per unit light at full canopy
+  const PHOTO_K = 0.9;           // sugar per tick per unit light at full canopy (comfortably > restock cost)
+  const SUGAR_CAP = 20.0;        // a plant can't bank sugar forever (bounds the economy; light still gates it)
   const BIOMASS_CAP = 2.0;
   const FLOWER_COST = 2.0;       // sugar to build a flower
   const NICHE_COST = 8.0;        // sugar to grow a whole new niche
@@ -34,6 +35,7 @@
         // ── respiration: the second law — a steady leak that scales with size (never makes sugar) ──
         this.sugar -= 0.008 * (0.5 + this.biomass);
         if (this.sugar < 0) this.sugar = 0;
+        if (this.sugar > SUGAR_CAP) this.sugar = SUGAR_CAP;
 
         // ── grow biomass toward the cap (spend a little sugar) ──
         if (this.biomass < BIOMASS_CAP && this.sugar > 1) {
@@ -50,7 +52,7 @@
         // ── keep flowers stocked (richer flowers cost more → trait trade-off has teeth) ──
         for (let i = 0; i < this.flowers.length; i++) {
           const fl = this.flowers[i];
-          const want = 0.18 * fl.beaconIntensity;
+          const want = 0.35 * fl.beaconIntensity;
           if (this.sugar > want) { this.sugar -= want; fl.restock(want); }
           // accumulated pollination → seed
           if (fl.seedProgress >= SEED_THRESHOLD) { this.seeds++; fl.seedProgress -= SEED_THRESHOLD; }
@@ -64,7 +66,7 @@
         const fx = B.clamp(Math.round(this.x + Math.cos(ang) * rad), 0, B.W - 1);
         const fy = B.clamp(Math.round(this.y + Math.sin(ang) * rad), 0, B.H - 1);
         const fl = B.makeFlower(g, fx, fy, this.speciesId);
-        fl.cap = 4 + g.beaconIntensity * 4;     // richer beacon → higher pool ceiling
+        fl.cap = 6 + g.beaconIntensity * 6;     // richer beacon → higher pool ceiling
         fl.niche = nicheIndex;
         this.flowers.push(fl);
         return fl;

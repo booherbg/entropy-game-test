@@ -7,7 +7,7 @@
   //   near — a DECODE-GRID (the genome's fingerprint): the pattern a pollinator must read with its decoder.
   // It offers two embodied resources (nectar = energy, pollen = material), restocked from the tree's sugar.
   // A visit's reward = beaconMatch × gridMatch — fumbling when mismatched, rich when the key fits.
-  const EXTRACT = 1.2; // base amount a perfectly-matched visit can pull from a full pool
+  const EXTRACT = 2.0; // base amount a perfectly-matched visit can pull from a full pool
 
   B.makeFlower = function (genome, x, y, speciesId) {
     return {
@@ -26,8 +26,8 @@
       // Convert delivered sugar into stocked nectar + pollen (per the genome's rates). Richer = costlier;
       // the tree pays the cost (see plant.js). Pools saturate at cap.
       restock: function (sugar) {
-        this.nectar = Math.min(this.cap, this.nectar + sugar * genome.nectarRate * 0.5);
-        this.pollen = Math.min(this.cap, this.pollen + sugar * genome.pollenRate * 0.5);
+        this.nectar = Math.min(this.cap, this.nectar + sugar * genome.nectarRate * 0.8);
+        this.pollen = Math.min(this.cap, this.pollen + sugar * genome.pollenRate * 0.8);
       },
 
       // A pollinator visits. Returns what it extracts + the pollination quality it delivers/enables.

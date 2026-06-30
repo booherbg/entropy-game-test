@@ -81,6 +81,8 @@
         this.prevSpecies = f.speciesId;
         this.lastYield = r.nectar + r.pollen;
         this.lastEff = r.pollination;            // for render/inspect (specialization legibility)
+        this.lastGrid = f.grid;                  // the flower that fed it — its offspring's key drifts toward this
+        this.lastBeaconHue = f.beaconHue;
         this.mode = 'home';
       },
     };

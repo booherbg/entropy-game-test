@@ -275,6 +275,7 @@ require('../js/colony.js');
   const c = B.makeColony(48, 60, B.makeRng(62));
   const goodKey = B.Genome.randomKey(B.makeRng(2));
   const b = B.makePollinator(goodKey, 48, 60); b.lastYield = 9;
+  b.lastGrid = goodKey.decoder.slice(); b.lastBeaconHue = goodKey.preference; // a forager that fed well
   c.bees.push(b);
   c.bees.push(B.makePollinator(B.Genome.randomKey(B.makeRng(3)), 48, 60)); // a worse forager
   c.bees[1].lastYield = 0;
@@ -351,6 +352,50 @@ function riggedScene(seed) {
     b.bee.tick(b.f, [b.fl], b.colony, B.makeRng(7)); }
   ok(Math.abs(a.bee.x - b.bee.x) < 1e-9 && Math.abs(a.colony.nectar - b.colony.nectar) < 1e-9,
     'same seed → identical pollinator path + colony state');
+})();
+
+// ---- Task 8(plan): the sim ----
+section('sim — one world, deterministic tick, serialize');
+require('../js/sim.js');
+
+(function testWarmStartPersists() {
+  const sim = B.makeSim(7); sim.warmStart();
+  ok(sim.plants.length > 0 && sim.colonies.length > 0, 'warm-start has plants + a colony');
+  const beforeBees = sim.stats().pollinators;
+  ok(beforeBees > 0, 'warm-start has foragers already alive (no cold open)');
+  for (let t = 0; t < 300; t++) sim.tick();
+  const s = sim.stats();
+  ok(s.plants > 0, 'plants persist past 300 ticks (nothing dies instantly)');
+  ok(s.pollinators > 0, 'pollinators persist past 300 ticks');
+})();
+
+(function testSimDeterminism() {
+  const a = B.makeSim(7); a.warmStart();
+  const b = B.makeSim(7); b.warmStart();
+  for (let t = 0; t < 300; t++) { a.tick(); b.tick(); }
+  const sa = a.stats(), sb = b.stats();
+  ok(sa.plants === sb.plants && sa.pollinators === sb.pollinators &&
+     Math.abs(sa.meanFit - sb.meanFit) < 1e-9, 'same seed → identical world after 300 ticks');
+})();
+
+(function testEnergyBounded() {
+  const sim = B.makeSim(5); sim.warmStart();
+  for (let t = 0; t < 1000; t++) sim.tick();
+  const s = sim.stats();
+  ok(isFinite(s.nectarTotal) && isFinite(s.pollenTotal), 'energy stays finite over 1000 ticks');
+  ok(s.nectarTotal < 5000 && s.pollenTotal < 5000, 'energy bounded (no runaway)');
+})();
+
+(function testSerializeRoundTrip() {
+  const a = B.makeSim(9); a.warmStart();
+  for (let t = 0; t < 120; t++) a.tick();
+  const json = a.serialize();
+  const b = B.loadSim(json);
+  for (let t = 0; t < 60; t++) { a.tick(); b.tick(); }
+  const sa = a.stats(), sb = b.stats();
+  ok(sa.plants === sb.plants && sa.pollinators === sb.pollinators &&
+     Math.abs(sa.meanFit - sb.meanFit) < 1e-9 && Math.abs(sa.nectarTotal - sb.nectarTotal) < 1e-6,
+    'serialize → load → tick matches the original (round-trip identity)');
 })();
 
 console.log(`\n${fails === 0 ? 'ALL PASS' : fails + ' FAILED'} — ${total - fails}/${total}`);

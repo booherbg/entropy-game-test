@@ -130,6 +130,28 @@
     };
   }
 
+  // Directed inheritance — a new forager inherits the best-fed parent's key, drifting a FEW decoder cells
+  // toward the flower that actually fed it (the lineage adapts to the flowers it exploits) plus a little
+  // exploratory mutation. Selection still decides which lineage dominates; this just biases mutation toward
+  // the niche, so the colony's keys converge on the flowers legibly and visibly (the merge) instead of
+  // wandering. The plant side answers via seed-set selection — both apparatus meet in the middle.
+  Genome.inheritKey = function (parentKey, targetGrid, targetHue, rng) {
+    const decoder = parentKey.decoder.slice();
+    if (targetGrid) {                                  // drift toward the experienced flower (2 cells/gen)
+      for (let n = 0; n < 2; n++) { const i = randint(rng, 0, decoder.length - 1); decoder[i] = targetGrid[i]; }
+    }
+    if (rng() < 0.5) decoder[randint(rng, 0, decoder.length - 1)] = randint(rng, 0, 8); // exploration
+    let pref = parentKey.preference;
+    if (targetHue != null) { let d = targetHue - pref; if (d > 0.5) d -= 1; if (d < -0.5) d += 1; pref += d * 0.3; }
+    pref = (pref + B.gauss(rng) * 0.02 + 1) % 1;
+    return {
+      preference: pref, decoder: decoder,
+      forageRange: clamp(parentKey.forageRange + B.gauss(rng) * 2, 12, 48),
+      speed: clamp(parentKey.speed + B.gauss(rng) * 0.06, 0.6, 1.6),
+      dietBias: clamp(parentKey.dietBias + B.gauss(rng) * 0.04, 0.2, 0.8),
+    };
+  };
+
   // Lock-and-key fit — fraction of grid cells the decoder reads correctly. The headline metric.
   B.match = function (a, b) {
     const n = a.length; let m = 0;
