@@ -84,7 +84,7 @@
   function totColony(k) { let s = 0; for (const c of G.sim.colonies) s += c[k]; return s; }
 
   // ── render ──
-  function renderWorld() { B.Render.world($('world'), G.sim, S); }
+  function renderWorld() { B.Render.world($('world'), G.sim, S, { fit: G.lastFit }); }
   function updateGauge() {
     const f = G.lastFit;
     $('hgfill').style.width = (f * 100).toFixed(0) + '%';
@@ -92,7 +92,7 @@
     $('gen').textContent = 'gen ' + gen();
   }
   function renderDash(force) {
-    $('lockkey').innerHTML = B.Render.Dash.lockKey(G.sim);
+    $('lockkey').innerHTML = B.Render.Dash.lockKey(G.sim, G.selected);
     $('graphs').innerHTML = B.Render.Dash.graphs(G.sim, G.history);
     if (G.selected) {
       // refresh the inspected ref still exists
@@ -113,6 +113,12 @@
         if (m.codex && B.Content.codex[m.codex]) { const c = B.Content.codex[m.codex]; toast('<b>✦ ' + c.title + '</b> — ' + c.body); }
         else if (m.murmur) toast('<b>✦ a murmur surfaced</b> — open ✦ murmurs to read it.');
         renderMurmurs();
+        // point at the second act: a finished merge is the START of the next loop (grow a niche)
+        if (m.key === 'native' && !G.miles.has('niche')) {
+          const nb = document.querySelector('.tool[data-tool=niche]'); if (nb) nb.classList.add('pulse');
+          setTimeout(() => showHint('they read the garden like natives now. <b style="color:#ffd9a0">grow a niche</b> — a new flower, a new lock — and watch a fresh specialist appear.'), 1600);
+        }
+        if (m.key === 'niche') { const nb = document.querySelector('.tool[data-tool=niche]'); if (nb) nb.classList.remove('pulse'); }
       }
     }
   }

@@ -14,7 +14,7 @@
   }
   R.hueRGB = hueRGB;
 
-  const LOAM = [11, 13, 17], LIT = [34, 30, 24]; // ground: deep loam → faintly lit toward the canopy
+  const LOAM = [13, 15, 18], LIT = [44, 38, 30]; // ground: deep loam → faintly lit toward the canopy
   const FR = 2.7;                                 // flower draw radius, in world cells
 
   // paint the whole world at integer scale S → { rgb, w, h }
@@ -22,11 +22,15 @@
     opts = opts || {};
     const W = B.W, H = B.H, IW = W * S, IH = H * S, rgb = new Uint8Array(IW * IH * 3);
     const PAL = B.PAL_RGB, f = sim.field;
+    const fit = opts.fit || 0;                     // the world warms as order takes hold (the spec's "bloom")
+    const warm = Math.max(0, Math.min(1, fit));    // 0 fumbling → 1 native
 
     // ── background: loam tinted by the canopy light, plus the recruitment trail as faint green breath ──
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
       const ci = y * W + x, lt = f.light[ci];
       let r = LOAM[0] + (LIT[0] - LOAM[0]) * lt, g = LOAM[1] + (LIT[1] - LOAM[1]) * lt, b = LOAM[2] + (LIT[2] - LOAM[2]) * lt;
+      // a gentle warm wash that grows with the merge — the first warm week of the year
+      r += warm * 10 * (0.4 + 0.6 * lt); g += warm * 6 * (0.4 + 0.6 * lt); b -= warm * 2 * lt;
       const tr = f.trail[ci];
       if (tr > 0.02) { const a = Math.min(0.5, tr * 0.7); r = r * (1 - a) + 120 * a; g = g * (1 - a) + 200 * a; b = b * (1 - a) + 120 * a; }
       if (f.barrier[ci]) { r = 38; g = 36; b = 42; }
@@ -97,6 +101,17 @@
       const cr = Math.round(S * 1.7);
       for (let a = 0; a < 60; a++) { const th = a / 60 * B.TAU; for (let w = 0; w < 2; w++) addPx(cx + Math.round(Math.cos(th) * (cr - w)), cy + Math.round(Math.sin(th) * (cr - w)), 240, 184, 112, 0.4 + 0.5 * lit); }
       glow(cx, cy, cr + S, 240, 184, 112, 0.10 * lit);
+    }
+
+    // ── ambient motes: pollen + light drifting up on the air (gentle life; brighter as the garden blooms) ──
+    const MOTES = 30, tc = sim.tickCount;
+    for (let k = 0; k < MOTES; k++) {
+      const hx = (k * 53 % W) + Math.sin(tc * 0.018 + k * 1.7) * 3;
+      const hy = H - ((tc * 0.05 + k * (H / MOTES) + (k * 29 % H)) % (H + 6));
+      const px = Math.round(hx * S), py = Math.round(hy * S);
+      const warmK = 0.18 + 0.32 * warm, tw = (k % 3 === 0);
+      glow(px, py, Math.max(1, (S * 0.5) | 0), tw ? 250 : 200, tw ? 220 : 230, tw ? 150 : 170, warmK * 0.5);
+      addPx(px, py, 255, 240, 200, warmK);
     }
 
     return { rgb: rgb, w: IW, h: IH };

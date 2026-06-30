@@ -82,6 +82,8 @@
     background:linear-gradient(#0d0f13,#11141a);overflow-x:auto;-webkit-overflow-scrolling:touch}
   .tool{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:62px;padding:8px 6px;flex:0 0 auto}
   .tool .ti{font-size:18px;line-height:1} .tool .tl{font-size:10.5px}
+  .tool.pulse{animation:pulse 1.5s ease-in-out infinite;border-color:var(--amber);color:var(--amberlit)}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(240,184,112,.0)}50%{box-shadow:0 0 0 4px rgba(240,184,112,.28)}}
 
   /* overlay (murmurs / intro) */
   .overlay{position:fixed;inset:0;background:rgba(5,6,9,.72);backdrop-filter:blur(3px);display:none;
@@ -113,6 +115,8 @@
     .gen{display:none}
     header{padding:9px 12px;gap:10px}
     .brand{font-size:18px}
+    .gcap{white-space:normal;text-overflow:clip}
+    .hgauge{max-width:none}
   }
 </style>
 </head>

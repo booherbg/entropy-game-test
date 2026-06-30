@@ -39,21 +39,23 @@
     return `<g><svg width="${sz}" height="${sz}">${s}</svg><div class="gl">${label}</div></g>`;
   }
 
-  // The headline: the flower's maze and the colony's key, side by side, with the live fit.
-  D.lockKey = function (sim) {
+  // The headline: the flower's maze and the colony's key, side by side, with the live fit. When the player
+  // has a flower selected/locked, it becomes the headline so they watch THEIR intervention play out.
+  D.lockKey = function (sim, focus) {
     const consensus = D.consensusDecoder(sim);
-    const fl = D.representativeFlower(sim, consensus);
+    const fl = (focus && focus.kind === 'flower') ? focus.ref : D.representativeFlower(sim, consensus);
     const grid = fl ? fl.grid : new Int8Array(B.N * B.N);
-    const fit = sim.meanFit();
+    const thisFit = fl ? B.match(consensus, grid) : sim.meanFit();
+    const label = (focus && focus.kind === 'flower') ? (fl.locked ? 'this flower &middot; <b style="color:#ffd9a0">locked</b>' : 'this flower&rsquo;s maze') : 'the flower&rsquo;s maze';
     const px = 22;
     return `<div class="lk">
       <div class="lkrow">
-        ${gridSVG(grid, px, 'the flower&rsquo;s maze')}
+        ${gridSVG(grid, px, label)}
         <div class="lkar">⇄</div>
         ${gridSVG(consensus, px, 'the colony&rsquo;s key')}
       </div>
-      <div class="gauge"><div class="gfill" style="width:${(fit * 100).toFixed(0)}%"></div></div>
-      <div class="gcap">lock-and-key fit · <b>${(fit * 100).toFixed(0)}%</b> · <span>${fitWord(fit)}</span></div>
+      <div class="gauge"><div class="gfill" style="width:${(thisFit * 100).toFixed(0)}%"></div></div>
+      <div class="gcap">fit · <b>${(thisFit * 100).toFixed(0)}%</b> · <span>${fitWord(thisFit)}</span></div>
     </div>`;
   };
 
