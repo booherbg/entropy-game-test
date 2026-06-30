@@ -18,14 +18,18 @@
     return {
       // FORM
       symmetry: randint(rng, 3, 8),                 // petal count (the radial repeat — why it reads as a flower)
-      petalLength: 0.45 + rng() * 0.53,             // 0.45..0.98
-      petalSharp: 1 + rng() * 5,                     // 1..6 — round↔pointed
-      coreSize: 0.10 + rng() * 0.26,                // 0.10..0.36
-      // SIGNAL (indices into the shared pixel palette)
+      petalLength: 0.5 + rng() * 0.48,              // 0.5..0.98
+      petalSharp: 1 + rng() * 2.5,                   // 1..3.5 — round↔pointed (rounder so blooms read full, not spiky)
+      coreSize: 0.10 + rng() * 0.24,                // 0.10..0.34
+      // SIGNAL (indices into the shared pixel palette) — these give the bloom AND the decode-grid their 2D pattern
       petalColor: randint(rng, 0, 7),
       guideColor: randint(rng, 0, 7),
       coreColor: randint(rng, 0, 7),
-      guidePattern: randint(rng, 0, 7),             // 3 bits → which radial bands carry the guide colour
+      guidePattern: randint(rng, 0, 7),             // along-petal guide bands (3 bits)
+      ringColor: randint(rng, 0, 7),                // concentric nectar-guide rings (RADIAL structure → grid rows)
+      ringPattern: randint(rng, 0, 7),              // which of 3 radial bands carry a ring (3 bits)
+      veinColor: randint(rng, 0, 7),                // sub-veins across the petal (ANGULAR structure → grid columns)
+      veinFreq: randint(rng, 0, 3),                 // 0 = no veins; 1..3 = that many sub-veins per petal
       // BEACON (far-scale attractor)
       beaconHue: rng(),                             // 0..1
       beaconIntensity: 0.5 + rng() * 0.5,           // 0.5..1
@@ -52,15 +56,21 @@
   // Every pixel's (normalized r ∈[0,1], angle θ) decides: core / petal / guide-band / empty.
   Genome.regionIndex = function (g, r, theta) {
     if (r < g.coreSize) return g.coreColor | 0;
-    const wave = (Math.cos(theta * g.symmetry) + 1) / 2;           // 1 on a petal axis, 0 in the gap
+    const sym = g.symmetry;
+    const wave = (Math.cos(theta * sym) + 1) / 2;                  // 1 on a petal axis, 0 in the gap
     const reach = g.coreSize + (g.petalLength - g.coreSize) * Math.pow(wave, g.petalSharp);
-    if (r <= reach) {
-      const along = (r - g.coreSize) / (reach - g.coreSize + 1e-6); // 0..1 out the petal
-      const band = Math.min(2, (along * 3) | 0);
-      if (wave > 0.6 && ((g.guidePattern >> band) & 1)) return g.guideColor | 0;
-      return g.petalColor | 0;
-    }
-    return -1;                                                      // empty
+    if (r > reach) return -1;                                      // empty
+    let col = g.petalColor | 0;
+    // RINGS — concentric bands by radius (independent of angle): structure down the grid ROWS
+    const span = g.petalLength - g.coreSize + 1e-6;
+    const rb = Math.min(2, (((r - g.coreSize) / span) * 3) | 0);   // 3 radial bands
+    if (((g.ringPattern | 0) >> rb) & 1) col = g.ringColor | 0;
+    // VEINS — sub-stripes across the petal at a higher harmonic (independent of radius): structure across COLUMNS
+    if ((g.veinFreq | 0) > 0 && Math.cos(theta * sym * (g.veinFreq + 1)) > 0.35) col = g.veinColor | 0;
+    // along-petal guide bands, on the petal axis (kept)
+    const along = (r - g.coreSize) / (reach - g.coreSize + 1e-6);
+    if (wave > 0.6 && ((g.guidePattern >> Math.min(2, (along * 3) | 0)) & 1)) col = g.guideColor | 0;
+    return col;                                                    // rings × veins × guides → a genuinely 2D glyph
   };
 
   // The decode-grid = one petal-wedge, unrolled & downsampled. radius→rows (core→tip), angle→columns.
@@ -92,25 +102,30 @@
     const c = {
       symmetry: g.symmetry, petalLength: g.petalLength, petalSharp: g.petalSharp, coreSize: g.coreSize,
       petalColor: g.petalColor, guideColor: g.guideColor, coreColor: g.coreColor, guidePattern: g.guidePattern,
+      ringColor: g.ringColor | 0, ringPattern: g.ringPattern | 0, veinColor: g.veinColor | 0, veinFreq: g.veinFreq | 0,
       beaconHue: g.beaconHue, beaconIntensity: g.beaconIntensity, nectarRate: g.nectarRate, pollenRate: g.pollenRate,
     };
     // how many genes to touch this step (usually 1)
     const k = 1 + (rng() < 0.25 * rate ? 1 : 0);
     for (let n = 0; n < k; n++) {
-      const pick = randint(rng, 0, 11);
+      const pick = randint(rng, 0, 15);
       switch (pick) {
         case 0: c.symmetry = clamp(c.symmetry + (rng() < 0.5 ? -1 : 1), 3, 8); break;
-        case 1: c.petalLength = clamp(c.petalLength + B.gauss(rng) * 0.10 * rate, 0.45, 0.98); break;
-        case 2: c.petalSharp = clamp(c.petalSharp + B.gauss(rng) * 0.8 * rate, 1, 6); break;
-        case 3: c.coreSize = clamp(c.coreSize + B.gauss(rng) * 0.05 * rate, 0.10, 0.36); break;
+        case 1: c.petalLength = clamp(c.petalLength + B.gauss(rng) * 0.10 * rate, 0.5, 0.98); break;
+        case 2: c.petalSharp = clamp(c.petalSharp + B.gauss(rng) * 0.5 * rate, 1, 3.5); break;
+        case 3: c.coreSize = clamp(c.coreSize + B.gauss(rng) * 0.05 * rate, 0.10, 0.34); break;
         case 4: c.petalColor = (c.petalColor + (rng() < 0.5 ? 7 : 1)) % 8; break;
         case 5: c.guideColor = (c.guideColor + (rng() < 0.5 ? 7 : 1)) % 8; break;
         case 6: c.coreColor = (c.coreColor + (rng() < 0.5 ? 7 : 1)) % 8; break;
         case 7: c.guidePattern = c.guidePattern ^ (1 << randint(rng, 0, 2)); break; // flip one band bit
-        case 8: c.beaconHue = (c.beaconHue + B.gauss(rng) * 0.06 * rate + 1) % 1; break;
-        case 9: c.beaconIntensity = clamp(c.beaconIntensity + B.gauss(rng) * 0.08 * rate, 0.4, 1); break;
-        case 10: c.nectarRate = clamp(c.nectarRate + B.gauss(rng) * 0.12 * rate, 0.4, 1.6); break;
-        case 11: c.pollenRate = clamp(c.pollenRate + B.gauss(rng) * 0.12 * rate, 0.4, 1.6); break;
+        case 8: c.ringColor = (c.ringColor + (rng() < 0.5 ? 7 : 1)) % 8; break;
+        case 9: c.ringPattern = c.ringPattern ^ (1 << randint(rng, 0, 2)); break;
+        case 10: c.veinColor = (c.veinColor + (rng() < 0.5 ? 7 : 1)) % 8; break;
+        case 11: c.veinFreq = clamp(c.veinFreq + (rng() < 0.5 ? -1 : 1), 0, 3); break;
+        case 12: c.beaconHue = (c.beaconHue + B.gauss(rng) * 0.06 * rate + 1) % 1; break;
+        case 13: c.beaconIntensity = clamp(c.beaconIntensity + B.gauss(rng) * 0.08 * rate, 0.4, 1); break;
+        case 14: c.nectarRate = clamp(c.nectarRate + B.gauss(rng) * 0.12 * rate, 0.4, 1.6); break;
+        case 15: c.pollenRate = clamp(c.pollenRate + B.gauss(rng) * 0.12 * rate, 0.4, 1.6); break;
       }
     }
     return c;
