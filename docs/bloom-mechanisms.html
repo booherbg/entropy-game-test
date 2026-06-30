@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bloom — core mechanisms (light examples)</title>
+<style>
+  :root{ --bg:#0d0f13; --ink:#e8e4da; --amber:#c9772b; --amberlit:#f0b870; --sky:#8fc0e8; --leaf:#9fd98f;
+    --panel:rgba(18,21,27,.9); --line:rgba(232,228,218,.1); }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,'Times New Roman',serif}
+  .wrap{max-width:1000px;margin:0 auto;padding:30px 18px 80px}
+  h1{font-size:30px;margin:0 0 4px;font-weight:normal}
+  h1 small{opacity:.45;font-style:italic;font-size:16px}
+  .lede{opacity:.7;font-style:italic;font-size:15px;margin:0 0 8px;line-height:1.5}
+  .dna{display:flex;flex-wrap:wrap;gap:6px 10px;margin:14px 0 26px;font-size:11px;opacity:.7}
+  .dna b{color:var(--amberlit);font-weight:normal}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:20px 22px;margin:18px 0;
+    box-shadow:0 8px 28px rgba(0,0,0,.35)}
+  .cap{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;opacity:.5}
+  h2{font-size:21px;font-weight:normal;margin:4px 0 6px}
+  p{font-size:14px;line-height:1.6;opacity:.9;margin:8px 0}
+  p .k{color:var(--amberlit)}
+  canvas{image-rendering:pixelated;display:block;border-radius:8px;background:#07080b;max-width:100%}
+  .row{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+  .controls{margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
+  button{font-family:inherit;font-size:13px;background:#1c2026;color:var(--ink);border:1px solid #343a44;
+    border-radius:7px;padding:7px 13px;cursor:pointer}
+  button:hover{border-color:var(--amber);color:var(--amberlit)}
+  label.tog{display:inline-flex;align-items:center;gap:6px;opacity:.85;cursor:pointer}
+  .meterwrap{flex:1;min-width:160px}
+  .meter{height:12px;background:#23262d;border-radius:6px;overflow:hidden}
+  .meterfill{height:100%;width:30%;background:linear-gradient(90deg,#e0604c,#f0b870,#9fd98f);transition:width .35s}
+  .matchlabel{font-size:13px;margin-top:6px;opacity:.85}
+  .matchlabel b{color:var(--amberlit)}
+  .grids{display:flex;gap:26px;align-items:center;flex-wrap:wrap}
+  .gridlabel{font-size:11px;opacity:.55;text-align:center;margin-top:6px;letter-spacing:.4px}
+  .arrowmid{font-size:24px;opacity:.4}
+  .note{font-size:12px;opacity:.55;font-style:italic;margin-top:10px}
+  a{color:var(--sky)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>bloom <small>· core mechanisms — light examples</small></h1>
+  <p class="lede">a factory whose machines are alive. coax a flowering mother tree and a pollinator colony into a
+    co-evolving symbiosis, and watch selection sculpt them into an exquisitely-fit pair. these are tiny live
+    demos of the load-bearing mechanics — built in the game's real stack (vanilla canvas + svg, pixel art).</p>
+  <div class="dna">
+    <span>the DNA:</span><span><b>coax</b> don't command</span><span>· the arc bends <b>upward</b></span>
+    <span>· one world <b>deepened</b></span><span>· real-time + <b>pause</b></span><span>· <b>wonder</b> not power</span>
+    <span>· <b>legibility</b> is king</span><span>· a machine that needs <b>maintenance</b></span>
+  </div>
+
+  <!-- 1. generative pixel flowers -->
+  <section>
+    <div class="cap">mechanism 1 · generative presence</div>
+    <h2>every flower is grown from a genome — pixel art, endless variety</h2>
+    <p>no two alike. hue, petal count, core, and the nectar-guide pattern are all heritable. <span class="k">colour is
+      energy</span> — pixels are the prime resource, so the world is literally made of them.</p>
+    <canvas id="flowers" width="900" height="170"></canvas>
+    <div class="controls"><button id="reflowers">↻ grow a new generation</button>
+      <span class="note">click to reseed the genomes</span></div>
+  </section>
+
+  <!-- 1b. genome -> flower -->
+  <section>
+    <div class="cap">mechanism 1·b · the keystone — genotype → phenotype</div>
+    <h2>how a genome becomes a flower (and its decode-grid)</h2>
+    <p>~8 genes: FORM (symmetry, petal length, sharpness, core) + SIGNAL (palette colours + nectar-guide pattern).
+      expression is a polar function — every pixel's distance + angle decides core / petal / guide / empty; petals
+      repeat <span class="k">symmetry</span> times (that radial repeat is why a flower looks like a flower). the SAME
+      genome, sampled down one petal-wedge, IS the <span class="k">decode-grid</span> the pollinator reads.
+      <span class="k">flower = its bloom, grid = its fingerprint — one genome, two renderings.</span>
+      <b>drag a gene and watch both change together.</b></p>
+    <div class="row" style="align-items:flex-start">
+      <div><canvas id="genoFlower" width="230" height="230"></canvas><div class="gridlabel">the bloom (world view)</div></div>
+      <div><canvas id="genoGrid" width="156" height="156"></canvas><div class="gridlabel">its decode-grid (inspect)</div></div>
+      <div id="genoControls" style="flex:1;min-width:250px;font-size:12px"></div>
+    </div>
+    <div class="cap" style="margin-top:16px">the unroll · how the round bloom becomes the flat decode-grid</div>
+    <p style="margin:6px 0 4px">because the flower is radially symmetric, all its signal lives in <b>one petal-wedge</b>.
+      take that pie-slice and flatten it — <span class="k">radius → rows, angle → columns</span> — then downsample to
+      a 6×6 of palette colours. that's the fingerprint the pollinator reads.</p>
+    <canvas id="genoSteps" width="640" height="180"></canvas>
+    <div class="controls"><button id="genoRand">🎲 random genome</button>
+      <span class="note">mutate one gene → the bloom, the unroll, and the fingerprint all drift together</span></div>
+  </section>
+
+  <!-- 2. the lock-and-key co-evolution -->
+  <section>
+    <div class="cap">mechanism 2 · the signal lock-and-key — THE soul</div>
+    <h2>the flower's maze and the pollinator's key co-evolve until they merge</h2>
+    <p>up close, a flower is a <span class="k">colourful grid</span> the pollinator must decode to reach the nectar.
+      reward ≈ how well its <span class="k">key</span> matches the <span class="k">maze</span>. selection drifts them
+      toward each other — watch the two grids converge and the fit climb from <i>fumbling</i> to <i>native</i>.</p>
+    <div class="grids">
+      <div><canvas id="gridF" width="180" height="180"></canvas><div class="gridlabel">the flower's maze</div></div>
+      <div class="arrowmid">⇄</div>
+      <div><canvas id="gridK" width="180" height="180"></canvas><div class="gridlabel">the pollinator's key</div></div>
+      <div class="meterwrap">
+        <div class="meter"><div class="meterfill" id="fitfill"></div></div>
+        <div class="matchlabel">lock-and-key fit: <b id="fitpct">—</b> · <span id="fitword">—</span></div>
+      </div>
+    </div>
+    <div class="controls">
+      <label class="tog"><input type="checkbox" id="lockflower"> lock the flower (force the pollinator to chase it)</label>
+      <button id="resetlk">↻ reseed (start crude)</button>
+    </div>
+    <p class="note">selection + mutation only — nobody is painting the grids. lock the flower and the key chases it;
+      unlock and they meet in the middle. split a population and they'd diverge into two species.</p>
+  </section>
+
+  <!-- 3. beacon, foraging, stigmergy -->
+  <section>
+    <div class="cap">mechanism 3 · the colony, made emergent</div>
+    <h2>beacons draw foragers; trails make a mind</h2>
+    <p>from afar, the <span class="k">beacon</span> (the flower's colour) draws pollinators whose preference matches.
+      a forager that finds nectar hauls it home and lays a <span class="k">recruitment trail</span>; others follow the
+      strongest trails. no leader — the colony's behaviour <i>emerges</i>.</p>
+    <canvas id="forage" width="900" height="320"></canvas>
+    <p class="note">dots tint toward the flower they prefer (camouflage you can read); faint paths are trails; the ring
+      is the colony, brightening as nectar banks.</p>
+  </section>
+
+  <!-- 4. one currency -->
+  <section>
+    <div class="cap">mechanism 4 · one currency</div>
+    <h2>energy, embodied as light and colour</h2>
+    <div id="energysvg"></div>
+    <p class="note">a richer flower costs the tree more sugar — every trait is a real trade-off, so selection has teeth.
+      maintenance leaks as heat (the second law); the world is bounded by light in ÷ losses.</p>
+  </section>
+
+  <!-- 5. mother tree niches -->
+  <section>
+    <div class="cap">mechanism 5 · progress = the tree grows niches</div>
+    <h2>the unlock tree is literally a tree</h2>
+    <div id="nichesvg"></div>
+    <p class="note">spend the tree's sugar to grow a new niche — a new flower, a sap-well, shelter. each is a new lock
+      awaiting a key → a new specialist to discover. depth breeds width on its own.</p>
+  </section>
+
+  <p style="opacity:.6;font-size:13px;margin-top:24px">full design: <code>docs/superpowers/specs/2026-06-30-bloom-plant-pollinator-prototype-design.md</code> — pure sandbox first; the game falls out of play.</p>
+</div>
+
+<script>
+const TAU = Math.PI*2;
+function hsl(h,s,l){return `hsl(${(h*360)%360|0} ${s}% ${l}%)`;}
+function rnd(){return Math.random();}
+
+// ---------- 1. generative pixel flowers ----------
+(function(){
+ try{
+  const cv=document.getElementById('flowers'), ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
+  const G=21, cell=8, pad=14, step=G*cell+pad;
+  function genome(){return {hue:rnd(), petals:3+(rnd()*6|0), core:rnd(), guide:rnd()>.4, sat:60+rnd()*30};}
+  function drawFlower(ox,oy,g){
+    const c=(G-1)/2;
+    for(let y=0;y<G;y++)for(let x=0;x<G;x++){
+      const dx=x-c, dy=y-c, r=Math.hypot(dx,dy)/c, th=Math.atan2(dy,dx);
+      let col=null;
+      const petalWave=Math.cos(th*g.petals)*0.5+0.5; // 0..1 along petals
+      const petalEdge=0.42+petalWave*0.55;
+      if(r<0.22){ col=hsl(g.core, g.sat, 55+ (g.guide?Math.cos(th*g.petals*2)*8:0)); } // core
+      else if(r<petalEdge){
+        const lum=64 - r*26 + petalWave*10;
+        col=hsl(g.hue + petalWave*0.04, g.sat, lum);
+        if(g.guide && Math.abs(((th%(TAU/g.petals))+TAU)%(TAU/g.petals) - (TAU/g.petals)/2)<0.10 && r>0.24)
+          col=hsl((g.hue+0.5)%1, g.sat, 78); // nectar guides
+      }
+      if(col){ ctx.fillStyle=col; ctx.fillRect(ox+x*cell, oy+y*cell, cell, cell); }
+    }
+  }
+  function draw(){ ctx.clearRect(0,0,cv.width,cv.height);
+    let x=6; while(x+G*cell<=cv.width){ drawFlower(x, 0, genome()); x+=step; } }
+  draw();
+  document.getElementById('reflowers').onclick=draw;
+ }catch(e){console.error('flowers',e);}
+})();
+
+// ---------- 1b. genome -> flower (interactive) ----------
+(function(){
+ try{
+  const PAL=['#e0604c','#f0b870','#ecd24a','#9fd98f','#5fc0a8','#6fb0f0','#9a7bd0','#e08ac0']; // shared pixel-art palette
+  const BG='#0c0e12';
+  const GENES=[
+    {k:'symmetry',min:3,max:8,step:1,v:5},
+    {k:'petalLength',min:0.45,max:0.98,step:0.01,v:0.82},
+    {k:'petalSharp',min:1,max:6,step:0.1,v:2.4},
+    {k:'coreSize',min:0.10,max:0.36,step:0.01,v:0.22},
+    {k:'petalColor',min:0,max:7,step:1,v:0,col:1},
+    {k:'guideColor',min:0,max:7,step:1,v:1,col:1},
+    {k:'coreColor',min:0,max:7,step:1,v:2,col:1},
+    {k:'guidePattern',min:0,max:7,step:1,v:5},
+  ];
+  const g={}; GENES.forEach(x=>g[x.k]=x.v);
+  const fcv=document.getElementById('genoFlower'), fx=fcv.getContext('2d'); fx.imageSmoothingEnabled=false;
+  const gcv=document.getElementById('genoGrid'), gx=gcv.getContext('2d'); gx.imageSmoothingEnabled=false;
+  const G=23, N=6;
+  function regionIndex(r,theta){
+    if(r<g.coreSize) return g.coreColor|0;
+    const wave=(Math.cos(theta*g.symmetry)+1)/2;            // 1 on a petal axis
+    const reach=g.coreSize+(g.petalLength-g.coreSize)*Math.pow(wave,g.petalSharp);
+    if(r<=reach){
+      const along=(r-g.coreSize)/(reach-g.coreSize+1e-6);   // 0..1 out the petal
+      const band=Math.min(2,(along*3)|0);
+      if(wave>0.6 && ((g.guidePattern>>band)&1)) return g.guideColor|0;
+      return g.petalColor|0;
+    }
+    return -1;                                              // empty
+  }
+  function shade(hex,f){ const n=parseInt(hex.slice(1),16); f=Math.max(0,Math.min(1.15,f));
+    return `rgb(${Math.min(255,((n>>16)&255)*f)|0},${Math.min(255,((n>>8)&255)*f)|0},${Math.min(255,(n&255)*f)|0})`; }
+  function drawBloom(){ fx.clearRect(0,0,fcv.width,fcv.height); const c=(G-1)/2, cell=fcv.width/G;
+    for(let y=0;y<G;y++)for(let x=0;x<G;x++){ const dx=(x-c)/c,dy=(y-c)/c,r=Math.hypot(dx,dy),th=Math.atan2(dy,dx);
+      const idx=regionIndex(r,th); if(idx>=0){ fx.fillStyle=shade(PAL[idx],1-r*0.26); fx.fillRect(x*cell,y*cell,cell,cell);} } }
+  function drawGrid(){ const px=gcv.width/N;
+    for(let i=0;i<N;i++)for(let j=0;j<N;j++){ const r=(i+0.5)/N*g.petalLength, th=-Math.PI/g.symmetry+(j+0.5)/N*(Math.PI*2/g.symmetry);
+      const idx=regionIndex(r,th); gx.fillStyle=idx<0?BG:PAL[idx]; gx.fillRect(j*px,i*px,px,px); }
+    gx.strokeStyle='rgba(0,0,0,.25)'; for(let i=1;i<N;i++){gx.beginPath();gx.moveTo(i*px,0);gx.lineTo(i*px,gcv.height);gx.moveTo(0,i*px);gx.lineTo(gcv.width,i*px);gx.stroke();} }
+  // the unroll filmstrip: bloom -> one wedge -> flattened -> decode-grid
+  const scv=document.getElementById('genoSteps'), sx=scv.getContext('2d'); sx.imageSmoothingEnabled=false;
+  function miniBloom(ox,oy,size,hl){ const GG=21,cell=size/GG,c=(GG-1)/2;
+    for(let y=0;y<GG;y++)for(let x=0;x<GG;x++){ const dx=(x-c)/c,dy=(y-c)/c,r=Math.hypot(dx,dy),th=Math.atan2(dy,dx);
+      const idx=regionIndex(r,th); if(idx<0) continue; let f=1-r*0.26;
+      if(hl && !(th>=-Math.PI/g.symmetry && th<=Math.PI/g.symmetry)) f*=0.26;
+      sx.fillStyle=shade(PAL[idx],f); sx.fillRect((ox+x*cell)|0,(oy+y*cell)|0,Math.ceil(cell),Math.ceil(cell)); }
+    if(hl){ sx.strokeStyle='rgba(240,184,112,.9)'; sx.lineWidth=1.5; const cx=ox+size/2,cy=oy+size/2,R=size/2;
+      for(const a of [-Math.PI/g.symmetry,Math.PI/g.symmetry]){ sx.beginPath(); sx.moveTo(cx,cy); sx.lineTo(cx+Math.cos(a)*R,cy+Math.sin(a)*R); sx.stroke(); } } }
+  function drawUnroll(ox,oy,w,h){ for(let py=0;py<h;py++)for(let px=0;px<w;px++){
+      const th=-Math.PI/g.symmetry+(px/w)*(Math.PI*2/g.symmetry), r=(py/h)*g.petalLength, idx=regionIndex(r,th);
+      sx.fillStyle=idx<0?BG:shade(PAL[idx],1-r*0.18); sx.fillRect(ox+px,oy+py,1,1); }
+    sx.strokeStyle='rgba(232,228,218,.15)'; sx.strokeRect(ox-0.5,oy-0.5,w+1,h+1); }
+  function drawGridAt(ox,oy,size){ const px=size/N;
+    for(let i=0;i<N;i++)for(let j=0;j<N;j++){ const r=(i+0.5)/N*g.petalLength, th=-Math.PI/g.symmetry+(j+0.5)/N*(Math.PI*2/g.symmetry);
+      const idx=regionIndex(r,th); sx.fillStyle=idx<0?BG:PAL[idx]; sx.fillRect((ox+j*px)|0,(oy+i*px)|0,Math.ceil(px),Math.ceil(px)); } }
+  function arrow(x,y){ sx.fillStyle='#5a5650'; sx.fillRect(x-12,y-1,15,2); sx.beginPath(); sx.moveTo(x+6,y-5); sx.lineTo(x+6,y+5); sx.lineTo(x+13,y); sx.closePath(); sx.fill(); }
+  function drawSteps(){ sx.clearRect(0,0,scv.width,scv.height); const Y=4,S=128;
+    miniBloom(8,Y,S,false); arrow(150,Y+S/2);
+    miniBloom(174,Y,S,true); arrow(316,Y+S/2);
+    drawUnroll(340,Y,74,S); arrow(432,Y+S/2);
+    drawGridAt(456,Y,S);
+    sx.fillStyle='#8a857a'; sx.font='12px Georgia'; sx.textAlign='center';
+    sx.fillText('1 · the bloom',8+S/2,Y+S+18); sx.fillText('2 · one wedge',174+S/2,Y+S+18);
+    sx.fillText('3 · unroll',340+37,Y+S+18); sx.fillText('4 · decode-grid',456+S/2,Y+S+18);
+    sx.textAlign='left'; }
+  function express(){ drawBloom(); drawGrid(); drawSteps(); GENES.forEach(x=>{ if(x.col&&x._sw) x._sw.style.background=PAL[g[x.k]|0]; }); }
+  const cont=document.getElementById('genoControls');
+  GENES.forEach(x=>{ const row=document.createElement('div'); row.style.margin='6px 0'; row.style.display='flex'; row.style.alignItems='center'; row.style.gap='8px';
+    const lab=document.createElement('span'); lab.textContent=x.k; lab.style.width='96px'; lab.style.opacity='.65';
+    const inp=document.createElement('input'); inp.type='range'; inp.min=x.min; inp.max=x.max; inp.step=x.step; inp.value=x.v; inp.style.flex='1';
+    inp.oninput=()=>{ g[x.k]=parseFloat(inp.value); express(); }; x._inp=inp;
+    row.appendChild(lab); row.appendChild(inp);
+    if(x.col){ const sw=document.createElement('span'); sw.style.cssText='width:16px;height:16px;border-radius:3px;display:inline-block;border:1px solid #000'; x._sw=sw; row.appendChild(sw); }
+    cont.appendChild(row); });
+  document.getElementById('genoRand').onclick=()=>{ GENES.forEach(x=>{ const steps=Math.round((x.max-x.min)/x.step);
+    g[x.k]=x.min+Math.round(Math.random()*steps)*x.step; x._inp.value=g[x.k]; }); express(); };
+  express();
+ }catch(e){console.error('geno',e);}
+})();
+
+// ---------- 2. lock-and-key co-evolution ----------
+(function(){
+ try{
+  const N=6, cvF=document.getElementById('gridF'), cvK=document.getElementById('gridK');
+  const fx=cvF.getContext('2d'), kx=cvK.getContext('2d'); fx.imageSmoothingEnabled=kx.imageSmoothingEnabled=false;
+  const px=cvF.width/N;
+  let F,K;
+  function reseed(){ F=[];K=[]; for(let i=0;i<N*N;i++){F.push(rnd());K.push(rnd());} }
+  reseed();
+  function cellcol(v){return hsl(v, 70, 30+v*45);}
+  function drawGrid(ctx,g){ for(let i=0;i<N*N;i++){ const x=i%N,y=(i/N|0); ctx.fillStyle=cellcol(g[i]);
+    ctx.fillRect(x*px,y*px,px,px);} ctx.strokeStyle='rgba(0,0,0,.25)'; for(let i=1;i<N;i++){ctx.beginPath();
+    ctx.moveTo(i*px,0);ctx.lineTo(i*px,cvF.height);ctx.moveTo(0,i*px);ctx.lineTo(cvF.width,i*px);ctx.stroke();} }
+  function fit(){ let s=0; for(let i=0;i<N*N;i++) s+=1-Math.abs(F[i]-K[i]); return s/(N*N); }
+  const fill=document.getElementById('fitfill'), pct=document.getElementById('fitpct'), word=document.getElementById('fitword');
+  const lock=document.getElementById('lockflower');
+  document.getElementById('resetlk').onclick=reseed;
+  let acc=0;
+  function generation(){
+    // selection+mutation: K drifts toward F (the matched keys reproduce); F drifts toward K unless locked
+    for(let i=0;i<N*N;i++){
+      K[i]+=(F[i]-K[i])*0.18 + (rnd()-0.5)*0.05; K[i]=Math.max(0,Math.min(1,K[i]));
+      if(!lock.checked){ F[i]+=(K[i]-F[i])*0.06 + (rnd()-0.5)*0.05; F[i]=Math.max(0,Math.min(1,F[i])); }
+    }
+  }
+  function loop(t){
+    acc++; if(acc%26===0) generation();
+    drawGrid(fx,F); drawGrid(kx,K);
+    const f=fit(); fill.style.width=(f*100).toFixed(0)+'%'; pct.textContent=(f*100).toFixed(0)+'%';
+    word.textContent = f<0.55?'fumbling — barely surviving': f<0.75?'learning the maze': f<0.9?'specialising':'native — a matched pair';
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+ }catch(e){console.error('lockkey',e);}
+})();
+
+// ---------- 3. beacon foraging + stigmergy ----------
+(function(){
+ try{
+  const cv=document.getElementById('forage'), ctx=cv.getContext('2d'); const W=cv.width,H=cv.height;
+  const flowers=[{x:170,y:90,hue:.02,n:1},{x:470,y:70,hue:.13,n:1},{x:740,y:120,hue:.78,n:1}];
+  const colony={x:W/2,y:H-40,store:0};
+  const TG=Math.ceil(W/18), TH=Math.ceil(H/18), trail=new Float32Array(TG*TH);
+  const ti=(x,y)=>((y/18|0)*TG+(x/18|0));
+  const bees=[]; for(let i=0;i<16;i++){ const f=flowers[i%flowers.length];
+    bees.push({x:colony.x,y:colony.y,pref:f.hue+(rnd()-.5)*.05,state:'out',tx:0,ty:0,carry:0,target:null}); }
+  function nearestFlower(b){ let best=null,bs=-1; for(const f of flowers){ const hueMatch=1-Math.min(Math.abs(f.hue-b.pref),1-Math.abs(f.hue-b.pref));
+    const d=Math.hypot(f.x-b.x,f.y-b.y); const tr=trail[ti(f.x,f.y)]||0; const score=hueMatch*2 + tr*0.5 - d*0.001;
+    if(score>bs){bs=score;best=f;} } return best; }
+  function step(){
+    for(let i=0;i<trail.length;i++) trail[i]*=0.985;
+    for(const b of bees){
+      if(b.state==='out'){ if(!b.target||rnd()<0.01) b.target=nearestFlower(b);
+        const f=b.target; const dx=f.x-b.x, dy=f.y-b.y, d=Math.hypot(dx,dy)||1;
+        b.x+=dx/d*2.2 + (rnd()-.5); b.y+=dy/d*2.2 + (rnd()-.5);
+        if(d<10){ b.carry=1; b.state='home'; b.bhue=f.hue; } }
+      else { const dx=colony.x-b.x, dy=colony.y-b.y, d=Math.hypot(dx,dy)||1;
+        b.x+=dx/d*2.2; b.y+=dy/d*2.2; trail[ti(b.x,b.y)]=Math.min(1,(trail[ti(b.x,b.y)]||0)+0.35);
+        if(d<14){ colony.store=Math.min(1,colony.store+0.05); b.carry=0; b.state='out'; b.target=null; } }
+    }
+  }
+  function draw(){
+    ctx.fillStyle='#07080b'; ctx.fillRect(0,0,W,H);
+    // trails
+    for(let y=0;y<TH;y++)for(let x=0;x<TG;x++){ const v=trail[y*TG+x]; if(v>0.03){ ctx.fillStyle=`rgba(159,217,143,${v*0.5})`;
+      ctx.fillRect(x*18,y*18,18,18);} }
+    // flowers (beacons)
+    for(const f of flowers){ const g=ctx.createRadialGradient(f.x,f.y,2,f.x,f.y,46);
+      g.addColorStop(0,hsl(f.hue,80,65)); g.addColorStop(1,'rgba(0,0,0,0)'); ctx.fillStyle=g;
+      ctx.beginPath(); ctx.arc(f.x,f.y,46,0,TAU); ctx.fill();
+      ctx.fillStyle=hsl(f.hue,85,60); ctx.beginPath(); ctx.arc(f.x,f.y,7,0,TAU); ctx.fill(); }
+    // colony
+    ctx.strokeStyle=`rgba(240,184,112,${0.4+colony.store*0.6})`; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.arc(colony.x,colony.y,16,0,TAU); ctx.stroke();
+    ctx.fillStyle='rgba(240,184,112,.15)'; ctx.beginPath(); ctx.arc(colony.x,colony.y,16,0,TAU); ctx.fill();
+    // bees
+    for(const b of bees){ ctx.fillStyle=hsl(b.pref,70,b.carry?72:58); ctx.fillRect(b.x-2,b.y-2,4,4); }
+  }
+  function loop(){ step(); draw(); requestAnimationFrame(loop); } requestAnimationFrame(loop);
+ }catch(e){console.error('forage',e);}
+})();
+
+// ---------- 4 & 5 static SVG ----------
+(function(){
+ try{
+  document.getElementById('energysvg').innerHTML = `
+  <svg width="100%" viewBox="0 0 900 120" font-family="Georgia,serif">
+    ${[['☀','light','#ebb446',60],['🌿','sugar','#9fd98f',230],['🍯','nectar','#f0b870',400],['🐝','forager','#e8d6b0',560],['🏠','colony','#c9772b',720],['🥚','offspring','#e8e0c8',850]]
+      .map(([g,l,c,x])=>`<g><circle cx="${x}" cy="50" r="22" fill="#15181d" stroke="${c}"/><text x="${x}" y="58" font-size="20" text-anchor="middle">${g}</text><text x="${x}" y="92" font-size="12" fill="#cfc9bd" text-anchor="middle">${l}</text></g>`).join('')}
+    ${[150,320,490,640].map(x=>`<path d="M${x} 50 L${x+50} 50" stroke="#5a5650" stroke-width="2"/><polygon points="${x+50},50 ${x+42},46 ${x+42},54" fill="#5a5650"/>`).join('')}
+    <path d="M780 50 L800 50" stroke="#5a5650" stroke-width="2"/><polygon points="800,50 792,46 792,54" fill="#5a5650"/>
+    <text x="450" y="115" font-size="11" fill="#8a857a" font-style="italic" text-anchor="middle">one currency, flowing — minus heat lost to entropy at every step</text>
+  </svg>`;
+
+  document.getElementById('nichesvg').innerHTML = `
+  <svg width="100%" viewBox="0 0 900 200" font-family="Georgia,serif">
+    <!-- sapling -->
+    <g stroke="#6b4a2a" stroke-width="4" fill="none"><path d="M150 180 L150 120"/></g>
+    <circle cx="150" cy="112" r="9" fill="#e0604c"/>
+    <text x="150" y="196" font-size="12" fill="#cfc9bd" text-anchor="middle">sapling · 1 niche</text>
+    <path d="M250 110 L320 110" stroke="#5a5650" stroke-width="2"/><polygon points="320,110 312,106 312,114" fill="#5a5650"/>
+    <text x="285" y="100" font-size="11" fill="#8a857a" font-style="italic" text-anchor="middle">spend sugar</text>
+    <!-- grown tree, multi-niche -->
+    <g stroke="#6b4a2a" stroke-width="5" fill="none"><path d="M560 185 L560 70"/><path d="M560 120 L500 80"/><path d="M560 110 L625 70"/><path d="M560 140 L520 150"/></g>
+    <circle cx="560" cy="62" r="10" fill="#e0604c"/><circle cx="494" cy="74" r="9" fill="#6fb0f0"/>
+    <circle cx="631" cy="64" r="9" fill="#f0b870"/><circle cx="514" cy="152" r="8" fill="#9fd98f"/>
+    <text x="560" y="198" font-size="12" fill="#cfc9bd" text-anchor="middle">mother tree · many niches, each a new lock</text>
+    <g font-size="11" fill="#8a857a"><text x="700" y="80">↑ high flower</text><text x="700" y="100">↑ low flower</text><text x="700" y="120">↑ sap-well</text><text x="700" y="140">↑ shelter</text><text x="700" y="160" fill="#f0b870" font-style="italic">→ a new specialist for each</text></g>
+  </svg>`;
+ }catch(e){console.error('svg',e);}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1020" height="500" viewBox="0 0 1020 500" font-family="Georgia,'Times New Roman',serif">
+  <defs>
+    <radialGradient id="beacon" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#f0b870"/><stop offset="60%" stop-color="#c9772b" stop-opacity=".5"/><stop offset="100%" stop-color="#0d0f13" stop-opacity="0"/></radialGradient>
+    <style>.cap{fill:#8a857a;font-size:10.5px;letter-spacing:1.4px}.lab{fill:#cfc9bd;font-size:13px}.sm{fill:#8a857a;font-size:11px}.k{fill:#f0b870}</style>
+  </defs>
+  <rect width="1020" height="500" fill="#0d0f13"/>
+  <text x="34" y="42" fill="#e8e4da" font-size="24">the pollinator &amp; colony — operations</text>
+  <text x="34" y="64" fill="#9a958a" font-size="13.5" font-style="italic">a forage loop driven by the lock-and-key; two resources; an emergent colony; no leader</text>
+
+  <!-- THE COLONY -->
+  <rect x="60" y="150" width="190" height="170" rx="14" fill="#15140f" stroke="#c9772b"/>
+  <text x="155" y="178" class="cap" text-anchor="middle">THE COLONY · the machine</text>
+  <text x="78" y="205" class="sm">nectar</text>
+  <rect x="135" y="196" width="100" height="11" rx="5" fill="#23262d"/><rect x="135" y="196" width="74" height="11" rx="5" fill="#ebb446"/>
+  <text x="78" y="227" class="sm">pollen</text>
+  <rect x="135" y="218" width="100" height="11" rx="5" fill="#23262d"/><rect x="135" y="218" width="52" height="11" rx="5" fill="#e8e0c8"/>
+  <text x="78" y="260" fill="#ebb446" font-size="11.5">↓ nectar → upkeep</text>
+  <text x="94" y="274" class="sm">runs it (empty = starve)</text>
+  <text x="78" y="298" fill="#e8e0c8" font-size="11.5">↓ pollen → larvae</text>
+  <text x="94" y="312" class="sm">builds the machinery</text>
+
+  <!-- THE FLOWER -->
+  <circle cx="880" cy="200" r="48" fill="url(#beacon)"/>
+  <circle cx="880" cy="200" r="9" fill="#f0b870"/>
+  <g>
+    <rect x="856" y="252" width="48" height="48" fill="#0c0e12" stroke="#23262d"/>
+    <rect x="856" y="252" width="16" height="16" fill="#e0604c"/><rect x="872" y="252" width="16" height="16" fill="#f0b870"/><rect x="888" y="252" width="16" height="16" fill="#e0604c"/>
+    <rect x="856" y="268" width="16" height="16" fill="#f0b870"/><rect x="872" y="268" width="16" height="16" fill="#ecd24a"/><rect x="888" y="268" width="16" height="16" fill="#f0b870"/>
+    <rect x="856" y="284" width="16" height="16" fill="#0c0e12"/><rect x="872" y="284" width="16" height="16" fill="#e0604c"/><rect x="888" y="284" width="16" height="16" fill="#0c0e12"/>
+  </g>
+  <text x="880" y="318" class="sm" text-anchor="middle">flower: beacon + decode-grid</text>
+  <text x="880" y="333" class="sm" text-anchor="middle">offers nectar + pollen</text>
+
+  <!-- OUTBOUND arc (top): colony -> flower -->
+  <path d="M250 190 C 430 110, 660 110, 832 175" fill="none" stroke="#6b8fb8" stroke-width="2"/>
+  <polygon points="832,175 820,172 824,183" fill="#6b8fb8"/>
+  <circle cx="430" cy="128" r="3.5" fill="#8fc0e8"/><circle cx="560" cy="120" r="3.5" fill="#9a7bd0"/>
+  <text x="400" y="105" fill="#8fc0e8" font-size="12">1 · search — drawn by the beacon its <tspan class="k">preference</tspan> matches</text>
+  <text x="640" y="150" fill="#8fc0e8" font-size="12">2 · decode</text>
+  <text x="640" y="166" class="sm">key ⇄ grid → efficiency</text>
+
+  <!-- INBOUND arc (bottom): flower -> colony -->
+  <path d="M832 250 C 660 330, 430 330, 252 268" fill="none" stroke="#9fd98f" stroke-width="2" stroke-dasharray="6 5"/>
+  <polygon points="252,268 264,266 260,277" fill="#9fd98f"/>
+  <circle cx="560" cy="322" r="3.5" fill="#e8d6b0"/><circle cx="430" cy="318" r="3.5" fill="#e8d6b0"/>
+  <text x="600" y="300" fill="#9fd98f" font-size="12">3 · collect nectar + pollen · pollinate (carry pollen flower→flower)</text>
+  <text x="360" y="352" fill="#9fd98f" font-size="12">4 · return — lay a recruitment trail (others follow the strongest)</text>
+  <text x="270" y="262" class="sm">5 · deposit</text>
+
+  <!-- co-evolution closure -->
+  <rect x="60" y="392" width="900" height="76" rx="12" fill="#12151b" stroke="#23262d"/>
+  <text x="80" y="416" class="cap">HOW IT CLOSES — the co-evolution</text>
+  <text x="80" y="440" class="lab">well-fed keys raise more larvae → the colony's <tspan class="k">keys drift toward the flowers</tspan>;
+    pollinated flowers set more seed → <tspan class="k">grids drift toward the keys</tspan>.</text>
+  <text x="80" y="460" class="sm" font-style="italic">→ the lock-and-key merges into a matched pair (stasis). perturb it — lock a trait, split the patch, grow a new niche — and it re-adapts.</text>
+</svg>

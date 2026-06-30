@@ -85,27 +85,86 @@ way (a well-matched visitor pollinates well).
   *random* decoder, badly matched (fumbling, colony starving at the edge). Play = watching/steering them
   co-adapt until the pollinator reads the flower like a native.
 
-### 3.3 The colony as an emergent machine (stigmergy)
+**Genome → flower → decode-grid (the expression, nailed down — see the live reference in
+`docs/bloom-mechanisms.html`, "Mechanism 1·b"):**
+- **The genome is ~8 genes, two kinds.** *Form:* `symmetry` (petal count), `petalLength`, `petalSharp`
+  (round↔pointed), `coreSize`. *Signal:* `petalColor`, `guideColor`, `coreColor` (indices into a shared
+  pixel-art palette), `guidePattern` (which radial bands carry the nectar-guide colour). That's the whole
+  heritable code. **The grid is not separate from the flower — the grid IS the genome, the flower is its
+  bloom.**
+- **Expression is a polar function.** For every pixel, its distance `r` + angle `θ` from the centre decides:
+  inside `coreSize` → core; out along a petal lobe (`reach = coreSize + (petalLength−coreSize)·
+  petalWave^petalSharp`, where `petalWave = (cos(θ·symmetry)+1)/2`) → petal, with guide-colour bands where
+  `guidePattern` says; beyond → empty. Colours are palette indices → pixel art. The `symmetry`-fold radial
+  repeat is *why a flower looks like a flower.*
+- **The decode-grid = one petal-wedge, unrolled.** Because the bloom is radially symmetric, all its signal
+  lives in one pie-slice. Take the wedge centred on a petal (θ ∈ [−π/symmetry, +π/symmetry]) and flatten it:
+  **radius → rows (core→tip), angle → columns (gap→petal→gap)**, then downsample to a 6×6 of palette
+  indices. *That* is the fingerprint the pollinator's `key` matches. One genome, two renderings — bloom
+  (world view) and grid (inspect view).
+- **Match → reward.** A random key vs a random grid matches ≈ 1/palette (genuinely "fumbling"); the climb to
+  ~100% ("native") is the visible co-evolution. Discrete palette + exact-ish match keeps the start low and
+  the merge dramatic (and pixel-art). Mutation nudges one gene → the bloom *and* the fingerprint shift a
+  little → smooth, visible drift.
 
-Not a box — a self-organizing collective, reusing a signal field (cheap, emergent, legible):
-- A pollinator that decodes a flower well hauls food home **and lays a recruitment trail** in a signal
-  field (direction + a tag of *which* flower-code paid off — the waggle-dance / ant-pheromone).
-- Nestmates **follow the strongest trails** → the colony collectively focuses on best-matched flowers →
-  emergent foraging intelligence, no central control.
-- Stored food → **spawn** new pollinators (inherit key + mutation). (Colony budding / castes = later.)
+### 3.3 The pollinator & colony — operations (see `docs/2026-06-30-pollinator-colony-operations.svg`)
 
-### 3.4 Resources — ONE real currency, embodied as light & colour
+**The pollinator (the animal machine).** Genome (heritable, mutable): `preference` (beacon hue it's drawn
+to), `key` (its decode template; its body markings *express* the key → specialization you can read /
+camouflage), `forageRange`/`speed` (cost trade-off), `dietBias` (nectar vs pollen priority); later
+`tolerance` (poison). State: position, mode, nectar carried, pollen carried, pollen-on-body, target, age.
 
-- **One currency: energy.** Light → plant **sugar** (deterministic recipe). Sugar builds growth, flowers,
-  and is packaged as **nectar**; **pollen** is the reproduction token. Pollinator burns energy to forage,
-  gains nectar, banks it at the colony. Maintenance/respiration dissipates energy as heat (the 2nd law) →
-  the world is bounded by light inflow ÷ losses (eddy's dissipative thesis, kept).
-- **Value gradation = the tension.** A richer flower (brighter beacon, sweeter nectar, fancier grid) costs
-  the tree *more sugar* → every flower trait is a real trade-off → selection has teeth. Nectar value is the
-  landscape pollinators forage over; trails encode "this flower pays."
-- **Embodied, not abstract:** resource *is* the thing you see — pixels of light, a visible nectar droplet,
-  a pollen load accumulating on a pollinator's legs, the tree's sugar glowing in its trunk. **"Pixels are a
-  prime resource" is literal:** colour = energy. (Do NOT reintroduce eddy's abstract lumen/mineral/humus.)
+**The forage loop (operations):**
+1. **Leave** the colony (search).
+2. **Find** a flower: scan within range for beacons matching `preference`, weighted by trail strength.
+3. **Approach** the chosen flower.
+4. **Decode** on landing: `match(key, flower.grid)` → extraction efficiency.
+5. **Collect**: take **nectar** + **pollen** scaled by efficiency; **deposit** pollen-on-body carried from
+   the *previous* flower → **pollination** (same species → that plant sets seed); pick up fresh pollen.
+6. **Return** to the colony, laying a **recruitment trail** tagged by the flower's beacon + quality (stigmergy).
+7. **Deposit** nectar + pollen into the colony stores; rest; repeat. Die of age / if unfed.
+
+**The colony (the emergent machine).** State: position, **nectar store**, **pollen store**, population.
+Per tick: **intake** from foragers; **upkeep** spends nectar (empty → foragers starve — the gentle
+maintenance pressure); **build** spends pollen to raise **larvae → new pollinators** (inherit a well-fed
+parent's genome + mutation — *pollen is the machinery*); **recruit** via trails → emergent collective
+foraging, no leader. (Budding, castes, the navigable comb = Thread Map.)
+
+**How it closes (co-evolution).** Well-fed keys raise more larvae → the colony's keys drift toward the
+flowers; pollinated flowers set more seed → grids drift toward the keys → the lock-and-key **merges**
+(stasis). Perturb it (lock a trait, split the patch, grow a new niche) → it re-adapts.
+
+### 3.4 Resources — TWO currencies (nectar + pollen), embodied as light & colour
+
+*(Revised from a one-currency model — Blaine pushed for specific resources feeding machinery over a generic
+"thanks for energy" reward, and it's the right call: it buys real optimization without a spreadsheet. The
+biologically-true split is exactly the Factorio energy/material split.)*
+
+- **Light → sugar** (the plant's photosynthesis recipe, deterministic). The tree spends sugar to grow and
+  to build & stock flowers. A flower packages sugar into the two things pollinators collect:
+  - **NECTAR = energy.** Runs the colony — flight, foraging, upkeep. The fuel. Empty → foragers starve
+    (the gentle maintenance pressure; you tend it, you don't fight it).
+  - **POLLEN = material.** Builds the colony — larvae (new pollinators) and structure. **This is the
+    machinery currency:** pollen literally builds bodies.
+- **Pollen is the shared hinge of the mutualism.** The pollinator wants to *eat* it (protein → larvae);
+  the plant wants it *carried* (→ pollination → seed). So a flower co-evolves how much pollen to hand over
+  vs. how much to ensure leaves on the visitor. The tension *is* the symbiosis.
+- **The depth is the balance.** A colony needs *both* nectar and pollen; different flowers/niches offer
+  different ratios (nectar-rich high flower vs pollen-rich low flower vs a resin sap-well later) → you must
+  forage a *balanced diet* → which flowers to prioritise, which specialists to breed. Two legible meters,
+  real optimisation, no spreadsheet.
+- **Value gradation = the tension.** A richer flower (brighter beacon, sweeter nectar, more pollen, fancier
+  grid) costs the tree *more sugar* → every flower trait is a real trade-off → selection has teeth. Trails
+  encode "this flower pays."
+- **Embodied, not abstract:** the resource *is* what you see — pixels of light, a nectar droplet, a pollen
+  load on a pollinator's legs, sugar glowing in the trunk. **"Pixels are a prime resource" is literal:**
+  colour = energy. Maintenance/respiration dissipates as heat (2nd law); the world is bounded by light in ÷
+  losses (eddy's dissipative thesis, kept). (Do NOT reintroduce eddy's abstract lumen/mineral/humus —
+  nectar + pollen, embodied, is the whole economy.)
+- **Payload quality/toxicity is a Thread-Map layer, not the prototype** (see §8): a flower could lace its
+  payload — toxic to a *mismatched* generalist, safe to its matched specialist (real biology) — flipping
+  the lock-and-key from "match = more" to "match = safe / mismatch = poisoned," and enabling deception.
+  Great, but it rides on top of the two-resource base. Build the base first.
 
 ### 3.5 The player — steward of selection (the levers; sandbox)
 
@@ -206,8 +265,11 @@ If no → we learned cheaply what's missing.
 Recorded so it isn't lost; **out of scope for the prototype.**
 1. **Niches-as-progression, deepened** — many tree niches (high/low flowers, sap-wells, shelter, fruit);
    investing sugar to grow them is the core progression; each is a new emergent relationship.
-2. **Honest vs. cheating signals** — deceptive flowers (no reward), nectar-robbers; trust co-evolves →
-   arms races. The deep engine of drama, on the same channel.
+2. **Honest vs. cheating signals + payload toxicity** (Blaine's) — deceptive flowers (no reward),
+   nectar-robbers, and **laced payloads**: a flower's nectar/pollen can be toxic to a *mismatched*
+   generalist but safe to its matched specialist (real biology — nicotine nectar, "mad honey"). Flips the
+   lock-and-key from "match = more" to "match = safe / mismatch = poisoned" → rewards specialisation harder,
+   enables deception. Trust + tolerance co-evolve. The deep engine of drama, on the same channel.
 3. **Predator-mimic** (Blaine's) — a predator wearing the flower's code to ambush foragers; exploits the
    signal channel → Red Queen. Just another niche.
 4. **Castes & quorum** — forager/nurse/scout roles differentiate from simple rules; colony decisions by
