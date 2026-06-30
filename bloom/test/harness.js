@@ -398,5 +398,19 @@ require('../js/sim.js');
     'serialize → load → tick matches the original (round-trip identity)');
 })();
 
+// ---- Task 13(plan): the levers ----
+section('levers — lock, plant, place colony, grow niche');
+
+(function testLevers() {
+  const sim = B.makeSim(7); sim.warmStart();
+  const fl = sim.allFlowers()[0];
+  sim.lockFlower(fl, true); ok(fl.locked === true, 'lockFlower freezes a flower');
+  sim.lockFlower(fl, false); ok(fl.locked === false, 'lockFlower releases it');
+  const p0 = sim.plants.length; sim.plantAt(40, 30); ok(sim.plants.length >= p0 || sim.plants.length === 12, 'plantAt adds/keeps within cap');
+  const c0 = sim.colonies.length; sim.placeColony(20, 50); ok(sim.colonies.length === c0 + 1, 'placeColony adds a colony');
+  const plant = sim.plants[0]; plant.sugar = 50; const nb = plant.flowers.length;
+  ok(sim.growNicheOn(plant) && plant.flowers.length === nb + 1, 'growNicheOn grows a niche');
+})();
+
 console.log(`\n${fails === 0 ? 'ALL PASS' : fails + ' FAILED'} — ${total - fails}/${total}`);
 process.exit(fails ? 1 : 0);
