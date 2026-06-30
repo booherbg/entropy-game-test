@@ -3,17 +3,204 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>bloom</title>
+<meta name="theme-color" content="#0d0f13">
+<title>bloom — a garden you coax into matching</title>
 <style>
-  html, body { margin: 0; background: #0d0f13; color: #e8e4da;
-    font-family: Georgia, 'Times New Roman', serif; }
-  #boot { padding: 40px; opacity: .6; font-style: italic; }
+  :root{
+    --bg:#0d0f13; --panel:#12151b; --panel2:#171b22; --ink:#e8e4da; --dim:#8a857a;
+    --line:rgba(232,228,218,.10); --amber:#f0b870; --amberlit:#ffd9a0; --moss:#9fd98f;
+    --sky:#6fb0f0; --rose:#e08ac0; --r:13px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    font-family:Georgia,'Times New Roman',serif;-webkit-text-size-adjust:100%;overflow:hidden}
+  body{display:flex;flex-direction:column}
+  button{font-family:inherit;color:var(--ink);background:var(--panel2);border:1px solid #2a2f38;
+    border-radius:9px;padding:8px 12px;cursor:pointer;font-size:13px;transition:border-color .15s,color .15s,background .15s}
+  button:hover{border-color:var(--amber);color:var(--amberlit)}
+  button.on{border-color:var(--amber);color:#1a140a;background:var(--amber)}
+  .sr{position:absolute;left:-9999px}
+
+  /* header */
+  header{display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid var(--line);
+    background:linear-gradient(#11141a,#0d0f13);flex:0 0 auto;flex-wrap:wrap}
+  .brand{font-size:21px;letter-spacing:.5px}
+  .brand small{opacity:.45;font-style:italic;font-size:12px;margin-left:6px}
+  .hgauge{flex:1;min-width:150px;max-width:340px}
+  .hgwrap{display:flex;align-items:center;gap:8px}
+  .gauge{height:11px;flex:1;background:#23262d;border-radius:6px;overflow:hidden;min-width:80px}
+  .gfill{height:100%;width:15%;background:linear-gradient(90deg,#e0604c,#f0b870,#9fd98f);transition:width .4s}
+  .gcap{font-size:11.5px;color:var(--dim);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gcap b{color:var(--amberlit)} .gcap span{color:var(--moss)}
+  .hctl{display:flex;align-items:center;gap:6px}
+  .gen{font-size:11px;color:var(--dim);min-width:74px;text-align:right;font-variant-numeric:tabular-nums}
+
+  /* main */
+  main{flex:1;display:flex;min-height:0;gap:0}
+  .stage{flex:1;min-width:0;display:flex;flex-direction:column;position:relative;background:#070809}
+  .worldwrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:8px;position:relative}
+  canvas#world{width:100%;height:auto;max-height:100%;image-rendering:pixelated;border-radius:10px;
+    box-shadow:0 10px 40px rgba(0,0,0,.5);cursor:crosshair;touch-action:none}
+  .hint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);font-size:12.5px;color:var(--dim);
+    background:rgba(8,9,12,.78);padding:7px 14px;border-radius:20px;font-style:italic;pointer-events:none;
+    border:1px solid var(--line);max-width:90%;text-align:center;transition:opacity .4s}
+  .toast{position:absolute;left:50%;top:16px;transform:translateX(-50%);background:rgba(18,21,27,.95);
+    border:1px solid var(--amber);border-radius:11px;padding:11px 18px;font-size:13.5px;max-width:84%;
+    box-shadow:0 8px 30px rgba(0,0,0,.5);opacity:0;transition:opacity .5s;pointer-events:none;text-align:center}
+  .toast b{color:var(--amberlit)}
+
+  /* sidebar */
+  .side{flex:0 0 332px;border-left:1px solid var(--line);background:var(--panel);overflow-y:auto;
+    padding:14px;display:flex;flex-direction:column;gap:13px;-webkit-overflow-scrolling:touch}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:var(--r);padding:13px}
+  .cap{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--dim);margin-bottom:9px}
+
+  /* lock-and-key */
+  .lkrow{display:flex;align-items:center;justify-content:center;gap:14px}
+  .lkrow svg{image-rendering:pixelated;border-radius:5px;display:block}
+  .gl{font-size:10px;color:var(--dim);text-align:center;margin-top:5px;letter-spacing:.3px}
+  .lkar{font-size:22px;color:var(--dim);align-self:center;margin-top:-14px}
+  .lk .gauge{margin-top:13px;height:13px}
+  .lk .gcap{margin-top:6px;font-size:12.5px;text-align:center;color:var(--ink)}
+
+  /* graphs */
+  .gph{margin-bottom:9px} .gph:last-child{margin-bottom:0}
+  .gpt{font-size:10.5px;color:var(--dim);margin-bottom:2px}
+  .gph svg{height:38px;width:100%;background:#0c0e12;border-radius:6px;border:1px solid var(--line)}
+
+  /* inspect */
+  .insp .ihead{font-size:15px;margin-bottom:9px} .insp .ihead span{color:var(--dim);font-size:12px}
+  .irow{display:flex;gap:12px;align-items:flex-start} .irow svg{image-rendering:pixelated;border-radius:4px}
+  .ibody{flex:1;font-size:12px} .recipe{color:var(--ink);margin-bottom:5px}
+  .idim{color:var(--dim);font-size:11px;margin-bottom:7px;font-variant-numeric:tabular-nums}
+  .iwhy{color:#cfc9bd;font-style:italic;font-size:12px;line-height:1.5}
+  .iact{margin-top:10px} .iact button{width:100%}
+  .empty{color:var(--dim);font-style:italic;font-size:12.5px;text-align:center;padding:8px 0}
+
+  /* toolbar */
+  .toolbar{flex:0 0 auto;display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--line);
+    background:linear-gradient(#0d0f13,#11141a);overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tool{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:62px;padding:8px 6px;flex:0 0 auto}
+  .tool .ti{font-size:18px;line-height:1} .tool .tl{font-size:10.5px}
+
+  /* overlay (murmurs / intro) */
+  .overlay{position:fixed;inset:0;background:rgba(5,6,9,.72);backdrop-filter:blur(3px);display:none;
+    align-items:center;justify-content:center;z-index:40;padding:18px}
+  .overlay.show{display:flex}
+  .sheet{background:var(--panel);border:1px solid var(--line);border-radius:16px;max-width:620px;width:100%;
+    max-height:86vh;overflow-y:auto;padding:26px 28px;box-shadow:0 20px 70px rgba(0,0,0,.6)}
+  .sheet h2{font-weight:normal;font-size:24px;margin:0 0 4px}
+  .sheet .sub{color:var(--dim);font-style:italic;font-size:13px;margin-bottom:18px}
+  .murmur{padding:14px 0;border-bottom:1px dashed var(--line)}
+  .murmur .mi{color:var(--dim);font-size:11px;letter-spacing:2px;margin-bottom:6px}
+  .murmur .mt{font-size:15.5px;font-style:italic;line-height:1.55}
+  .murmur .mw{color:var(--amber);font-size:12.5px;margin-top:7px}
+  .murmur.ai{background:linear-gradient(90deg,rgba(240,184,112,.06),transparent);border-radius:10px;padding:16px 14px;border:1px solid rgba(240,184,112,.18)}
+  .murmur.ai .mt{color:var(--amberlit)}
+  .locked{opacity:.32;filter:grayscale(.5)}
+  .locked .mt{filter:blur(3px);user-select:none}
+  .sheet .close{float:right;background:none;border:none;font-size:20px;color:var(--dim);padding:0 4px}
+  .sheet .btnrow{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+  .intro p{font-size:14.5px;line-height:1.7;color:#cfc9bd}
+  .intro .k{color:var(--amberlit)}
+
+  @media (max-width:860px){
+    main{flex-direction:column}
+    .stage{flex:0 0 auto}
+    .worldwrap{padding:6px}
+    canvas#world{max-height:46vh}
+    .side{flex:1 1 auto;border-left:none;border-top:1px solid var(--line);min-height:0}
+    .gen{display:none}
+    header{padding:9px 12px;gap:10px}
+    .brand{font-size:18px}
+  }
 </style>
 </head>
 <body>
-  <div id="boot">bloom — scaffolding. the garden is being grown.</div>
-  <!-- sim core (browser+node modules) -->
+  <header>
+    <div class="brand">bloom<small>coax them into matching</small></div>
+    <div class="hgauge">
+      <div class="hgwrap"><div class="gauge"><div class="gfill" id="hgfill"></div></div></div>
+      <div class="gcap" id="hgcap">lock-and-key fit · <b>—</b></div>
+    </div>
+    <div class="hctl">
+      <button id="btnPause" title="pause / breathe (space)">⏸</button>
+      <button id="btnSpeed" title="speed">▷ 1×</button>
+      <span class="gen" id="gen">gen 0</span>
+      <button id="btnMurmurs" title="murmurs">✦ murmurs</button>
+      <button id="btnMenu" title="menu">≡</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="stage">
+      <div class="worldwrap">
+        <canvas id="world"></canvas>
+        <div class="toast" id="toast"></div>
+        <div class="hint" id="hint">the bees and the flowers don&rsquo;t fit yet. let it run — and watch the two patterns drift into a matched pair.</div>
+      </div>
+      <div class="toolbar" id="toolbar">
+        <button class="tool" data-tool="inspect" title="tap a flower or bee to read it"><span class="ti">🔍</span><span class="tl">inspect</span></button>
+        <button class="tool" data-tool="lock" title="freeze the inspected flower&rsquo;s pattern so the bees must chase it"><span class="ti">🔒</span><span class="tl">lock</span></button>
+        <button class="tool" data-tool="plant" title="plant a flower"><span class="ti">🌱</span><span class="tl">plant</span></button>
+        <button class="tool" data-tool="colony" title="place a colony"><span class="ti">🐝</span><span class="tl">colony</span></button>
+        <button class="tool" data-tool="niche" title="spend a tree&rsquo;s sugar to grow a new niche (a new lock)"><span class="ti">🌿</span><span class="tl">grow niche</span></button>
+      </div>
+    </div>
+
+    <aside class="side">
+      <div class="card"><div class="cap">the lock &amp; key — the merge</div><div id="lockkey"></div></div>
+      <div class="card"><div class="cap">the garden, over time</div><div id="graphs"></div></div>
+      <div class="card"><div class="cap">inspect — the living machine</div><div id="inspect"><div class="empty">tap a flower or a forager in the garden to read it.</div></div></div>
+    </aside>
+  </main>
+
+  <!-- overlays -->
+  <div class="overlay" id="murmursOv">
+    <div class="sheet">
+      <button class="close" data-close>✕</button>
+      <h2>murmurs</h2>
+      <div class="sub">fragments that surface as the garden deepens. the rest are still in the soil.</div>
+      <div id="murmursList"></div>
+    </div>
+  </div>
+  <div class="overlay" id="menuOv">
+    <div class="sheet">
+      <button class="close" data-close>✕</button>
+      <h2>bloom</h2>
+      <div class="sub">a garden you coax into matching</div>
+      <div class="intro">
+        <p>a flowering patch and a colony of pollinators are two living machines, each the other&rsquo;s
+        reproductive organ. up close, every flower is a <span class="k">colour-grid maze</span>; a forager
+        reads it with its inherited <span class="k">key</span>. read it well → rich nectar, strong pollination.</p>
+        <p>nobody paints the patterns. you only set conditions — and natural selection drifts the flowers&rsquo;
+        grids and the foragers&rsquo; keys toward each other until they <span class="k">merge</span> into an
+        exquisitely-fit pair. that climb, from fumbling to native, is the whole of it.</p>
+        <p style="color:#8a857a;font-style:italic">the world breathes on its own. pause to make weighed moves. it&rsquo;s lovely to let it run and come back.</p>
+      </div>
+      <div class="btnrow">
+        <button id="btnNew">↻ new garden (random seed)</button>
+        <button id="btnReset">⌫ forget this garden</button>
+        <button data-close>play</button>
+      </div>
+      <div class="sub" id="seedline" style="margin-top:14px"></div>
+    </div>
+  </div>
+
   <script src="js/rng.js"></script>
   <script src="js/const.js"></script>
+  <script src="js/field.js"></script>
+  <script src="js/genome.js"></script>
+  <script src="js/flower.js"></script>
+  <script src="js/plant.js"></script>
+  <script src="js/pollinator.js"></script>
+  <script src="js/colony.js"></script>
+  <script src="js/sim.js"></script>
+  <script src="js/render-core.js"></script>
+  <script src="js/render-world.js"></script>
+  <script src="js/render-dash.js"></script>
+  <script src="js/content.js"></script>
+  <script src="js/persist.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>
