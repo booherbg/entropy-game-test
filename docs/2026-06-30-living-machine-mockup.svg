@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1060" height="640" viewBox="0 0 1060 640" font-family="Georgia, 'Times New Roman', serif">
+  <defs>
+    <radialGradient id="body" cx="42%" cy="38%" r="65%">
+      <stop offset="0%" stop-color="#f6d98a"/><stop offset="55%" stop-color="#d99a3c"/><stop offset="100%" stop-color="#7a4e1c"/>
+    </radialGradient>
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#e8b24a" stop-opacity="0.55"/><stop offset="100%" stop-color="#e8b24a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="env" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#3a3318" stop-opacity="0.9"/><stop offset="100%" stop-color="#16140d" stop-opacity="0"/>
+    </radialGradient>
+    <style>.cap{fill:#8a857a;font-size:11px;letter-spacing:1.4px}.lab{fill:#cfc9bd;font-size:13px}.dim{fill:#8a857a;font-size:12px}</style>
+  </defs>
+  <rect width="1060" height="640" fill="#0f1115"/>
+  <text x="34" y="44" fill="#e8e4da" font-size="25">a factory whose machines are alive</text>
+  <text x="34" y="68" fill="#9a958a" font-size="14" font-style="italic">inspect a creature: its body is a record of adaptation, its insides are a recipe you can read</text>
+
+  <!-- ── LEFT: the creature, with presence, camouflaged in its niche ── -->
+  <rect x="34" y="92" width="470" height="510" rx="13" fill="#0c0e12" stroke="#23262d"/>
+  <text x="56" y="120" class="cap">THE CREATURE · REAL PRESENCE</text>
+  <!-- its environment patch (it is camouflaged INTO it) -->
+  <ellipse cx="269" cy="250" rx="180" ry="130" fill="url(#env)"/>
+  <ellipse cx="269" cy="250" rx="120" ry="105" fill="url(#halo)"/>
+  <!-- the body: an organic form, not a blob -->
+  <g>
+    <!-- cilia / actuation -->
+    <g stroke="#caa24a" stroke-width="2" opacity="0.7">
+      <path d="M269 168 q-6 -22 -16 -34" fill="none"/><path d="M269 168 q6 -22 16 -34" fill="none"/>
+      <path d="M190 250 q-26 -4 -44 4" fill="none"/><path d="M348 250 q26 -4 44 4" fill="none"/>
+      <path d="M210 312 q-16 18 -34 26" fill="none"/><path d="M328 312 q16 18 34 26" fill="none"/>
+    </g>
+    <ellipse cx="269" cy="250" rx="86" ry="98" fill="url(#body)" stroke="#caa24a" stroke-width="1.5"/>
+    <!-- pattern: spots that read its lineage -->
+    <g fill="#9a6a22" opacity="0.6"><circle cx="246" cy="224" r="9"/><circle cx="292" cy="240" r="7"/><circle cx="262" cy="276" r="11"/><circle cx="300" cy="290" r="6"/><circle cx="232" cy="270" r="6"/></g>
+    <!-- a sensing eye-spot / actuation cue -->
+    <circle cx="250" cy="214" r="6" fill="#1a140a"/><circle cx="252" cy="212" r="2" fill="#f6d98a"/>
+  </g>
+  <text x="56" y="408" fill="#e8e4da" font-size="20">sunmoss <tspan fill="#8a857a" font-size="13">· gen 14 · thriving</tspan></text>
+  <text x="56" y="436" class="dim">a lumen-eater. gold body, sun-warm spots, fronded cilia</text>
+  <text x="56" y="454" class="dim">that drink light; pale-edged to hide in the bright basin.</text>
+  <line x1="56" y1="470" x2="482" y2="470" stroke="#23262d"/>
+  <text x="56" y="496" class="cap">WHY IT LOOKS THIS WAY</text>
+  <text x="56" y="520" fill="#cfc9bd" font-size="13.5" font-style="italic">nobody designed it. its form, colour and camouflage</text>
+  <text x="56" y="540" fill="#cfc9bd" font-size="13.5" font-style="italic">are written by its genome — and the genome is what</text>
+  <text x="56" y="560" fill="#cfc9bd" font-size="13.5" font-style="italic">entropy and selection left alive. it fits its niche</text>
+  <text x="56" y="580" fill="#f0b870" font-size="13.5" font-style="italic">because everything that didn't, died.</text>
+
+  <!-- ── RIGHT TOP: its insides = a metabolic recipe (a living assembler) ── -->
+  <rect x="528" y="92" width="498" height="232" rx="13" fill="#0c0e12" stroke="#23262d"/>
+  <text x="550" y="120" class="cap">ITS INSIDES · A METABOLIC RECIPE (DETERMINISTIC)</text>
+  <!-- inputs -->
+  <text x="550" y="156" class="dim">eats</text>
+  <g><circle cx="566" cy="186" r="15" fill="#ebb446"/><text x="566" y="191" fill="#10131a" font-size="14" text-anchor="middle">☀</text><text x="566" y="218" fill="#cfc9bd" font-size="11" text-anchor="middle">lumen</text></g>
+  <g><circle cx="612" cy="186" r="15" fill="#6fb0f0"/><text x="612" y="191" fill="#10131a" font-size="13" text-anchor="middle">◆</text><text x="612" y="218" fill="#cfc9bd" font-size="11" text-anchor="middle">mineral</text></g>
+  <!-- arrow into the gear -->
+  <path d="M644 186 L690 186" stroke="#5a5650" stroke-width="2"/><polygon points="690,186 680,181 680,191" fill="#5a5650"/>
+  <!-- the process -->
+  <circle cx="730" cy="186" r="34" fill="#15181d" stroke="#caa24a" stroke-width="1.5"/>
+  <text x="730" y="182" fill="#e8e4da" font-size="20" text-anchor="middle">⚙</text>
+  <text x="730" y="200" fill="#8a857a" font-size="9" text-anchor="middle">metabolise</text>
+  <!-- arrow out -->
+  <path d="M770 186 L816 186" stroke="#5a5650" stroke-width="2"/><polygon points="816,186 806,181 806,191" fill="#5a5650"/>
+  <!-- outputs -->
+  <text x="858" y="156" class="dim">makes</text>
+  <g><circle cx="874" cy="186" r="15" fill="#7cc878"/><text x="874" y="191" fill="#10131a" font-size="13" text-anchor="middle">♻</text><text x="874" y="218" fill="#cfc9bd" font-size="11" text-anchor="middle">humus</text></g>
+  <g><circle cx="930" cy="186" r="15" fill="#e8e0c8"/><text x="930" y="191" fill="#10131a" font-size="12" text-anchor="middle">✦</text><text x="930" y="218" fill="#cfc9bd" font-size="11" text-anchor="middle">motion</text></g>
+  <text x="550" y="262" fill="#cfc9bd" font-size="13">one fixed reaction, like an assembler. <tspan fill="#8a857a" font-style="italic">its excess (humus) is the next creature's food.</tspan></text>
+  <text x="550" y="290" fill="#cfc9bd" font-size="13">mutate the recipe a little each generation → <tspan fill="#f0b870">selection keeps what fits.</tspan></text>
+
+  <!-- ── RIGHT BOTTOM: the living factory (self-built, Rube-Goldberg) ── -->
+  <rect x="528" y="340" width="498" height="262" rx="13" fill="#0c0e12" stroke="#23262d"/>
+  <text x="550" y="368" class="cap">THE LIVING FACTORY · IT BUILDS ITSELF</text>
+  <!-- nodes -->
+  <g>
+    <circle cx="585" cy="430" r="13" fill="#c9772b"/><text x="585" y="455" fill="#8a857a" font-size="10" text-anchor="middle">spring</text>
+    <circle cx="675" cy="430" r="15" fill="#ebb446"/><text x="675" y="458" fill="#8a857a" font-size="10" text-anchor="middle">lumen-eater</text>
+    <circle cx="785" cy="430" r="15" fill="#7cc878"/><text x="785" y="458" fill="#8a857a" font-size="10" text-anchor="middle">decomposer</text>
+    <circle cx="895" cy="430" r="16" fill="#e8e0c8"/><text x="895" y="458" fill="#8a857a" font-size="10" text-anchor="middle">composite</text>
+    <circle cx="840" cy="520" r="14" fill="#e0604c"/><text x="840" y="544" fill="#8a857a" font-size="10" text-anchor="middle">hunter</text>
+  </g>
+  <g stroke="#5a5650" stroke-width="2" fill="none">
+    <path d="M600 430 L658 430"/><path d="M692 430 L768 430"/><path d="M802 430 L877 430"/>
+    <path d="M886 444 Q865 490 852 506"/>
+  </g>
+  <g fill="#5a5650"><polygon points="658,430 648,425 648,435"/><polygon points="768,430 758,425 758,435"/><polygon points="877,430 867,425 867,435"/></g>
+  <text x="640" y="416" fill="#7cc878" font-size="10" font-style="italic">excess → food</text>
+  <!-- organic edge -->
+  <path d="M895 446 q34 30 8 64" stroke="#f0b870" stroke-width="1.6" stroke-dasharray="5 4" fill="none" opacity="0.8"/>
+  <text x="912" y="510" fill="#f0b870" font-size="10" font-style="italic">the organic edge</text>
+  <text x="912" y="524" fill="#8a857a" font-size="9" font-style="italic">mutates · surprises</text>
+  <text x="550" y="588" fill="#cfc9bd" font-size="13">route the excess of one life into the next. by the time it's complex, <tspan fill="#f0b870">you can't trace how it started.</tspan></text>
+</svg>
