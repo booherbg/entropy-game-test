@@ -79,7 +79,11 @@
         // pick up fresh pollen on the body (viable load scaled by how well it read the flower)
         this.pollenOnBody = r.pollination;
         this.prevSpecies = f.speciesId;
-        this.lastYield = r.nectar + r.pollen;
+        // net haul = reward minus any lace toxin (a mismatched generalist pays; a matched specialist is safe).
+        // gentle: it lowers the forager's yield (so it raises fewer larvae) and vitality — never lethal.
+        const poison = r.poison || 0;
+        this.lastYield = Math.max(0, r.nectar + r.pollen - poison);
+        this.energy -= poison * 0.5;
         this.lastEff = r.pollination;            // for render/inspect (specialization legibility)
         this.lastGrid = f.grid;                  // the flower that fed it — its offspring's key drifts toward this
         this.lastBeaconHue = f.beaconHue;

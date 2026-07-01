@@ -27,13 +27,14 @@ reviewer who read the code + screenshots) — see the verdict below. Keep `node 
       trees; single-niche read as stemmed blooms. The void fills with form; the garden is grown, not placed.
       Render-only, soul untouched. DONE. (FULL grand single mother-tree / recursive L-system with sub-twigs
       is a later bigger step — this grounds the garden first.)
-- [ ] **iter 4 — laced payloads / honest-vs-deceptive signals** (critic's #1 highest-leverage, §8.2): flower
-      genes `honesty` + `lace`; a well-matched specialist drinks safe, a mismatched generalist lured by a
-      bright beacon takes a gentle vitality hit (never lethal — DNA #2). Deceptive flowers free-ride on trust
-      → foragers learn to distrust a colour → **Red Queen: the merge never finishes, fit oscillates in the
-      80s-90s forever instead of pinning at 100 and dying.** Converts the dead fixed-point into a dance.
-      Rides on existing `visit()`/`eff` machinery. GUARD the soul test hard (it should still climb from
-      fumbling; it just shouldn't pin at 1.0 forever).
+- [x] **iter 4 — laced payloads / honest-vs-deceptive signals** (critic's #1 highest-leverage, §8.2): DONE.
+      Added flower genes `honesty` (a deceiver stocks little + costs the tree little → cheap free-rider on a
+      bright beacon) + `lace` (a mismatched forager pays a gentle toxin cost; a matched specialist is safe —
+      "match = safe, mismatch = poisoned"). Result (measured in diag): the colony stays healthy (0 starved),
+      honesty finds a wobbling mixed equilibrium (~0.64 — honest + deceptive coexist), and **meanFit now
+      OSCILLATES in the 0.66-0.93 range instead of pinning — the Red Queen dance, visible in the live fit
+      graph as a wobbly plateau.** Soul test still green (peak 0.94, sustained 0.84 mean). Legibility: inspect
+      shows honest/part-honest/deceiver + laced; a 'deception' murmur + codex fire when a real cheat emerges.
 - [ ] **iter 5 — pollen as a real decision** (critic #4 / SimCity T4): wire `dietBias` into foraging + make
       flowers trade nectar↔pollen (a payload gene) so the colony must forage a balanced diet. The
       eaten-vs-carried tension made real. Two meters that finally drive a choice.

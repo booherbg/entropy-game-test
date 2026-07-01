@@ -49,10 +49,12 @@
           this._buildFlower(this.genome, this.flowers.length);
         }
 
-        // ── keep flowers stocked (richer flowers cost more → trait trade-off has teeth) ──
+        // ── keep flowers stocked. An HONEST flower backs its bright beacon with real reward (costs the tree
+        //    more sugar); a DECEIVER advertises just as loud but stocks little — cheap, so it can out-seed the
+        //    honest ones as long as foragers still trust its colour. That tension is the Red Queen. ──
         for (let i = 0; i < this.flowers.length; i++) {
           const fl = this.flowers[i];
-          const want = 0.35 * fl.beaconIntensity;
+          const want = 0.35 * fl.beaconIntensity * fl.honesty;
           if (this.sugar > want) { this.sugar -= want; fl.restock(want); }
           // accumulated pollination → seed
           if (fl.seedProgress >= SEED_THRESHOLD) { this.seeds++; fl.seedProgress -= SEED_THRESHOLD; }

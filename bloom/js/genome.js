@@ -36,6 +36,14 @@
       // ECONOMY — richer = costlier (selection has teeth)
       nectarRate: 0.6 + rng() * 0.9,                // how much nectar this flower stocks per sugar
       pollenRate: 0.6 + rng() * 0.9,                // how much pollen
+      // HONESTY vs DECEPTION — how much real reward backs the advertised beacon. A deceiver spends little
+      // sugar (cheap), stocks little (pays little), but still advertises + gets pollinated → it free-rides
+      // on the colony's trust until their preference evolves away from its colour (a frequency-dependent
+      // Red Queen: the merge never quite settles).
+      honesty: 0.55 + rng() * 0.45,                 // 0.55..1 (start mostly honest)
+      // LACE — a toxin keyed to the grid: harmless to a matched specialist, a gentle cost to a mismatched
+      // generalist lured in by the beacon (match = safe, mismatch = poisoned — real biology, nicotine nectar).
+      lace: rng() * 0.5,                            // 0..0.5 (start mostly mild)
     };
   };
 
@@ -104,11 +112,12 @@
       petalColor: g.petalColor, guideColor: g.guideColor, coreColor: g.coreColor, guidePattern: g.guidePattern,
       ringColor: g.ringColor | 0, ringPattern: g.ringPattern | 0, veinColor: g.veinColor | 0, veinFreq: g.veinFreq | 0,
       beaconHue: g.beaconHue, beaconIntensity: g.beaconIntensity, nectarRate: g.nectarRate, pollenRate: g.pollenRate,
+      honesty: g.honesty == null ? 1 : g.honesty, lace: g.lace || 0,
     };
     // how many genes to touch this step (usually 1)
     const k = 1 + (rng() < 0.25 * rate ? 1 : 0);
     for (let n = 0; n < k; n++) {
-      const pick = randint(rng, 0, 15);
+      const pick = randint(rng, 0, 17);
       switch (pick) {
         case 0: c.symmetry = clamp(c.symmetry + (rng() < 0.5 ? -1 : 1), 3, 8); break;
         case 1: c.petalLength = clamp(c.petalLength + B.gauss(rng) * 0.10 * rate, 0.5, 0.98); break;
@@ -126,6 +135,8 @@
         case 13: c.beaconIntensity = clamp(c.beaconIntensity + B.gauss(rng) * 0.08 * rate, 0.4, 1); break;
         case 14: c.nectarRate = clamp(c.nectarRate + B.gauss(rng) * 0.12 * rate, 0.4, 1.6); break;
         case 15: c.pollenRate = clamp(c.pollenRate + B.gauss(rng) * 0.12 * rate, 0.4, 1.6); break;
+        case 16: c.honesty = clamp(c.honesty + B.gauss(rng) * 0.10 * rate, 0.25, 1); break;
+        case 17: c.lace = clamp(c.lace + B.gauss(rng) * 0.10 * rate, 0, 0.8); break;
       }
     }
     return c;
