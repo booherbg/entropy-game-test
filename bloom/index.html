@@ -57,7 +57,7 @@
 
   /* lock-and-key */
   .lkrow{display:flex;align-items:center;justify-content:center;gap:14px}
-  .lkrow svg{image-rendering:pixelated;border-radius:5px;display:block}
+  .gridwrap svg{image-rendering:pixelated;border-radius:5px;display:block;max-width:100%;height:auto}
   .gl{font-size:10px;color:var(--dim);text-align:center;margin-top:5px;letter-spacing:.3px}
   .lkar{font-size:22px;color:var(--dim);align-self:center;margin-top:-14px}
   .lk .gauge{margin-top:13px;height:13px}
@@ -123,7 +123,11 @@
     header{padding:9px 12px;gap:10px}
     .brand{font-size:18px}
     .gcap{white-space:normal;text-overflow:clip}
-    .hgauge{max-width:none}
+    .hgauge{order:5;flex-basis:100%;max-width:none}
+    .side{overflow-x:hidden}
+    .lkrow{gap:6px}
+    .lkrow .gridwrap{flex:0 1 auto;min-width:0}
+    .lkrow .gridwrap svg{max-width:38vw}
   }
 </style>
 </head>
