@@ -116,11 +116,16 @@
         const cost = B.NICHE_COST || 8, pct = Math.min(100, plant.sugar / cost * 100);
         const light = sim.field.lightAt(plant.x, plant.y), lb = sim.field.lightBase || 0.72;
         const lw = light > lb + 0.15 ? '<b style="color:#ffd9a0">full sun</b>' : light < lb - 0.15 ? '<b style="color:#8fb0d8">shade</b>' : 'even light';
+        const shade = plant.shade || 0;
+        const crowd = shade > 0.12 ? ` · <b style="color:#8fb0d8">crowded −${(shade * 100) | 0}%</b>` : '';
         const ready = plant.sugar >= cost;
+        const nudge = ready ? '<b style="color:#9fd98f">✓ ready — use the 🌿 tool here to grow a new niche</b>'
+          : shade > 0.2 ? 'starved of light by its neighbours — <b style="color:#e8e0c8">thin them (✂)</b> to free the sun'
+          : 'banking sugar from light — <b style="color:#ffd9a0">more sun</b> fills it faster (☀ tool)';
         sugarRow = `<div class="idim" style="margin-top:2px">sugar to grow a niche
             <span class="sbar"><span class="sfill" style="width:${pct.toFixed(0)}%"></span></span>
-            ${plant.sugar.toFixed(1)} / ${cost} · ${lw}</div>
-          <div class="idim">${ready ? '<b style="color:#9fd98f">✓ ready — use the 🌿 tool here to grow a new niche</b>' : 'banking sugar from light — <b style="color:#ffd9a0">more sun</b> fills it faster (☀ tool)'}</div>`;
+            ${plant.sugar.toFixed(1)} / ${cost} · ${lw}${crowd}</div>
+          <div class="idim">${nudge}</div>`;
       }
       return `<div class="insp">
         <div class="ihead">a flower <span>· niche ${(fl.niche || 0) + 1} · ${fl.locked ? 'LOCKED' : 'drifting'}</span></div>
