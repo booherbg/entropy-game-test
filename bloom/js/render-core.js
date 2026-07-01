@@ -28,7 +28,7 @@
     const warm = Math.max(0, Math.min(1, fit));
     const season = warm * warm * (3 - 2 * warm);   // smoothstep
     // ground palette: cold blue-grey → warm loam; canopy: cold pewter → golden
-    const gLo = [15 + season * 8, 17 + season * 2, 24 - season * 10];       // deep ground
+    const gLo = [19 + season * 4, 18 + season * 1, 20 - season * 6];        // deep ground (warmed at season=0, round 3)
     const gHi = [28 + season * 34, 32 + season * 14, 42 - season * 12];     // lit canopy top
 
     // ── background: seasoned loam lit by the (now-designable) light field. Sunlit zones glow warm; shaded
@@ -173,7 +173,7 @@
     }
 
     // ── ambient motes: pollen + light drifting up on the air (sparse in the cold, thick in high summer) ──
-    const MOTES = 10 + Math.round(season * 28), tc = sim.tickCount;
+    const MOTES = 16 + Math.round(season * 28), tc = sim.tickCount;
     for (let k = 0; k < MOTES; k++) {
       const hx = (k * 53 % W) + Math.sin(tc * 0.018 + k * 1.7) * 3;
       const hy = H - ((tc * 0.05 + k * (H / MOTES) + (k * 29 % H)) % (H + 6));
@@ -214,7 +214,7 @@
 
     // ── the entropy wash: pull the whole frame toward grey when the pair is fumbling, release to full colour
     //    as they match. colour = order; grey = the second law. the screen itself measures the merge. ──
-    const desat = (1 - season) * 0.6;
+    const desat = (1 - season) * 0.375;
     if (desat > 0.01) {
       for (let i = 0; i < rgb.length; i += 3) {
         const lum = rgb[i] * 0.3 + rgb[i + 1] * 0.59 + rgb[i + 2] * 0.11;
