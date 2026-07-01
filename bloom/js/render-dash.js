@@ -91,13 +91,17 @@
     if (sel.kind === 'flower') {
       const fl = sel.ref, g = fl.genome;
       const hue = (g.beaconHue * 360) | 0;
+      const hon = fl.honesty == null ? 1 : fl.honesty;
+      const honWord = hon > 0.8 ? '<b style="color:#9fd98f">honest</b>' : hon > 0.55 ? 'part-honest' : '<b style="color:#e08ac0">a deceiver</b> — advertises loud, pays little';
+      const laceWord = (fl.lace || 0) > 0.45 ? ' · <b style="color:#e0604c">laced</b> (safe only if you read it well)' : '';
       return `<div class="insp">
         <div class="ihead">a flower <span>· niche ${(fl.niche || 0) + 1} · ${fl.locked ? 'LOCKED' : 'drifting'}</span></div>
         <div class="irow">${gridSVG(fl.grid, px, 'its decode-grid (the maze)')}
           <div class="ibody">
             <div class=" recipe">eats <b>sugar</b> → packages <b style="color:#f0b870">nectar</b> + <b style="color:#e8e0c8">pollen</b></div>
             <div class="idim">beacon hue ${hue}° · ${g.symmetry} petals · nectar ${fl.nectar.toFixed(1)} · pollen ${fl.pollen.toFixed(1)}</div>
-            <div class="iwhy">its pattern is its genome made visible. the colony&rsquo;s keys are drifting toward exactly this — because the foragers that read it best are the ones that get fed.</div>
+            <div class="idim">signal: ${honWord}${laceWord}</div>
+            <div class="iwhy">its pattern is its genome made visible. the colony&rsquo;s keys drift toward it — but a bright beacon can lie, and a flower can lace its reward against the foragers that can&rsquo;t read it.</div>
           </div></div>
         <div class="iact"><button data-act="lock">${fl.locked ? 'release this flower' : 'lock this flower (make the bees chase it)'}</button></div>
       </div>`;

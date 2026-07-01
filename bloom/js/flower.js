@@ -16,6 +16,8 @@
       speciesId: speciesId | 0,
       beaconHue: genome.beaconHue,
       beaconIntensity: genome.beaconIntensity,
+      honesty: genome.honesty == null ? 1 : genome.honesty, // how much real reward backs the beacon
+      lace: genome.lace || 0,                // toxin keyed to the grid — safe to a matched specialist
       grid: B.Genome.decodeGrid(genome),     // the fingerprint — what selection drifts toward the key
       nectar: 0, pollen: 0,                  // pools (restocked from sugar)
       cap: 6,                                // pool ceiling (richer flowers earn a higher cap below)
@@ -39,8 +41,11 @@
         const takePollen = Math.min(this.pollen, eff * EXTRACT);
         this.nectar -= takeNectar;
         this.pollen -= takePollen;
+        // lace: a forager that reads this flower BADLY (low gridMatch) pays a gentle toxin cost; a matched
+        // specialist (gridMatch→1) is immune. "match = safe, mismatch = poisoned."
+        const poison = this.lace * (1 - gridMatch) * (0.4 + 0.6 * beaconMatch);
         return { nectar: takeNectar, pollen: takePollen, pollination: eff,
-          beaconMatch: beaconMatch, gridMatch: gridMatch };
+          beaconMatch: beaconMatch, gridMatch: gridMatch, poison: poison };
       },
 
       // Pollen arriving from another flower of the SAME species sets seed, scaled by the visit quality.

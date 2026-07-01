@@ -18,6 +18,7 @@
     { key: 'specialising', test: () => G.lastFit >= 0.55, murmur: 'specialising' },
     { key: 'tangledBank', test: () => G.lastFit >= 0.66, murmur: 'tangledBank' },
     { key: 'matchedPair', test: () => G.lastFit >= 0.78, codex: 'matchedPair', murmur: 'matchedPair' },
+    { key: 'deception', test: () => minHonesty() < 0.42 && G.miles.has('firstMatch'), codex: 'deception', murmur: 'deception' },
     { key: 'native', test: () => G.lastFit >= 0.92, codex: 'native', murmur: 'native' },
     { key: 'niche', test: () => totalNiches() > G.sim.plants.length, codex: 'niche', murmur: 'niche' },
     { key: 'colony', test: () => colonyPop() >= 44, murmur: 'colony' },
@@ -30,6 +31,7 @@
   function colonyPop() { let n = 0; for (const c of G.sim.colonies) n += c.bees.length; return n; }
   function totalNiches() { let n = 0; for (const p of G.sim.plants) n += p.niches; return n; }
   function anyTripped() { for (const c of G.sim.colonies) for (const b of c.bees) if (b.trips > 0) return true; return false; }
+  function minHonesty() { let m = 1; for (const f of G.sim.allFlowers()) { const h = f.honesty == null ? 1 : f.honesty; if (h < m) m = h; } return m; }
 
   // ── boot ──
   function init() {
