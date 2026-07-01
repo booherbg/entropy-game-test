@@ -109,6 +109,19 @@
       const hon = fl.honesty == null ? 1 : fl.honesty;
       const honWord = hon > 0.8 ? '<b style="color:#9fd98f">honest</b>' : hon > 0.55 ? 'part-honest' : '<b style="color:#e08ac0">a deceiver</b> — advertises loud, pays little';
       const laceWord = (fl.lace || 0) > 0.45 ? ' · <b style="color:#e0604c">laced</b> (safe only if you read it well)' : '';
+      // find its plant → the sugar-to-grow-a-niche meter + how much light it stands in
+      let plant = null; for (let i = 0; i < sim.plants.length; i++) if (sim.plants[i].flowers.indexOf(fl) >= 0) { plant = sim.plants[i]; break; }
+      let sugarRow = '';
+      if (plant) {
+        const cost = B.NICHE_COST || 8, pct = Math.min(100, plant.sugar / cost * 100);
+        const light = sim.field.lightAt(plant.x, plant.y), lb = sim.field.lightBase || 0.72;
+        const lw = light > lb + 0.15 ? '<b style="color:#ffd9a0">full sun</b>' : light < lb - 0.15 ? '<b style="color:#8fb0d8">shade</b>' : 'even light';
+        const ready = plant.sugar >= cost;
+        sugarRow = `<div class="idim" style="margin-top:2px">sugar to grow a niche
+            <span class="sbar"><span class="sfill" style="width:${pct.toFixed(0)}%"></span></span>
+            ${plant.sugar.toFixed(1)} / ${cost} · ${lw}</div>
+          <div class="idim">${ready ? '<b style="color:#9fd98f">✓ ready — use the 🌿 tool here to grow a new niche</b>' : 'banking sugar from light — <b style="color:#ffd9a0">more sun</b> fills it faster (☀ tool)'}</div>`;
+      }
       return `<div class="insp">
         <div class="ihead">a flower <span>· niche ${(fl.niche || 0) + 1} · ${fl.locked ? 'LOCKED' : 'drifting'}</span></div>
         <div class="irow">${gridSVG(fl.grid, px, 'its decode-grid (the maze)')}
@@ -116,7 +129,7 @@
             <div class=" recipe">eats <b>sugar</b> → packages <b style="color:#f0b870">nectar</b> + <b style="color:#e8e0c8">pollen</b></div>
             <div class="idim">beacon hue ${hue}° · ${g.symmetry} petals · nectar ${fl.nectar.toFixed(1)} · pollen ${fl.pollen.toFixed(1)}</div>
             <div class="idim">signal: ${honWord}${laceWord}</div>
-            <div class="iwhy">its pattern is its genome made visible. the colony&rsquo;s keys drift toward it — but a bright beacon can lie, and a flower can lace its reward against the foragers that can&rsquo;t read it.</div>
+            ${sugarRow}
           </div></div>
         <div class="iact"><button data-act="lock">${fl.locked ? 'release this flower' : 'lock this flower (make the bees chase it)'}</button></div>
       </div>`;
