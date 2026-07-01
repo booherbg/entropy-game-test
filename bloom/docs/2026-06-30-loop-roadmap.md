@@ -120,8 +120,16 @@ is guided-mutation (the thumb on the scale that also drives the diversity collap
       problem (permanently invincible incumbents) is fixed. Soul + harness 75/75 green.
 - [ ] **D. flower constancy** (assortative visitation) — small `_pick` bias toward the just-fed `lastBeaconHue`
       → foragers self-sort into lanes → a single patch can split sympatrically (deepens speciation without a wall).
-- [ ] **E. colony population breathes with match quality** — carrying capacity tracks recent nectar inflow
-      (well-matched swarm grows toward 60, fumbling one thins toward ~15) with a FLOOR (never a survival wipe).
+- [✗] **E. colony population breathes with match quality** — ATTEMPTED, ABANDONED (honest negative result).
+      Tried a carrying capacity that tracks match quality (mean forager yield, size-independent so it bootstraps)
+      with a floor + gentle emigration. It works mechanically (matched grows, fumbling stays small) BUT it
+      **fundamentally breaks the merge**: the soul test needs a robust FULL-SIZE colony early to evolve keys
+      fast, and capping a fumbling colony small starves the merge (soul peaks dropped 0.95→0.50-0.74 at every
+      calibration tried, incl. a gentle 45-60 range). The design truth: the colony is a PERSISTENT MACHINE whose
+      robustness the merge requires, not a fragile population that should shrink when struggling. Reverted;
+      soul restored to 0.93-0.98. The audit's "population is inert" observation is real but the fix costs the
+      soul — so we accept an always-robust colony. (A cosmetic "vitality" indicator could convey health without
+      shrinking the functional swarm, if we ever want the *feel* — a render idea, not a population change.)
 - [x] **F. reframe the post-peak sag** — DONE. The world's WARMTH (the seasonal arc) now follows a slowly-
       decaying high-water mark of fit (`G.seasonFit`), so once a garden reaches native it stays golden through
       the Red Queen wobble — the oscillation reads as *alive*, not backsliding. The gauge still shows the true
