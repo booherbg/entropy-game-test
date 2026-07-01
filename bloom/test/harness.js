@@ -37,13 +37,19 @@ require('../js/field.js');
     'trail/nectar/pollen channels sized W*H');
 })();
 
-(function testLightGradient() {
+(function testLightEvenAndPaintable() {
   const f = B.makeField(B.makeRng(7));
-  // brighter toward the top (canopy sun) — average top row > average bottom row
+  // even by default — no top-down gradient (top row ≈ bottom row)
   let topSum = 0, botSum = 0;
   for (let x = 0; x < B.W; x++) { topSum += f.lightAt(x, 0); botSum += f.lightAt(x, B.H - 1); }
-  ok(topSum / B.W > botSum / B.W, 'light gradient: top brighter than bottom');
-  ok(f.lightAt(10, 10) > 0, 'light is positive somewhere');
+  ok(Math.abs(topSum / B.W - botSum / B.W) < 0.05, 'light is even by default (no hidden top-down gradient)');
+  ok(f.lightAt(10, 10) > 0.5, 'light is a positive uniform sun');
+  // the environment brush: sunlit patches brighten, shaded patches dim
+  const before = f.lightAt(40, 30);
+  f.paintLight(40, 30, 6, 1.2, 0.9);
+  ok(f.lightAt(40, 30) > before + 0.1, 'paintLight brightens a sunlit patch');
+  f.paintLight(60, 30, 6, 0.25, 0.9);
+  ok(f.lightAt(60, 30) < 0.6, 'paintLight dims a shaded patch');
 })();
 
 (function testTrailDiffuseConserves() {

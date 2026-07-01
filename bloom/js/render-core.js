@@ -31,10 +31,15 @@
     const gLo = [15 + season * 8, 17 + season * 2, 24 - season * 10];       // deep ground
     const gHi = [28 + season * 34, 32 + season * 14, 42 - season * 12];     // lit canopy top
 
-    // ── background: seasoned loam under the canopy light, plus the recruitment trail as green breath ──
+    // ── background: seasoned loam lit by the (now-designable) light field. Sunlit zones glow warm; shaded
+    //    zones sink dark — so you can SEE the lightscape you paint. Plus the recruitment trail as green breath. ──
+    const lb = f.lightBase || 0.72;
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-      const ci = y * W + x, lt = f.light[ci];
-      let r = gLo[0] + (gHi[0] - gLo[0]) * lt, g = gLo[1] + (gHi[1] - gLo[1]) * lt, b = gLo[2] + (gHi[2] - gLo[2]) * lt;
+      const ci = y * W + x, lt = f.light[ci], ltc = Math.min(1, lt);
+      let r = gLo[0] + (gHi[0] - gLo[0]) * ltc, g = gLo[1] + (gHi[1] - gLo[1]) * ltc, b = gLo[2] + (gHi[2] - gLo[2]) * ltc;
+      const dl = lt - lb;                                     // deviation from the even baseline
+      if (dl > 0.02) { const w = Math.min(1, dl * 1.6); r += 42 * w; g += 32 * w; b += 10 * w; }        // sunlit lift
+      else if (dl < -0.02) { const w = Math.min(1, -dl * 1.3); r *= (1 - 0.55 * w); g *= (1 - 0.5 * w); b *= (1 - 0.4 * w); } // shade
       const tr = f.trail[ci];
       if (tr > 0.02) { const a = Math.min(0.5, tr * 0.7); r = r * (1 - a) + 120 * a; g = g * (1 - a) + 200 * a; b = b * (1 - a) + 120 * a; }
       if (f.barrier[ci]) { r = 38; g = 36; b = 42; }

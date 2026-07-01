@@ -8,7 +8,7 @@
   const G = {
     sim: null, seed: 1, paused: false, speedIdx: 0, tool: 'inspect',
     selected: null, history: [], miles: new Set(), tick0: 0, dashClock: 0, saveClock: 0,
-    lastFit: 0, forms: [], lastFormGen: -1,
+    lastFit: 0, forms: [], lastFormGen: -1, lightMode: 'sun', painting: false,
   };
 
   // ── milestone table: fit-thresholds + time, each unlocking a codex toast and/or a murmur ──
@@ -165,6 +165,7 @@
 
   // ── interaction ──
   function onWorldTap(clientX, clientY) {
+    if (G.tool === 'light') return; // light is painted via pointer drag, not click
     const c = B.Render.pickCell($('world'), clientX, clientY);
     if (G.tool === 'plant') { G.sim.plantAt(c.x, c.y); toast('a flower planted — give it light and it will bloom.'); return; }
     if (G.tool === 'colony') { G.sim.placeColony(c.x, c.y); toast('a colony placed — its foragers will fan out, fumbling at first.'); return; }
@@ -192,13 +193,25 @@
   }
 
   function setTool(t) {
+    if (t === 'light' && G.tool === 'light') { G.lightMode = G.lightMode === 'sun' ? 'shade' : 'sun'; }
     G.tool = t;
+    updateLightIcon();
     document.querySelectorAll('.tool').forEach(b => b.classList.toggle('on', b.dataset.tool === t));
     const hints = { inspect: 'tap a flower or forager to read it — its pattern is its genome made visible.',
       lock: 'tap a flower to freeze its pattern — the bees must then chase it.',
-      plant: 'tap to plant a flower.', colony: 'tap to place a colony of foragers.',
-      niche: 'tap near a tree to spend its sugar on a new niche — a new lock to be matched.' };
+      plant: 'tap to plant a flower.', colony: 'tap to place a colony of foragers (near flowers, or it starves).',
+      niche: 'tap near a tree to spend its sugar on a new niche — a new lock to be matched.',
+      light: 'drag to paint ' + (G.lightMode === 'sun' ? '<b style="color:#ffd9a0">sunlight</b>' : '<b style="color:#8fb0d8">shade</b>') + ' — design the land. tap the ☀ tool again to switch sun ⇄ shade.' };
     showHint(hints[t]);
+  }
+  function updateLightIcon() {
+    const ic = $('lightIcon'), la = $('lightLabel');
+    if (ic) ic.textContent = G.lightMode === 'sun' ? '☀' : '🌑';
+    if (la) la.textContent = G.lightMode;
+  }
+  function paintLightAt(clientX, clientY) {
+    const c = B.Render.pickCell($('world'), clientX, clientY);
+    G.sim.field.paintLight(c.x, c.y, 6, G.lightMode === 'sun' ? 1.2 : 0.28, 0.5);
   }
   let hintT = null;
   function showHint(txt) { const h = $('hint'); h.innerHTML = txt; h.style.opacity = '1'; clearTimeout(hintT); hintT = setTimeout(() => h.style.opacity = '0', 4600); }
@@ -216,7 +229,11 @@
   function wireUI() {
     const w = $('world');
     w.addEventListener('click', e => onWorldTap(e.clientX, e.clientY));
-    w.addEventListener('touchstart', e => { if (e.touches[0]) { onWorldTap(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); } }, { passive: false });
+    w.addEventListener('touchstart', e => { if (G.tool !== 'light' && e.touches[0]) { onWorldTap(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); } }, { passive: false });
+    // light tool: paint by dragging (a brush for designing the lightscape)
+    w.addEventListener('pointerdown', e => { if (G.tool === 'light') { G.painting = true; paintLightAt(e.clientX, e.clientY); e.preventDefault(); } });
+    w.addEventListener('pointermove', e => { if (G.painting && G.tool === 'light') { paintLightAt(e.clientX, e.clientY); e.preventDefault(); } });
+    window.addEventListener('pointerup', () => { G.painting = false; });
     document.querySelectorAll('.tool').forEach(b => b.onclick = () => setTool(b.dataset.tool));
     setTool('inspect');
     $('btnPause').onclick = () => setPaused(!G.paused);
