@@ -36,7 +36,7 @@
     for (let i = 0; i < N; i++) for (let j = 0; j < N; j++)
       s += `<rect x="${j * px}" y="${i * px}" width="${px}" height="${px}" fill="${cellFill(grid[i * N + j])}" stroke="rgba(0,0,0,.28)" stroke-width="0.5"/>`;
     const sz = N * px;
-    return `<g><svg width="${sz}" height="${sz}">${s}</svg><div class="gl">${label}</div></g>`;
+    return `<div class="gridwrap"><svg viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}">${s}</svg><div class="gl">${label}</div></div>`;
   }
 
   // The headline: the flower's maze and the colony's key, side by side, with the live fit. When the player
