@@ -44,9 +44,10 @@ reviewer who read the code + screenshots) — see the verdict below. Keep `node 
       by N in ten of them now" — so the AI-arranger is demonstrably reading the same garden you are. (b) your
       GAZE is a gentle pull: the inspected/locked flower gets a `watched` bonus in `pollinator._pick` (the
       garden leans toward where you look; off by default → headless tests unchanged, soul green).
-- [ ] **iter 7 — the lineage view** (critic #5, spec §3.6): stamp a parent id in reproduce/inheritKey; render
-      an SVG dendrogram of descent (tiny grid-glyph nodes) in the sidebar — a bloodline to follow, doubling as
-      the codex of wonders drawn out of observed play.
+- [x] **the forms it passed through** (critic #5 / spec §3.6, lineage-lite): DONE. a live filmstrip in the
+      sidebar of the garden's representative decode-glyph snapshotted every 12 gens (g11→g23→…, current ringed)
+      — the codex of wonders / "a thread of becoming" made visible, persisted in the save. (A full parent-id
+      SVG dendrogram of individual descent is a richer later step; this delivers the wonder cheaply first.)
 - [x] **the seasonal arc** (critic #3): DONE. warmth + ground palette + saturation + mote density now tied
       HARD to fit via smoothstep. A fumbling garden is a cold grey-blue desaturated dawn (an entropy wash pulls
       the whole frame toward grey); a native one is a warm golden saturated noon. colour = order against grey
