@@ -27,10 +27,12 @@
       age: 0,
       niches: 1,
       seeds: 0,
+      fitness: 1.0,      // recent seed output — decays; a plant no pollinator cares for fades toward cull
       alive: true,
 
       tick: function (field) {
         this.age++;
+        this.fitness *= 0.996;   // fitness fades unless renewed by setting seed (see below)
         // ── photosynthesis (light → sugar), scaled by canopy (leaf area grows with biomass) ──
         const canopy = 0.25 + Math.min(this.biomass, 1.5) / 1.5 * 0.75;
         this.sugar += PHOTO_K * field.lightAt(this.x, this.y) * (1 - (this.shade || 0)) * canopy;
@@ -58,8 +60,8 @@
           const fl = this.flowers[i];
           const want = 0.35 * fl.beaconIntensity * fl.honesty;
           if (this.sugar > want) { this.sugar -= want; fl.restock(want); }
-          // accumulated pollination → seed
-          if (fl.seedProgress >= SEED_THRESHOLD) { this.seeds++; fl.seedProgress -= SEED_THRESHOLD; }
+          // accumulated pollination → seed (and a plant that sets seed earns fitness — it is cared for)
+          if (fl.seedProgress >= SEED_THRESHOLD) { this.seeds++; this.fitness += 1; fl.seedProgress -= SEED_THRESHOLD; }
         }
       },
 

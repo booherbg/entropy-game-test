@@ -69,9 +69,14 @@ colonies establish or visibly starve — cold pulsing ring). The batch:
       the nearest plant (or a stray colony). Verified: a 6-plant clump shades each other 60%; cull 3 → survivors
       drop to 22% (more light). Inspect shows "crowded −X% · thin them (✂)". Default garden unaffected (mild
       shade at normal spacing); soul + harness 75/75 green.
-- [ ] **local seeding + fitness-based death + GRADUAL drifting-species speciation** — offspring seed near the
-      parent; the crowded-out plant is the least-pollinated nearby one; a species tag drifts with the genome and
-      cross-fertility falls off gradually with genetic distance → isolated/differently-lit clusters diverge.
+- [~] **local seeding + fitness-based death** — DONE (half of #3). Seeds drop NEAR the parent (dispersal 5-12
+      cells); at capacity the seed crowds out the least-fit ESTABLISHED plant within ~11 cells (LOCAL competition
+      — global death collapsed the whole garden into the colony, a real but wrong dynamic). Plants carry a
+      `fitness` that rises when they set seed and decays otherwise → an unloved flower fades and gets pruned
+      (verified: an isolated never-visited plant IS culled). Garden stays spread (x/y spread ~78/48), soul green,
+      PLANT_CAP 12→16 for room. **NEXT HALF: gradual genetic-compat speciation** — replace the discrete speciesId
+      pollination check with cross-fertility that falls off with genetic distance (grid+beacon similarity), so
+      isolated/differently-lit clusters that drift apart stop interbreeding → distinct species.
 - [ ] **birth/death legibility** — seedlings sprout in, replaced plants wilt out, a births/deaths readout.
 
 ## Method each iteration

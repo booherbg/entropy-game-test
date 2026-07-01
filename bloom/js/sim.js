@@ -9,7 +9,7 @@
   //   • the PATCH drifts its grids toward the keys (well-read = well-pollinated flowers set more seed,
   //     and a Moran birth–death replaces a random plant with the seeder's mutated offspring).
   // The two apparatus meet in the middle: the lock-and-key merges. Determinism gives legibility.
-  const PLANT_CAP = 12;
+  const PLANT_CAP = 16;   // room for the patch to grow + for two clusters to coexist and diverge
 
   B.makeSim = function (seed, opts) {
     const rng = B.makeRng((seed >>> 0) || 1);
@@ -71,21 +71,33 @@
         const fset = new Set(flowers);
         for (let i = 0; i < this.plants.length; i++) this.plants[i].tick(this.field);
 
-        // ── plant reproduction: Moran birth–death (matched flowers seed faster → grids drift toward keys) ──
+        // ── plant reproduction: SPATIAL birth–death. A seed drops NEAR its parent (so a cluster evolves in
+        //    place, toward its own colony's keys), and at capacity the plant that dies is the LEAST-FIT one
+        //    (an unloved flower no pollinator visits fades and gets crowded out). Local seeding + fitness death
+        //    = clusters diverge and unfit forms get pruned. ──
         for (let i = 0; i < this.plants.length; i++) {
-          const child = this.plants[i].reproduce(rng);
-          if (child && this.plants.length > 1) {
-            let ri = randint(rng, 0, this.plants.length - 1);
-            if (ri === i) ri = (ri + 1) % this.plants.length;
-            // a locked flower is the player's anchor — never overwrite it (the keys must chase it)
-            if (this._plantLocked(this.plants[ri])) continue;
-            // the seedling fills the slot the replaced plant leaves — the garden's layout stays stable,
-            // only the patterns evolve in place (a spread garden whose blooms slowly all match the bees)
-            const px = this.plants[ri].x, py = this.plants[ri].y;
-            const np = B.makePlant(child, px, py, rng, this.plants[i].speciesId);
-            np.biomass = 0.7; np.sugar = 3;  // a seed from a vigorous parent flowers quickly
-            this.plants[ri] = np;
+          const parent = this.plants[i];
+          const child = parent.reproduce(rng);
+          if (!child) continue;
+          const ang = rng() * B.TAU, dd = 5 + rng() * 7;                 // local seed dispersal (a few cells from the parent)
+          const sx = clamp(Math.round(parent.x + Math.cos(ang) * dd), 2, B.W - 3);
+          const sy = clamp(Math.round(parent.y + Math.sin(ang) * dd), 2, B.H - 3);
+          const np = B.makePlant(child, sx, sy, rng, parent.speciesId);
+          np.biomass = 0.7; np.sugar = 3;
+          np.fitness = Math.max(0.7, parent.fitness * 0.75);             // offspring inherit some of the parent's standing
+          if (this.plants.length < PLANT_CAP) { this.plants.push(np); continue; }
+          // at capacity → LOCAL competition: the seed crowds out the least-fit established plant NEAR where it
+          // landed (not globally — else everything migrates to the colony). Each neighbourhood self-regulates,
+          // so the garden keeps its spread and separated clusters persist and evolve on their own.
+          let vi = -1, worst = Infinity;
+          for (let j = 0; j < this.plants.length; j++) {
+            const q = this.plants[j];
+            if (q.age < 160 || this._plantLocked(q)) continue;
+            const d2 = (q.x - sx) * (q.x - sx) + (q.y - sy) * (q.y - sy);
+            if (d2 > 121) continue;                                      // only compete within ~11 cells of the seed
+            if (q.fitness < worst) { worst = q.fitness; vi = j; }
           }
+          if (vi >= 0) this.plants[vi] = np;                            // else the seed falls on occupied/distant ground and fails
         }
 
         // prune any bee target pointing at a flower that was just replaced (keeps state clean + serializable)
@@ -227,7 +239,7 @@
           plants: this.plants.map(function (p) {
             return {
               genome: p.genome, x: p.x, y: p.y, sugar: p.sugar, biomass: p.biomass, age: p.age,
-              niches: p.niches, seeds: p.seeds, speciesId: p.speciesId,
+              niches: p.niches, seeds: p.seeds, fitness: p.fitness, speciesId: p.speciesId,
               flowers: p.flowers.map(function (fl) {
                 return { id: fl.id, genome: fl.genome, x: fl.x, y: fl.y, speciesId: fl.speciesId,
                   nectar: fl.nectar, pollen: fl.pollen, cap: fl.cap, pollenOnStigma: fl.pollenOnStigma,
@@ -265,7 +277,7 @@
     const idMap = new Map();
     sim.plants = json.plants.map(function (pj) {
       const p = B.makePlant(pj.genome, pj.x, pj.y, sim.rng, pj.speciesId);
-      p.sugar = pj.sugar; p.biomass = pj.biomass; p.age = pj.age; p.niches = pj.niches; p.seeds = pj.seeds;
+      p.sugar = pj.sugar; p.biomass = pj.biomass; p.age = pj.age; p.niches = pj.niches; p.seeds = pj.seeds; p.fitness = pj.fitness == null ? 1 : pj.fitness;
       p.flowers = pj.flowers.map(function (flj) {
         const fl = B.makeFlower(flj.genome, flj.x, flj.y, flj.speciesId);
         fl.id = flj.id; fl.nectar = flj.nectar; fl.pollen = flj.pollen; fl.cap = flj.cap;
