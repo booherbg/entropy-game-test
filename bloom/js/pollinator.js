@@ -56,7 +56,11 @@
           // your gaze is a gentle pressure: a flower you are watching draws a little more attention (the
           // observer is part of the system — never a command, just a lean). Off by default → tests unchanged.
           const gaze = f.watched ? 1.4 : 0;
-          const score = bm * 2 + tr * 0.5 - d * 0.01 + (f.nectar + f.pollen) * 0.04 + gaze;
+          // flower constancy (Darwin): a forager slightly favours the hue it last fed on, so foragers self-sort
+          // into hue-lanes → assortative pollination → a single patch can split sympatrically, and rarer colours
+          // keep their own loyal pollinators (helps diversity).
+          const constancy = (this.lastBeaconHue != null) ? B.beaconMatch(this.lastBeaconHue, f.beaconHue) * 0.7 : 0;
+          const score = bm * 2 + tr * 0.5 - d * 0.01 + (f.nectar + f.pollen) * 0.04 + gaze + constancy;
           if (score > bs) { bs = score; best = f; }
         }
         return best;
