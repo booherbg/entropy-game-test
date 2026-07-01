@@ -256,6 +256,8 @@
                   prevSpecies: b.prevSpecies, age: b.age, energy: b.energy, lastYield: b.lastYield,
                   lastEff: b.lastEff || 0, lastBeaconHue: b.lastBeaconHue == null ? -1 : b.lastBeaconHue,
                   lastGrid: b.lastGrid ? Array.from(b.lastGrid) : null,
+                  pollenGrid: b.pollenGrid ? Array.from(b.pollenGrid) : null,
+                  pollenHue: b.pollenHue == null ? -1 : b.pollenHue,
                   trips: b.trips, targetId: b.target ? b.target.id : -1 };
               }) };
           }),
@@ -299,6 +301,8 @@
         b.prevSpecies = bj.prevSpecies; b.age = bj.age; b.energy = bj.energy; b.lastYield = bj.lastYield; b.trips = bj.trips;
         b.lastEff = bj.lastEff || 0; b.lastBeaconHue = bj.lastBeaconHue >= 0 ? bj.lastBeaconHue : null;
         b.lastGrid = bj.lastGrid ? Int8Array.from(bj.lastGrid) : null;
+        b.pollenGrid = bj.pollenGrid ? Int8Array.from(bj.pollenGrid) : null;
+        b.pollenHue = bj.pollenHue >= 0 ? bj.pollenHue : null;
         b.target = bj.targetId >= 0 ? (idMap.get(bj.targetId) || null) : null;
         return b;
       });

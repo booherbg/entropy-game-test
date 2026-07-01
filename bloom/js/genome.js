@@ -185,6 +185,15 @@
     return m / n;
   };
 
+  // Cross-fertility between two flowers, by GENETIC DISTANCE (grid + beacon). Near-identical → interbreed
+  // freely (~1); drifted apart → sterile crosses (~0); gradual in between. So two clusters that diverge (via
+  // different colonies / different light) gradually stop interbreeding → they become distinct species. No
+  // hard threshold — speciation is a smooth, emergent thing you can watch happen.
+  B.geneticCompat = function (gridA, hueA, gridB, hueB) {
+    const sim = B.match(gridA, gridB) * 0.75 + B.beaconMatch(hueA, hueB) * 0.25;
+    return Math.max(0, Math.min(1, (sim - 0.32) / 0.5));   // <0.32 similar → sterile; >0.82 → freely fertile
+  };
+
   // Circular beacon match (hues wrap at 1.0).
   B.beaconMatch = function (prefHue, beaconHue) {
     let d = Math.abs(prefHue - beaconHue); if (d > 0.5) d = 1 - d;
