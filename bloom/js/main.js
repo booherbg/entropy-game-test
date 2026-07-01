@@ -49,6 +49,7 @@
     requestAnimationFrame(loop);
     // first-run intro (skippable with ?play for deep-links / screenshots)
     if (!saved && !/\bplay\b/.test(location.search)) setTimeout(() => $('menuOv').classList.add('show'), 400);
+    if (/\bmurmurs\b/.test(location.search)) setTimeout(() => { renderMurmurs(); $('murmursOv').classList.add('show'); }, 200);
     renderMurmurs(); renderDash(true); updateSeedline();
   }
 
@@ -132,7 +133,9 @@
   }
 
   function renderMurmurs() {
-    let html = '';
+    // the living murmur — this garden, in the arranger's own words, read fresh from its real state
+    let html = '<div class="murmur ai" style="margin-bottom:6px"><div class="mi">✦ now</div>' +
+      '<div class="mt">' + B.Content.livingMurmur(G.sim, gen()) + '</div></div>';
     let idx = 0;
     for (const m of B.Content.murmurs) {
       idx++;
@@ -160,14 +163,21 @@
       else toast('that tree needs more sugar to grow a niche. give it time in the light.');
       return;
     }
-    if (G.tool === 'lock') { const fl = B.Render.pickFlower(G.sim, c.x, c.y); if (fl) { G.sim.lockFlower(fl, !fl.locked); G.selected = { kind: 'flower', ref: fl }; toast(fl.locked ? 'locked — the bees must chase this pattern now.' : 'released — it can drift again.'); renderDash(); } return; }
+    if (G.tool === 'lock') { const fl = B.Render.pickFlower(G.sim, c.x, c.y); if (fl) { G.sim.lockFlower(fl, !fl.locked); G.selected = { kind: 'flower', ref: fl }; setWatched(fl); toast(fl.locked ? 'locked — the bees must chase this pattern now.' : 'released — it can drift again.'); renderDash(); } return; }
     // inspect
     const fl = B.Render.pickFlower(G.sim, c.x, c.y);
     const bee = fl ? null : B.Render.pickBee(G.sim, c.x, c.y);
     if (fl) G.selected = { kind: 'flower', ref: fl };
     else if (bee) G.selected = { kind: 'bee', ref: bee };
     else G.selected = null;
+    setWatched(fl || null);
     renderDash();
+  }
+
+  // the observer is part of the system: the watched flower draws a gentle extra pull from foragers
+  function setWatched(flower) {
+    const fs = G.sim.allFlowers();
+    for (let i = 0; i < fs.length; i++) fs[i].watched = (fs[i] === flower);
   }
 
   function setTool(t) {

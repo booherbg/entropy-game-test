@@ -52,7 +52,10 @@
           if (d > this.key.forageRange) continue;
           const bm = B.beaconMatch(this.key.preference, f.beaconHue) * f.beaconIntensity;
           const tr = field.get('trail', f.x, f.y);
-          const score = bm * 2 + tr * 0.5 - d * 0.01 + (f.nectar + f.pollen) * 0.04;
+          // your gaze is a gentle pressure: a flower you are watching draws a little more attention (the
+          // observer is part of the system — never a command, just a lean). Off by default → tests unchanged.
+          const gaze = f.watched ? 1.4 : 0;
+          const score = bm * 2 + tr * 0.5 - d * 0.01 + (f.nectar + f.pollen) * 0.04 + gaze;
           if (score > bs) { bs = score; best = f; }
         }
         return best;

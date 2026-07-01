@@ -38,11 +38,12 @@ reviewer who read the code + screenshots) — see the verdict below. Keep `node 
 - [ ] **iter 5 — pollen as a real decision** (critic #4 / SimCity T4): wire `dietBias` into foraging + make
       flowers trade nectar↔pollen (a payload gene) so the colony must forage a balanced diet. The
       eaten-vs-carried tension made real. Two meters that finally drive a choice.
-- [ ] **iter 6 — enact the non-dualism** (critic #4b, the rarest thing): (a) living murmurs that READ the sim
-      (compose a line from this seed's ancestor hue, gen, species count, "the flower you locked at gen 14 is
-      read by 9 in 10 of them now") so the AI-arranger is demonstrably entangled, not narrating above; (b)
-      inspecting a flower gives it a few-% beacon/attention bonus — "the garden leans toward your gaze" (one
-      term in `pollinator._pick`; gentle, never command).
+- [x] **iter 6 (done before iter 5) — enact the non-dualism** (critic #4b, the rarest thing): DONE. (a) a
+      LIVING murmur at the top of the murmurs panel, composed fresh from THIS garden — its ancestor hue named
+      as a colour, the gen, the fit-in-words, whether a cheat is present, and "the flower you anchored is read
+      by N in ten of them now" — so the AI-arranger is demonstrably reading the same garden you are. (b) your
+      GAZE is a gentle pull: the inspected/locked flower gets a `watched` bonus in `pollinator._pick` (the
+      garden leans toward where you look; off by default → headless tests unchanged, soul green).
 - [ ] **iter 7 — the lineage view** (critic #5, spec §3.6): stamp a parent id in reproduce/inheritKey; render
       an SVG dendrogram of descent (tiny grid-glyph nodes) in the sidebar — a bloodline to follow, doubling as
       the codex of wonders drawn out of observed play.
