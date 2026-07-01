@@ -67,9 +67,10 @@
     if (max - min < 1e-6) { max = min + 1; }
     const n = history.length, pts = [];
     for (let i = 0; i < n; i++) { const v = get(history[i]); pts.push(`${(i / Math.max(1, n - 1) * w).toFixed(1)},${(h - (v - min) / (max - min) * h).toFixed(1)}`); }
-    const last = pts[pts.length - 1].split(',');
+    const lastX = (n - 1) / Math.max(1, n - 1) * w, lastY = h - (get(history[n - 1]) - min) / (max - min) * h;
+    const dotX = Math.min(lastX, w - 3), dotY = Math.min(Math.max(lastY, 3), h - 3);
     return `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.6"/>` +
-      `<circle cx="${last[0]}" cy="${last[1]}" r="2.6" fill="${color}"/>`;
+      `<circle cx="${dotX.toFixed(1)}" cy="${dotY.toFixed(1)}" r="2.6" fill="${color}" stroke="#0d0f13" stroke-width="0.8"/>`;
   }
 
   D.graphs = function (sim, history) {

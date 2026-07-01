@@ -452,6 +452,11 @@ require('../js/render-dash.js');
   const html = B.Render.Dash.graphs(sim, history);
   ok(/<circle /.test(html), 'graphs() output includes a current-value dot on at least one sparkline');
   ok(html.indexOf('45%') >= 0, 'the fit panel title shows the current (last) fit value as a label');
+  const w = 220;
+  const cxMatches = html.match(/<circle cx="([\d.]+)"/g) || [];
+  ok(cxMatches.length > 0, 'at least one value dot circle is present to check');
+  ok(cxMatches.every(m => parseFloat(m.match(/[\d.]+/)[0]) <= w - 1),
+    `every value dot's cx stays inside the viewBox (<= ${w - 1}, not clipped at the right edge)`);
 })();
 
 console.log(`\n${fails === 0 ? 'ALL PASS' : fails + ' FAILED'} — ${total - fails}/${total}`);
