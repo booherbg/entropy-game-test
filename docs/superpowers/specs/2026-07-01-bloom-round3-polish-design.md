@@ -30,10 +30,17 @@ turns that ranked list into a buildable design.
 
 ## 1. Shared mechanism: extend the existing effects pipeline
 
-Items #1 and #2 both ride the pipeline already used for birth/death visibility
-(`sim.js` pushes to `this.events` → `main.js` copies into `G.effects` with `age:0`, ages/expires at 46
-frames, splices to a cap of 80 → `render-core.js paint(sim, S, {effects})` consumes them). No new plumbing:
-two new event kinds, `read` and `imprint`, follow the same lifecycle as the existing `birth`/`death` kinds.
+Item #1 rides the pipeline already used for birth/death visibility (`sim.js` pushes to `this.events` →
+`main.js` copies into `G.effects` with `age:0`, ages/expires at 46 frames, splices to a cap of 80 →
+`render-core.js paint(sim, S, {effects})` consumes them). One new event kind, `read`, follows the same
+lifecycle as the existing `birth`/`death` kinds.
+
+**Correction from an earlier draft of this spec:** item #2 (poetry inline) does **not** use this pipeline.
+Milestones (`MILES`/`G.miles` in `main.js`) are shell-layer state, not sim-core state — `sim.js` never
+touches them, and `content.js`'s murmur text is already shell-accessible. Routing #2 through `sim.events`
+would cross a module boundary the codebase doesn't otherwise cross (`sim.js` stays deterministic/pure per
+the handoff's DNA §7 point 7) for no benefit. #2 is independent shell-only state (see §3 below) with, at
+most, a read-only glance at `G.effects` for its best-effort filament tie-in.
 
 ## 2. Item #1 — light filaments (the merge, made a moment in the world)
 
@@ -46,16 +53,32 @@ this.readEvent = { x0: this.x, y0: this.y, x1: f.x, y1: f.y, hue: f.beaconHue, e
 ```
 This is transient render-metadata, not serialized — same convention as the existing `watched` flag.
 
-**Emission.** `sim.js`'s per-bee loop (where `bees[bi].tick(...)` is currently called, ~line 140) checks
-`b.readEvent` immediately after the tick call, pushes `{t:'read', x0,y0,x1,y1,hue,eff}` onto `this.events`,
-then clears the flag. Event ownership stays in `sim.js`, matching how birth/death are pushed today (neither
-`plant.js` nor `pollinator.js` touch `events` directly).
+**Emission.** Bees are actually ticked inside `colony.tick()` (`colony.js:51`,
+`this.bees[i].tick(field, flowers, this, rng)`), not in a loop in `sim.js` itself — `sim.js:128` just calls
+`this.colonies[c].tick(...)` per colony. So rather than threading a new parameter through `colony.js`'s and
+`pollinator.js`'s signatures, `sim.js`'s `tick()` gets one new loop, added right after the existing
+`for (let c...) this.colonies[c].tick(...)` call (`sim.js:128`), before `this.tickCount++`:
+```js
+for (let c = 0; c < this.colonies.length; c++) {
+  const bees = this.colonies[c].bees;
+  for (let bi = 0; bi < bees.length; bi++) {
+    const b = bees[bi];
+    if (b.readEvent) { this.events.push({ t: 'read', x0: b.readEvent.x0, y0: b.readEvent.y0,
+      x1: b.readEvent.x1, y1: b.readEvent.y1, hue: b.readEvent.hue, eff: b.readEvent.eff }); b.readEvent = null; }
+  }
+}
+```
+Event ownership stays in `sim.js` (it drains a flag a leaf object set, the same relationship `main.js` has
+to birth/death — nothing new is threaded through `colony.js`'s call signature). Because `readEvent` is set
+and drained within the same `tick()` call, it never persists across a tick boundary — no `serialize`/
+`loadSim` changes are needed (unlike `lastGrid`/`lastEff`, which already persist and are already handled).
 
 **Render.** In `render-core.js`'s `opts.effects` loop (~line 188), handle `ef.t === 'read'`: `addPx` a lerp
-from `(x0,y0)` to `(x1,y1)` at world scale `S`, tinted `hueRGB(ef.hue, ...)`, brightness ∝ `ef.eff`, fading
-over the same `k = age/46` curve as birth/death, plus a brief `glow` flare at the flower end (reuse the
-existing `glow` helper — same aesthetic as the forage-beams and the pollination sparkle already in that
-file).
+from `(x0,y0)` to `(x1,y1)` at world scale `S`, tinted `hueRGB(ef.hue, ...)`, brightness ∝
+`ef.eff * (ef.boost || 1)` (the optional `boost` multiplier Item #2 sets for its filament tie-in — absent for
+every ordinary read, where it's a no-op `|| 1`), fading over the same `k = age/46` curve as birth/death, plus
+a brief `glow` flare at the flower end (reuse the existing `glow` helper — same aesthetic as the forage-beams
+and the pollination sparkle already in that file).
 
 **Known tuning risk (resolve empirically, not in this doc):** at the landing instant the bee is within 1.5
 cells of the flower (the land threshold in `pollinator.js tick()`), so the raw lerp is short — a spark, not
@@ -71,19 +94,28 @@ single best read per tick per colony) rather than lowering the threshold.
 
 ## 3. Item #2 — surface the poetry inline (panel stays, per Blaine)
 
-**Current path.** `main.js` ~line 137: when a milestone with a `murmur` key fires,
-`toast('<b>✦ a murmur surfaced</b> — open ✦ murmurs to read it.')` — the actual text
-(`B.Content.murmurs`) is never shown until the player opens the panel.
+**Current path.** `main.js:131-147` `checkMilestones()` walks `MILES`; when a milestone with a `murmur` key
+newly fires, line 137 does `else if (m.murmur) toast('<b>✦ a murmur surfaced</b> — open ✦ murmurs to read
+it.')`. The actual text (`B.Content.murmurs`, keyed the same as `m.murmur`, shape
+`{key, text, who, year, ai}`) is never shown until the player opens the panel.
 
-**New path.** Replace that one call site: look up the murmur's real `text`/`who` from `B.Content.murmurs` by
-key, and drive a slow-fading, low-contrast, full-width HTML overlay (not canvas pixels — pixel-art-scale
-canvas text would be illegible; this is a CSS overlay div, the same category of UI as `.toast` but
-full-width and longer-lived) that drifts the line across the garden at the instant it's earned. **Best-effort
-tie-in to the Item #1 light filament** (not guaranteed, and that's fine): if a `read` effect is already active in `G.effects` (age <
-~10 frames) at the moment the imprint fires, boost its brightness for a few frames. Early murmurs (`begin`,
-`firstMatch`) can fire before the pair ever clears the 0.55 filament threshold, so there may be nothing to
-pulse yet — in that case the text drift-in alone carries the moment. Don't manufacture a filament just to
-have something to pulse.
+**New path.** Replace that one branch: look up `B.Content.murmurs.find(x => x.key === m.murmur)` for the
+real `text`/`who`, and set new shell state `G.imprint = { text, who, age: 0 }` (declared alongside the other
+`G` fields at `main.js:8-12`, reset in `newGarden()` at `main.js:68` next to `G.effects = []`). In the main
+loop (`main.js:75-99`), age it every frame the same way `G.effects` already is (`G.imprint.age++`; clear to
+`null` once it exceeds its fade window, e.g. ~260 frames — long enough to read a full sentence, unlike the
+46-frame pixel effects). Render it as a CSS overlay (not canvas — pixel-art-scale canvas text would be
+illegible): a new `<div id="imprint">` in `index.html`'s `.worldwrap` alongside the existing `#toast`/`#hint`
+divs, styled full-width/low-contrast/italic (reuse `.murmur .mt`'s look from the panel CSS, at lower
+opacity), driven from `main.js` each frame by setting its `innerHTML`/opacity from `G.imprint`.
+
+**Best-effort tie-in to the Item #1 light filament** (not guaranteed, and that's fine): when `G.imprint` is
+freshly set, scan `G.effects` for entries with `t === 'read' && age < 10`; if found, set `ef.boost = 1.6` on
+them (a new optional field `render-core.js`'s `read` handling multiplies into brightness — see the boost
+note in Item #1's render step above — the fade timing itself, `k = age/46`, is untouched). Early murmurs
+(`begin`, `firstMatch`) can fire before the pair ever clears the 0.55 filament threshold, so there may be
+nothing to boost yet — in that case the text drift-in alone carries the moment. Don't manufacture a filament
+just to have something to pulse.
 
 **What does NOT change:** the ✦ murmurs button and panel (`renderMurmurs()`) stay exactly as they are —
 still the full browsable archive, so anything unlocked can be reread anytime (Blaine's call: keep panel,
