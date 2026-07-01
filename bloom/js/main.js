@@ -252,9 +252,10 @@
     showHint(hints[t]);
   }
   function updateLightIcon() {
-    const ic = $('lightIcon'), la = $('lightLabel');
+    const ic = $('lightIcon'), la = $('lightLabel'), pip = $('lightPip');
     if (ic) ic.textContent = G.lightMode === 'sun' ? '☀' : '🌑';
     if (la) la.textContent = G.lightMode;
+    if (pip) pip.classList.toggle('on', G.lightMode === 'shade');
   }
   function paintAt(clientX, clientY) {
     const c = B.Render.pickCell($('world'), clientX, clientY);
@@ -262,9 +263,15 @@
     else if (G.tool === 'hedge') G.sim.field.paintBarrier(c.x, c.y, 1.6, G.hedgeMode === 'build');
   }
   function updateHedgeIcon() {
-    const ic = $('hedgeIcon'), la = $('hedgeLabel');
+    const ic = $('hedgeIcon'), la = $('hedgeLabel'), pip = $('hedgePip');
     if (ic) ic.textContent = G.hedgeMode === 'build' ? '🧱' : '🧹';
     if (la) la.textContent = G.hedgeMode === 'build' ? 'hedge' : 'clear';
+    if (pip) pip.classList.toggle('on', G.hedgeMode === 'clear');
+  }
+
+  function updateToolbarScrollHint() {
+    const tb = $('toolbar');
+    if (tb) tb.classList.toggle('scrollable', tb.scrollWidth > tb.clientWidth + 4);
   }
   let hintT = null;
   function showHint(txt) { const h = $('hint'); h.innerHTML = txt; h.style.opacity = '1'; clearTimeout(hintT); hintT = setTimeout(() => h.style.opacity = '0', 4600); }
@@ -303,6 +310,8 @@
       else if (e.key === 'Escape') { $('murmursOv').classList.remove('show'); $('menuOv').classList.remove('show'); }
     });
     window.addEventListener('beforeunload', autosave);
+    updateToolbarScrollHint();
+    window.addEventListener('resize', updateToolbarScrollHint);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

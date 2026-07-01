@@ -96,7 +96,16 @@
   /* toolbar */
   .toolbar{flex:0 0 auto;display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--line);
     background:linear-gradient(#0d0f13,#11141a);overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .tool{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:62px;padding:8px 6px;flex:0 0 auto}
+  .toolgrp{display:flex;gap:8px;padding-right:10px;margin-right:2px;border-right:1px solid var(--line);flex:0 0 auto}
+  .toolgrp:last-child{border-right:none;padding-right:0;margin-right:0}
+  .tpip{position:absolute;top:6px;right:9px;width:6px;height:6px;border-radius:50%;background:var(--amber);
+    box-shadow:0 0 0 2px var(--panel2);display:none}
+  .tpip.on{display:block}
+  .toolbar{position:relative}
+  .toolbar::after{content:'';position:absolute;top:0;right:0;bottom:0;width:22px;
+    background:linear-gradient(90deg,transparent,var(--bg));pointer-events:none;opacity:0;transition:opacity .2s}
+  .toolbar.scrollable::after{opacity:1}
+  .tool{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:62px;padding:8px 6px;flex:0 0 auto}
   .tool .ti{font-size:18px;line-height:1} .tool .tl{font-size:10.5px}
   .tool.pulse{animation:pulse 1.5s ease-in-out infinite;border-color:var(--amber);color:var(--amberlit)}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(240,184,112,.0)}50%{box-shadow:0 0 0 4px rgba(240,184,112,.28)}}
@@ -170,14 +179,20 @@
         <div class="hint" id="hint">the bees and the flowers don&rsquo;t fit yet. let it run — and watch the two patterns drift into a matched pair.</div>
       </div>
       <div class="toolbar" id="toolbar">
-        <button class="tool" data-tool="inspect" title="tap a flower or bee to read it"><span class="ti">🔍</span><span class="tl">inspect</span></button>
-        <button class="tool" data-tool="lock" title="freeze the inspected flower&rsquo;s pattern so the bees must chase it"><span class="ti">🔒</span><span class="tl">lock</span></button>
-        <button class="tool" data-tool="plant" title="plant a flower"><span class="ti">🌱</span><span class="tl">plant</span></button>
-        <button class="tool" data-tool="colony" title="place a colony"><span class="ti">🐝</span><span class="tl">colony</span></button>
-        <button class="tool" data-tool="niche" title="spend a tree&rsquo;s sugar to grow a new niche (a new lock)"><span class="ti">🌿</span><span class="tl">grow niche</span></button>
-        <button class="tool" data-tool="light" title="paint sunlight / shade — design the environment"><span class="ti" id="lightIcon">☀</span><span class="tl" id="lightLabel">sun</span></button>
-        <button class="tool" data-tool="cull" title="cull — pull a weed (thinning a dense patch frees light for the rest)"><span class="ti">✂</span><span class="tl">cull</span></button>
-        <button class="tool" data-tool="hedge" title="hedgerow — draw a barrier the bees can't cross (isolate patches → they diverge into new species)"><span class="ti" id="hedgeIcon">🧱</span><span class="tl" id="hedgeLabel">hedge</span></button>
+        <div class="toolgrp">
+          <button class="tool" data-tool="inspect" title="tap a flower or bee to read it"><span class="ti">🔍</span><span class="tl">inspect</span></button>
+          <button class="tool" data-tool="lock" title="freeze the inspected flower&rsquo;s pattern so the bees must chase it"><span class="ti">🔒</span><span class="tl">lock</span></button>
+        </div>
+        <div class="toolgrp">
+          <button class="tool" data-tool="plant" title="plant a flower"><span class="ti">🌱</span><span class="tl">plant</span></button>
+          <button class="tool" data-tool="colony" title="place a colony"><span class="ti">🐝</span><span class="tl">colony</span></button>
+          <button class="tool" data-tool="niche" title="spend a tree&rsquo;s sugar to grow a new niche (a new lock)"><span class="ti">🌿</span><span class="tl">grow niche</span></button>
+        </div>
+        <div class="toolgrp">
+          <button class="tool" data-tool="light" title="paint sunlight / shade — design the environment"><span class="ti" id="lightIcon">☀</span><span class="tl" id="lightLabel">sun</span><span class="tpip" id="lightPip"></span></button>
+          <button class="tool" data-tool="cull" title="cull — pull a weed (thinning a dense patch frees light for the rest)"><span class="ti">✂</span><span class="tl">cull</span></button>
+          <button class="tool" data-tool="hedge" title="hedgerow — draw a barrier the bees can't cross (isolate patches → they diverge into new species)"><span class="ti" id="hedgeIcon">🧱</span><span class="tl" id="hedgeLabel">hedge</span><span class="tpip" id="hedgePip"></span></button>
+        </div>
       </div>
     </div>
 
