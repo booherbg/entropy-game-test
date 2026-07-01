@@ -83,3 +83,17 @@ your gut on the coax↔command line. Guardrail unchanged: the soul test must sta
 4. **Control:** where's the coax↔command line for you — pure steward, or a gardener's hand (cross/mutagen tools)?
 5. **Start diverse?** Should a new garden *open* varied (2–3 founding forms), or start as one species and
    diversify through play? (This alone is the fastest route to a visibly diverse garden.)
+
+---
+
+## Addendum (2026-07-01, after round 3 + the QA critique) — this brief was independently corroborated
+
+A two-critic fresh-eyes QA pass on the finished round-3 build (`bloom/docs/2026-07-01-round3-qa-critique.md`) hit this exact wall again, without having seen this brief. The game-design critic's single highest-leverage next move was, verbatim in spirit, *"start gardens from 2–3 founding forms + add one `irregularity` gene so a symmetry-4 bloom stops rendering as a perfect cross"* — i.e. this brief's own §1 pick (irregularity) + open-question 5 (a varied warm-start). The UX critic independently found flowers-as-flowers *still* unresolved after round 3's soft-body halo ("still glowing plus-signs with empty quadrants"). So four independent lenses — the ecologist audit, the dream-reviewer, and now both round-3 QA critics — converge on the same conclusion: **structure-first morphology is the keystone; round 3's render polish (the flower-body halo) decorated the symptom, it did not fix the ⊤-glyph cause.**
+
+### A de-risked ordering for when you greenlight (still your call — NOTHING here is built)
+Smallest→largest, safest→riskiest:
+1. **Varied warm-start (founding forms) FIRST.** Seed a new patch from 2–3 distinct genomes instead of near-identical ones. Fastest route to a visibly diverse garden, and it touches NO genome or merge math — just initial seeding — so it's the lowest-risk, highest-immediate-impact step. BUT it answers open-question 5 for you (does a garden *open* diverse, or start as one species and diversify through play?) — a DNA/design call, which is exactly why it stays yours, not something to ship solo.
+2. **The `irregularity` gene.** A new form gene that jitters petals petal-to-petal in `regionIndex` (crisp→wild). Touches genome.js + render; because the decode-grid samples the form, run the soul test before/after — the merge is sacred. This is the single gene that most directly kills the perfect-cross look.
+3. Then zygomorphy (bilateral faces), petal-tip shape, and the volatility dial — the rest of §1/§2 — each soul-tested.
+
+Guardrail unchanged: the soul test stays green; the merge is sacred. Gate step 2+ on a soul-test A/B (fumbling→native must still climb) and revert anything that flattens the merge. Everything here is still a co-design decision — the 5 open questions above are the conversation.
