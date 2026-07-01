@@ -123,6 +123,8 @@
   }
   function renderImprint() {
     const el = $('imprint');
+    const hintEl = $('hint');
+    if (hintEl) hintEl.classList.toggle('muted', !!G.imprint); // one narrator at a time: a murmur beat mutes the low-priority tip
     if (!el) return;
     if (!G.imprint) { el.style.opacity = '0'; return; }
     const k = G.imprint.age / 260;

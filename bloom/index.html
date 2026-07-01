@@ -46,6 +46,7 @@
   .hint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);font-size:12.5px;color:var(--dim);
     background:rgba(8,9,12,.78);padding:7px 14px;border-radius:20px;font-style:italic;pointer-events:none;
     border:1px solid var(--line);max-width:90%;text-align:center;transition:opacity .4s}
+  .hint.muted{opacity:0 !important} /* a murmur beat owns the screen — overlays the hint's own inline opacity, restores when removed */
   .toast{position:absolute;left:50%;top:16px;transform:translateX(-50%);background:rgba(18,21,27,.95);
     border:1px solid var(--amber);border-radius:11px;padding:11px 18px;font-size:13.5px;max-width:84%;
     box-shadow:0 8px 30px rgba(0,0,0,.5);opacity:0;transition:opacity .5s;pointer-events:none;text-align:center}
