@@ -120,6 +120,15 @@
       const stock = Math.min(1, (fl.nectar + fl.pollen) / (fl.cap * 1.4 + 0.01));
       glow(cx, cy, Math.round(FR * S * 2.0), bc[0], bc[1], bc[2], 0.10 + 0.22 * fl.beaconIntensity * (0.4 + 0.6 * stock));
       const RR = Math.round(FR * S);
+      // ── a soft body beneath the sharp genome pixels (round 3): fills the negative space between thin
+      //    petal tips so the bloom reads as a flower, not an asterisk. Purely additive — genome.js untouched,
+      //    the hard genome pixels still draw on top below, unchanged, so the shape stays honestly the genome. ──
+      const bodyR = RR * 0.82;
+      for (let dy = -RR; dy <= RR; dy++) for (let dx = -RR; dx <= RR; dx++) {
+        const d = Math.sqrt(dx * dx + dy * dy); if (d > bodyR) continue;
+        const fall = 1 - d / bodyR;
+        addPx(cx + dx, cy + dy, bc[0], bc[1], bc[2], fall * fall * 0.22);
+      }
       for (let dy = -RR; dy <= RR; dy++) for (let dx = -RR; dx <= RR; dx++) {
         const dn = Math.sqrt(dx * dx + dy * dy) / RR; if (dn > 1) continue;
         const idx = B.Genome.regionIndex(fl.genome, dn, Math.atan2(dy, dx));
