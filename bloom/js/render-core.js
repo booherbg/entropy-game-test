@@ -53,14 +53,45 @@
       }
     }
 
-    // ── plants: a short woody stem rising from the loam to each flower (so a flower reads as grown) ──
+    function fillDot(cx, cy, rad, cr, cg, cb, a) {
+      const r = Math.max(0, rad | 0); for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) if (dx * dx + dy * dy <= r * r + 1) addPx(cx + dx, cy + dy, cr, cg, cb, a);
+    }
+    // a tapering woody limb along a quadratic bezier (base→tip), thick→thin, with a couple of leaf specks
+    function limb(x0, y0, x1, y1, cxp, cyp, w0, w1, seed) {
+      const steps = Math.max(4, (Math.hypot(x1 - x0, y1 - y0) / 2) | 0);
+      for (let s = 0; s <= steps; s++) {
+        const t = s / steps, u = 1 - t;
+        const x = u * u * x0 + 2 * u * t * cxp + t * t * x1, y = u * u * y0 + 2 * u * t * cyp + t * t * y1;
+        const w = w0 + (w1 - w0) * t, sh = 0.78 - t * 0.15;
+        fillDot(x | 0, y | 0, w, 96 * sh, 68 * sh, 42 * sh, 0.85);
+        if (s > steps * 0.4 && ((s + seed) % 5 === 0)) { // foliage tuft along the limb
+          const lx = (x + (((s * 7 + seed) % 5) - 2)) | 0, ly = (y - 1 - ((s * 3 + seed) % 3)) | 0, g = 90 + (seed % 40);
+          fillDot(lx, ly, Math.max(1, (S * 0.22) | 0), 70, g, 55, 0.5);
+        }
+      }
+    }
+
+    // ── plants: each a small tree grown from the loam — a tapering trunk, limbs forking up to each
+    //    flower (borne at the tips), a leaf crown. the garden is grown, not placed; the void fills with form. ──
     const flowers = sim.allFlowers();
+    const tcT = sim.tickCount;
     for (let pi = 0; pi < sim.plants.length; pi++) {
-      const p = sim.plants[pi], baseX = Math.round((p.x + 0.5) * S), baseY = Math.round((p.y + 0.9) * S + S * 2);
+      const p = sim.plants[pi];
+      const crownX = Math.round((p.x + 0.5) * S), crownY = Math.round((p.y + 0.5) * S);
+      const rootY = crownY + Math.round((2 + p.biomass * 2.2) * S);         // roots deeper as it grows
+      const trunkW = Math.max(1.2, S * 0.16 * (0.6 + Math.min(p.biomass, 2) / 2));
+      const sway = Math.sin(tcT * 0.03 + p.x) * S * 0.25;
+      limb(crownX, rootY, crownX + sway, crownY, crownX + sway * 0.5, (rootY + crownY) / 2, trunkW, trunkW * 0.5, pi);
+      // a soft leaf crown + a pair of low leaves so the plant has a body, not just sticks (flowers pop over it)
+      fillDot(crownX + (sway | 0), crownY, Math.max(2, (S * 0.62) | 0), 60, 98, 54, 0.4);
+      const ly = (rootY + crownY) / 2 | 0, lw = Math.max(1, (S * 0.32) | 0);
+      fillDot((crownX - S * 0.6) | 0, ly, lw, 66, 104, 58, 0.42); fillDot((crownX + S * 0.6) | 0, ly - S * 0.4, lw, 66, 104, 58, 0.42);
       for (let fi = 0; fi < p.flowers.length; fi++) {
-        const fl = p.flowers[fi], fx = Math.round((fl.x + 0.5) * S), fy = Math.round((fl.y + 0.5) * S);
-        const steps = Math.max(2, Math.abs(fy - baseY) >> 1);
-        for (let s = 0; s <= steps; s++) { const t = s / steps; addPx(Math.round(baseX + (fx - baseX) * t), Math.round(baseY + (fy - baseY) * t), 70, 96, 52, 0.5); }
+        const fl = p.flowers[fi];
+        const bob = Math.round(Math.sin(tcT * 0.04 + fl.x * 0.7 + fl.y * 0.3) * S * 0.4);
+        const fx = Math.round((fl.x + 0.5) * S), fy = Math.round((fl.y + 0.5) * S) + bob;
+        const midx = (crownX + fx) / 2 + (fx - crownX) * 0.15, midy = Math.min(crownY, fy) - S * 0.8; // arch upward
+        limb(crownX + sway, crownY, fx, fy, midx, midy, trunkW * 0.55, 1, pi + fi + 3);
       }
     }
 
