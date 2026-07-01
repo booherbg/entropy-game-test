@@ -13,7 +13,7 @@ const scale = parseInt(process.argv[5] || '9', 10);
 const sim = B.makeSim(seed); sim.warmStart();
 for (let t = 0; t < ticks; t++) sim.tick();
 
-const { rgb, w, h } = B.Render.paint(sim, scale);
+const { rgb, w, h } = B.Render.paint(sim, scale, { fit: sim.meanFit() });
 fs.mkdirSync(__dirname + '/../shots', { recursive: true });
 const out = __dirname + '/../shots/' + name + '.png';
 fs.writeFileSync(out, encodePNG(w, h, rgb));

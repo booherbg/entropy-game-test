@@ -47,8 +47,11 @@ reviewer who read the code + screenshots) — see the verdict below. Keep `node 
 - [ ] **iter 7 — the lineage view** (critic #5, spec §3.6): stamp a parent id in reproduce/inheritKey; render
       an SVG dendrogram of descent (tiny grid-glyph nodes) in the sidebar — a bloodline to follow, doubling as
       the codex of wonders drawn out of observed play.
-- [ ] **ongoing — the seasonal arc**: tie warmth + saturation + mote density HARD to fit so a fumbling garden
-      is a cold grey dawn and a native one is warm noon; fuller ground (leaf/grass tufts) so it's a *place*.
+- [x] **the seasonal arc** (critic #3): DONE. warmth + ground palette + saturation + mote density now tied
+      HARD to fit via smoothstep. A fumbling garden is a cold grey-blue desaturated dawn (an entropy wash pulls
+      the whole frame toward grey); a native one is a warm golden saturated noon. colour = order against grey
+      entropy, made literal — the screen itself measures the merge. Render-only, soul green. (shot.js now
+      passes fit so headless renders the true season.)
 - [ ] **speciation you cause** (spec §9 open Q): a wall lever + a second colony → one matched pair splits into
       two divergent species. Barrier-aware bee movement (field already has a `barrier` channel).
 
