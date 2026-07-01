@@ -84,6 +84,21 @@
       panel('stores · nectar / pollen', necG + polG);
   };
 
+  // The forms this garden passed through — a live filmstrip of its own evolution (lineage / codex of wonders).
+  D.forms = function (forms) {
+    if (!forms || !forms.length) return '<div class="empty">the shapes this garden passes through will gather here as it evolves.</div>';
+    let s = '<div class="forms">';
+    for (let i = 0; i < forms.length; i++) {
+      const f = forms[i], N = B.N, px = 7; let cells = '';
+      for (let a = 0; a < N; a++) for (let b = 0; b < N; b++)
+        cells += `<rect x="${b * px}" y="${a * px}" width="${px}" height="${px}" fill="${cellFill(f.grid[a * N + b])}"/>`;
+      const now = (i === forms.length - 1);
+      s += `<div class="formcell${now ? ' now' : ''}"><svg width="${N * px}" height="${N * px}">${cells}</svg><div class="fl">g${f.gen}</div></div>`;
+      if (!now) s += '<div class="formarrow">›</div>';
+    }
+    return s + '</div>';
+  };
+
   // Inspect-a-creature: the living machine — its recipe + grid/key + why it looks this way.
   D.inspect = function (sim, sel) {
     if (!sel) return '';

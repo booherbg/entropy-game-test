@@ -8,7 +8,7 @@
   const G = {
     sim: null, seed: 1, paused: false, speedIdx: 0, tool: 'inspect',
     selected: null, history: [], miles: new Set(), tick0: 0, dashClock: 0, saveClock: 0,
-    lastFit: 0,
+    lastFit: 0, forms: [], lastFormGen: -1,
   };
 
   // ── milestone table: fit-thresholds + time, each unlocking a codex toast and/or a murmur ──
@@ -32,17 +32,26 @@
   function totalNiches() { let n = 0; for (const p of G.sim.plants) n += p.niches; return n; }
   function anyTripped() { for (const c of G.sim.colonies) for (const b of c.bees) if (b.trips > 0) return true; return false; }
   function minHonesty() { let m = 1; for (const f of G.sim.allFlowers()) { const h = f.honesty == null ? 1 : f.honesty; if (h < m) m = h; } return m; }
+  // snapshot the garden's representative glyph every dozen generations — its evolutionary filmstrip
+  function snapshotForm() {
+    const g = gen();
+    if (g < G.lastFormGen + 12 || !G.sim.allFlowers().length) return;
+    G.lastFormGen = g;
+    const con = B.Render.Dash.consensusDecoder(G.sim);
+    const fl = B.Render.Dash.representativeFlower(G.sim, con);
+    if (fl) { G.forms.push({ gen: g, grid: Array.from(fl.grid), fit: G.lastFit }); if (G.forms.length > 9) G.forms.shift(); }
+  }
 
   // ── boot ──
   function init() {
     const hashSeed = B.Persist.seedFromHash();
     const saved = (!hashSeed) ? B.Persist.load() : null;
-    if (saved) { G.sim = saved.sim; G.seed = G.sim.seed; G.miles = new Set(saved.meta.miles || []); G.tick0 = saved.meta.tick0 || 0; }
+    if (saved) { G.sim = saved.sim; G.seed = G.sim.seed; G.miles = new Set(saved.meta.miles || []); G.tick0 = saved.meta.tick0 || 0; G.forms = saved.meta.forms || []; }
     else { G.seed = hashSeed || ((Math.random() * 1e9) >>> 0); newGarden(G.seed, true); }
     G.miles.add('begin');
     // ?warp=N — fast-forward the sim at boot (a skip-ahead / demo hook; also drives headless screenshots)
     const wm = (location.search || '').match(/warp=(\d+)/);
-    if (wm) { const n = Math.min(20000, parseInt(wm[1], 10)); for (let i = 0; i < n; i++) { G.sim.tick(); if ((G.sim.tickCount % 30) === 0) recordHistory(); } }
+    if (wm) { const n = Math.min(20000, parseInt(wm[1], 10)); for (let i = 0; i < n; i++) { G.sim.tick(); if ((G.sim.tickCount % 30) === 0) { recordHistory(); G.lastFit = G.sim.meanFit(); snapshotForm(); } } }
     B.Persist.setHashSeed(G.seed);
     wireUI();
     sizeCanvas();
@@ -55,7 +64,7 @@
 
   function newGarden(seed, keepHash) {
     G.sim = B.makeSim(seed); G.sim.warmStart();
-    G.seed = seed; G.history = []; G.miles = new Set(['begin']); G.selected = null; G.tick0 = 0;
+    G.seed = seed; G.history = []; G.miles = new Set(['begin']); G.selected = null; G.tick0 = 0; G.forms = []; G.lastFormGen = -1;
     if (!keepHash) B.Persist.setHashSeed(seed);
     B.Persist.clear();
     updateSeedline();
@@ -71,6 +80,7 @@
       }
     }
     G.lastFit = G.sim.meanFit();
+    snapshotForm();
     renderWorld();
     updateGauge();
     checkMilestones();
@@ -97,6 +107,7 @@
   function renderDash(force) {
     $('lockkey').innerHTML = B.Render.Dash.lockKey(G.sim, G.selected);
     $('graphs').innerHTML = B.Render.Dash.graphs(G.sim, G.history);
+    if ($('forms')) $('forms').innerHTML = B.Render.Dash.forms(G.forms);
     if (G.selected) {
       // refresh the inspected ref still exists
       $('inspect').innerHTML = B.Render.Dash.inspect(G.sim, G.selected);
@@ -195,7 +206,7 @@
   function setSpeed() { G.speedIdx = (G.speedIdx + 1) % SPEEDS.length; $('btnSpeed').textContent = SPEEDS[G.speedIdx].l; }
   function setPaused(p) { G.paused = p; $('btnPause').textContent = p ? '▶' : '⏸'; }
 
-  function autosave() { B.Persist.save(G.sim, { miles: Array.from(G.miles), tick0: G.tick0 }); }
+  function autosave() { B.Persist.save(G.sim, { miles: Array.from(G.miles), tick0: G.tick0, forms: G.forms }); }
 
   function updateSeedline() { const el = $('seedline'); if (el) el.innerHTML = 'this garden&rsquo;s seed: <b style="color:#f0b870">' + G.seed + '</b> — the same seed always grows the same garden. it&rsquo;s in your address bar to share.'; }
 

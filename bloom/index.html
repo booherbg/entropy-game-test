@@ -68,6 +68,13 @@
   .gpt{font-size:10.5px;color:var(--dim);margin-bottom:2px}
   .gph svg{height:38px;width:100%;background:#0c0e12;border-radius:6px;border:1px solid var(--line)}
 
+  /* forms filmstrip */
+  .forms{display:flex;align-items:center;gap:3px;flex-wrap:wrap}
+  .formcell{text-align:center} .formcell svg{image-rendering:pixelated;border-radius:3px;opacity:.72;display:block}
+  .formcell.now svg{opacity:1;box-shadow:0 0 0 1.5px var(--amber)}
+  .formcell .fl{font-size:9px;color:var(--dim);margin-top:2px}
+  .formarrow{color:var(--dim);opacity:.4;font-size:13px;align-self:flex-start;margin-top:14px}
+
   /* inspect */
   .insp .ihead{font-size:15px;margin-bottom:9px} .insp .ihead span{color:var(--dim);font-size:12px}
   .irow{display:flex;gap:12px;align-items:flex-start} .irow svg{image-rendering:pixelated;border-radius:4px}
@@ -155,6 +162,7 @@
     <aside class="side">
       <div class="card"><div class="cap">the lock &amp; key — the merge</div><div id="lockkey"></div></div>
       <div class="card"><div class="cap">the garden, over time</div><div id="graphs"></div></div>
+      <div class="card"><div class="cap">the forms it passed through</div><div id="forms"></div></div>
       <div class="card"><div class="cap">inspect — the living machine</div><div id="inspect"><div class="empty">tap a flower or a forager in the garden to read it.</div></div></div>
     </aside>
   </main>
