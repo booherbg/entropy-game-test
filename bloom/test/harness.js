@@ -438,5 +438,21 @@ section('levers — lock, plant, place colony, grow niche');
   ok(sim.growNicheOn(plant) && plant.flowers.length === nb + 1, 'growNicheOn grows a niche');
 })();
 
+// ---- round 3: dashboards ----
+section('render-dash — legible sparklines');
+require('../js/render-core.js');
+require('../js/render-dash.js');
+
+(function testSparklineHasValueDotAndLabel() {
+  const sim = B.makeSim(78);
+  const history = [
+    { fit: 0.2, gridMatch: 0.1, bees: 5, plants: 3, nectar: 2, pollen: 1 },
+    { fit: 0.45, gridMatch: 0.3, bees: 7, plants: 4, nectar: 3.2, pollen: 1.8 },
+  ];
+  const html = B.Render.Dash.graphs(sim, history);
+  ok(/<circle /.test(html), 'graphs() output includes a current-value dot on at least one sparkline');
+  ok(html.indexOf('45%') >= 0, 'the fit panel title shows the current (last) fit value as a label');
+})();
+
 console.log(`\n${fails === 0 ? 'ALL PASS' : fails + ' FAILED'} — ${total - fails}/${total}`);
 process.exit(fails ? 1 : 0);

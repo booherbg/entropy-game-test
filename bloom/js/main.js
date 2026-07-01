@@ -131,7 +131,9 @@
     el.style.opacity = (fade * 0.82).toFixed(2);
   }
   function renderDash(force) {
-    $('lockkey').innerHTML = B.Render.Dash.lockKey(G.sim, G.selected);
+    const lk = B.Render.Dash.lockKey(G.sim, G.selected);
+    $('lockkey').innerHTML = lk;
+    if ($('lockkeyMobile')) $('lockkeyMobile').innerHTML = lk;
     $('graphs').innerHTML = B.Render.Dash.graphs(G.sim, G.history);
     if ($('forms')) $('forms').innerHTML = B.Render.Dash.forms(G.forms);
     if (G.selected) {

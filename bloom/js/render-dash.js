@@ -59,7 +59,7 @@
     </div>`;
   };
 
-  // a sparkline polyline from a history array of points → values via getter
+  // a sparkline polyline (+ a dot marking the current value) from a history array → values via getter
   function spark(history, get, color, w, h) {
     if (!history.length) return '';
     let max = 1e-6, min = 1e9;
@@ -67,7 +67,9 @@
     if (max - min < 1e-6) { max = min + 1; }
     const n = history.length, pts = [];
     for (let i = 0; i < n; i++) { const v = get(history[i]); pts.push(`${(i / Math.max(1, n - 1) * w).toFixed(1)},${(h - (v - min) / (max - min) * h).toFixed(1)}`); }
-    return `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.6"/>`;
+    const last = pts[pts.length - 1].split(',');
+    return `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.6"/>` +
+      `<circle cx="${last[0]}" cy="${last[1]}" r="2.6" fill="${color}"/>`;
   }
 
   D.graphs = function (sim, history) {
@@ -78,11 +80,17 @@
     const plG = spark(history, p => p.plants, '#9fd98f', w, h);
     const necG = spark(history, p => p.nectar, '#ebb446', w, h);
     const polG = spark(history, p => p.pollen, '#e8e0c8', w, h);
-    function panel(title, body) { return `<div class="gph"><div class="gpt">${title}</div><svg width="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${body}</svg></div>`; }
+    const last = history.length ? history[history.length - 1] : null;
+    function panel(title, body, valueLabel) {
+      return `<div class="gph"><div class="gpt">${title}${valueLabel ? ' · <b>' + valueLabel + '</b>' : ''}</div><svg width="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${body}</svg></div>`;
+    }
     const turnover = `<span style="color:#8a857a"> · the garden turns over: <b style="color:#9fd98f">${sim.plantBorn || 0}</b> sprouted &middot; <b style="color:#b08a6a">${sim.plantDied || 0}</b> wilted</span>`;
-    return panel('lock-and-key fit · grid match', fitG + gmG) +
-      panel('population · foragers / plants' + turnover, beeG + plG) +
-      panel('stores · nectar / pollen', necG + polG);
+    return panel('lock-and-key fit · grid match', fitG + gmG,
+        last ? (last.fit * 100).toFixed(0) + '% / ' + (last.gridMatch * 100).toFixed(0) + '%' : '') +
+      panel('population · foragers / plants' + turnover, beeG + plG,
+        last ? last.bees + ' / ' + last.plants : '') +
+      panel('stores · nectar / pollen', necG + polG,
+        last ? last.nectar.toFixed(1) + ' / ' + last.pollen.toFixed(1) : '');
   };
 
   // The forms this garden passed through — a live filmstrip of its own evolution (lineage / codex of wonders).
