@@ -81,6 +81,40 @@ colonies establish or visibly starve — cold pulsing ring). The batch:
       Harness 75/75, soul green. PLANT_CAP 16.
 - [ ] **birth/death legibility** — seedlings sprout in, replaced plants wilt out, a births/deaths readout.
 
+## ★ ECOLOGIST AUDIT (2026-07-01, evidence-backed) — reprioritizes the rest of round 2
+An evolutionary-biologist critic ran the tests + custom 20k-tick probes. Verdict: the *evolutionary* core is
+honest (the two-sided merge is real, soul earns its pass), BUT the "living population" is a **fixed-N Moran
+engine wearing an ecology costume** and has three real problems:
+1. **Populations never breathe** — bees pinned at 60, plants at 16, 0 starvation ever; upkeep is decorative.
+2. **Monomorphic collapse / frozen incumbents** — long-run the patch converges to ~1 beacon hue, few colours,
+   near-zero grid diversity; immortal high-fitness mother plants (fitness is an unbounded lifetime hoard, no
+   senescence) become un-cullable. For a game whose thesis is "never settles," the default long-run is *settled*.
+3. **Speciation REVERSES** — cross-fertility 0.69→0.54→0.85 over 24k ticks: the two colonies' forage ranges
+   overlap and plants disperse into the middle as stepping stones. **`barrier` is read only by the renderer —
+   bee movement ignores it.** So the speciation.js result is a leaky, reversible transient, not an attractor.
+Also flagged: post-peak meanFit sag reads as "losing" (seasonal arc greys back out); directed key inheritance
+is guided-mutation (the thumb on the scale that also drives the diversity collapse).
+
+**Reprioritized build order (audit-driven), all keeping soul GREEN + DNA (gentle, coax, legible):**
+- [x] **A. barrier-aware bee movement + a HEDGEROW lever** — DONE (the plumbing). `field.blocked/rayBlocked/
+      paintBarrier`; `_moveToward` slides along walls, `_pick` skips flowers across a hedge. A 🧱 hedge brush
+      (drag to build, tap again to clear). VERIFIED mechanically: a walled bee can't forage across (rayBlocked)
+      or fly through (stays its side over 600 ticks); rendered, the two colonies' trails stay on their own
+      sides. BUT: the wall alone does NOT yet yield strong speciation — with gene flow cut, both isolated sides
+      still land on the SAME attractor (no divergence pressure). So A is necessary but insufficient; the payoff
+      needs **B (frequency-dependence)** so the two sides settle on DIFFERENT morphs. Soul + harness 75/75 green.
+- [ ] **B. negative frequency-dependent selection** — over-visited hues pay less (pool depletion / forager
+      satiation memory) → rare morphs bloom → standing diversity is maintained → the garden genuinely never
+      settles (fixes the monoculture root cause; gives speciation something to act on).
+- [ ] **C. fitness = bounded rate + gentle plant senescence** — cap fitness / short window + soft age-mortality
+      so frozen incumbents yield to seedlings → turnover, grid evolution keeps moving.
+- [ ] **D. flower constancy** (assortative visitation) — small `_pick` bias toward the just-fed `lastBeaconHue`
+      → foragers self-sort into lanes → a single patch can split sympatrically (deepens speciation without a wall).
+- [ ] **E. colony population breathes with match quality** — carrying capacity tracks recent nectar inflow
+      (well-matched swarm grows toward 60, fumbling one thins toward ~15) with a FLOOR (never a survival wipe).
+- [ ] **F. reframe the post-peak sag** — render floor / murmur so the Red Queen wobble reads as vitality, not regression.
+- [ ] **G. birth/death legibility** (original #4) — sprout/wilt + a births/deaths readout.
+
 ## Method each iteration
 pick the next unchecked item → implement (TDD for logic, headless screenshot for visuals) → keep harness +
 soul green → commit finding-per-commit → redeploy to gh-pages (worktree method) → tick the box here → leave a

@@ -27,11 +27,11 @@
           const f = this.target;
           if (!f) { this._wander(rng); }
           else {
-            this._moveToward(f.x, f.y, rng);
+            this._moveToward(f.x, f.y, rng, field);
             if (Math.hypot(f.x - this.x, f.y - this.y) < 1.5) this._land(f);
           }
         } else { // home
-          this._moveToward(colony.x, colony.y, rng);
+          this._moveToward(colony.x, colony.y, rng, field);
           field.add('trail', this.x, this.y, Math.min(0.5, this.lastYield * 0.18)); // stigmergy
           if (Math.hypot(colony.x - this.x, colony.y - this.y) < 2) {
             colony.deposit(this.nectar, this.pollen);
@@ -50,6 +50,7 @@
           const f = flowers[i];
           const d = Math.hypot(f.x - this.x, f.y - this.y);
           if (d > this.key.forageRange) continue;
+          if (field.rayBlocked && field.rayBlocked(this.x, this.y, f.x, f.y)) continue; // can't forage across a hedge
           const bm = B.beaconMatch(this.key.preference, f.beaconHue) * f.beaconIntensity;
           const tr = field.get('trail', f.x, f.y);
           // your gaze is a gentle pressure: a flower you are watching draws a little more attention (the
@@ -61,10 +62,17 @@
         return best;
       },
 
-      _moveToward: function (tx, ty, rng) {
+      _moveToward: function (tx, ty, rng, field) {
         const dx = tx - this.x, dy = ty - this.y, d = Math.hypot(dx, dy) || 1, sp = this.key.speed;
-        this.x = B.clamp(this.x + dx / d * sp + (rng() - 0.5) * 0.3, 0, B.W - 1);
-        this.y = B.clamp(this.y + dy / d * sp + (rng() - 0.5) * 0.3, 0, B.H - 1);
+        let nx = B.clamp(this.x + dx / d * sp + (rng() - 0.5) * 0.3, 0, B.W - 1);
+        let ny = B.clamp(this.y + dy / d * sp + (rng() - 0.5) * 0.3, 0, B.H - 1);
+        // a hedge blocks flight — try sliding along it (move only in the clear axis), else hold
+        if (field && field.blocked && field.blocked(nx, ny)) {
+          if (!field.blocked(nx, this.y)) ny = this.y;
+          else if (!field.blocked(this.x, ny)) nx = this.x;
+          else { nx = this.x; ny = this.y; }
+        }
+        this.x = nx; this.y = ny;
       },
 
       _wander: function (rng) {
