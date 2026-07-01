@@ -34,6 +34,16 @@
         }
         return best;
       },
+      // a forager chosen in proportion to how well it fed — not always THE best. Successful-but-diverse
+      // lineages persist, so the colony stays POLYMORPHIC and can track several flower morphs at once (instead
+      // of every bee becoming a clone of one winner). Diversity begets diversity.
+      weightedForager: function (rng) {
+        let total = 0; for (let i = 0; i < this.bees.length; i++) { const b = this.bees[i]; if (b.lastGrid) total += b.lastYield * b.lastYield; }
+        if (total <= 0) return this.bestForager();
+        let r = rng() * total;
+        for (let i = 0; i < this.bees.length; i++) { const b = this.bees[i]; if (!b.lastGrid) continue; r -= b.lastYield * b.lastYield; if (r <= 0) return b; }
+        return this.bestForager();
+      },
       bestKey: function (rng) { const b = this.bestForager(); return b ? b.key : B.Genome.randomKey(rng); },
 
       tick: function (field, flowers, rng) {

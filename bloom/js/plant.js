@@ -94,7 +94,9 @@
       reproduce: function (rng) {
         if (this.seeds < 1) return null;
         this.seeds--;
-        return B.Genome.mutate(this.genome, rng, 1);
+        // mostly a gentle nudge (smooth visible drift); occasionally a "sport" — a bigger jump that throws up a
+        // genuinely new colour/form. Frequency-dependence then keeps the novelty alive → standing diversity.
+        return B.Genome.mutate(this.genome, rng, rng() < 0.12 ? 2.6 : 1);
       },
     };
     return plant;

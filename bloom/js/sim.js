@@ -107,6 +107,15 @@
           for (let b = 0; b < bees.length; b++) if (bees[b].target && !fset2.has(bees[b].target)) bees[b].target = null;
         }
 
+        // ── negative frequency-dependence: a flower of a RARE colour sets seed more readily than a common one
+        //    (its pollinators aren't split among a crowd of look-alikes). Rare morphs bloom, common ones are
+        //    held back → the garden keeps its diversity and never settles to a monoculture. (Gigord's orchids.)
+        for (let a = 0; a < flowers2.length; a++) {
+          const fa = flowers2[a]; let same = 0;
+          for (let b = 0; b < flowers2.length; b++) { if (a === b) continue; let d = Math.abs(fa.beaconHue - flowers2[b].beaconHue); if (d > 0.5) d = 1 - d; if (d < 0.08) same++; }
+          fa._rarity = 1 / (1 + 0.4 * same);
+        }
+
         // ── colonies: forage across all flowers; evolve keys ──
         for (let c = 0; c < this.colonies.length; c++) this.colonies[c].tick(this.field, flowers2, rng);
 
