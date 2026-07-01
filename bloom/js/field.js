@@ -19,25 +19,33 @@
     const barrier = new Uint8Array(NCELL); // walls block bee movement (the speciation lever)
     const scratch = new Float32Array(NCELL);
 
-    // light gradient: bright canopy up top falling to shaded loam below, with mild seeded variation
-    // so no two worlds light identically. Range ~[0.15, 1.0].
-    for (let y = 0; y < H; y++) {
-      const base = 1.0 - 0.78 * (y / (H - 1));            // 1.0 at top → 0.22 at bottom
-      for (let x = 0; x < W; x++) {
-        const jitter = (rng() - 0.5) * 0.08;
-        light[y * W + x] = Math.max(0.12, base + jitter);
-      }
-    }
+    // EVEN light by default — a uniform sun (with the faintest texture). Light is the energy source, but WHERE
+    // it falls is now a designable 2D field: paint sunlit / shaded zones (see paintLight) to build environments
+    // — a bright meadow, a dim understory, dappled clearings. No more hidden top-down gradient.
+    const LIGHT_BASE = 0.72;
+    for (let i = 0; i < NCELL; i++) light[i] = LIGHT_BASE + (rng() - 0.5) * 0.04;
 
     const chan = { light: light, sugar: sugar, nectar: nectar, pollen: pollen, trail: trail };
 
     const f = {
       W: W, H: H, light: light, sugar: sugar, nectar: nectar, pollen: pollen, trail: trail, barrier: barrier,
+      lightBase: LIGHT_BASE,
       idx: function (x, y) { return (y | 0) * W + (x | 0); },
       inBounds: function (x, y) { return x >= 0 && y >= 0 && x < W && y < H; },
       lightAt: function (x, y) {
         if (x < 0 || y < 0 || x >= W || y >= H) return 0;
         return light[(y | 0) * W + (x | 0)];
+      },
+      // paint a soft sunlit (level>base) or shaded (level<base) patch — the environment-design brush
+      paintLight: function (cx, cy, radius, level, strength) {
+        strength = strength == null ? 0.6 : strength; const r2 = radius * radius;
+        const x0 = Math.max(0, (cx - radius) | 0), x1 = Math.min(W - 1, (cx + radius) | 0);
+        const y0 = Math.max(0, (cy - radius) | 0), y1 = Math.min(H - 1, (cy + radius) | 0);
+        for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+          const dx = x - cx, dy = y - cy, d2 = dx * dx + dy * dy; if (d2 > r2) continue;
+          const fall = (1 - Math.sqrt(d2) / radius) * strength, i = y * W + x;
+          light[i] = B.clamp(light[i] + (level - light[i]) * fall, 0.05, 1.35);
+        }
       },
       get: function (ch, x, y) {
         if (x < 0 || y < 0 || x >= W || y >= H) return 0;
