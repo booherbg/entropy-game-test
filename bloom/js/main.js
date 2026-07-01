@@ -172,7 +172,14 @@
     if (G.tool === 'niche') {
       let best = null, bd = 1e9; for (const p of G.sim.plants) { const d = (p.x - c.x) ** 2 + (p.y - c.y) ** 2; if (d < bd) { bd = d; best = p; } }
       if (best && G.sim.growNicheOn(best)) toast('a new niche — a flower of a different colour, a new lock awaiting a key.');
-      else toast('that tree needs more sugar to grow a niche. give it time in the light.');
+      else toast('that tree needs more sugar to grow a niche. give it more sun (☀) or thin its neighbours (✂).');
+      return;
+    }
+    if (G.tool === 'cull') {
+      const culled = G.sim.cullAt(c.x, c.y);
+      if (culled) { if (G.selected && G.selected.ref === culled.ref) { G.selected = null; setWatched(null); }
+        toast(culled.kind === 'plant' ? 'pulled — its neighbours now stand in more light.' : 'a colony removed.'); renderDash(); }
+      else toast('nothing here to cull — tap a plant or a colony.');
       return;
     }
     if (G.tool === 'lock') { const fl = B.Render.pickFlower(G.sim, c.x, c.y); if (fl) { G.sim.lockFlower(fl, !fl.locked); G.selected = { kind: 'flower', ref: fl }; setWatched(fl); toast(fl.locked ? 'locked — the bees must chase this pattern now.' : 'released — it can drift again.'); renderDash(); } return; }
@@ -201,7 +208,8 @@
       lock: 'tap a flower to freeze its pattern — the bees must then chase it.',
       plant: 'tap to plant a flower.', colony: 'tap to place a colony of foragers (near flowers, or it starves).',
       niche: 'tap near a tree to spend its sugar on a new niche — a new lock to be matched.',
-      light: 'drag to paint ' + (G.lightMode === 'sun' ? '<b style="color:#ffd9a0">sunlight</b>' : '<b style="color:#8fb0d8">shade</b>') + ' — design the land. tap the ☀ tool again to switch sun ⇄ shade.' };
+      light: 'drag to paint ' + (G.lightMode === 'sun' ? '<b style="color:#ffd9a0">sunlight</b>' : '<b style="color:#8fb0d8">shade</b>') + ' — design the land. tap the ☀ tool again to switch sun ⇄ shade.',
+      cull: 'tap a plant to pull it — thinning a crowded patch floods the survivors with light. or cull a stray colony.' };
     showHint(hints[t]);
   }
   function updateLightIcon() {

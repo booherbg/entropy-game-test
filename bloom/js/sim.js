@@ -53,6 +53,19 @@
         this.field.decay('nectar', 0.08);
         this.field.decay('pollen', 0.08);
 
+        // ── crowding / self-shade: each plant shades its neighbours, so a dense clump is dim and starved of
+        //    sugar; thinning it (the cull tool) floods the survivors with light. light + pollination + pruning
+        //    all reinforce. ──
+        const P = this.plants, np = P.length;
+        for (let i = 0; i < np; i++) {
+          const p = P[i]; let shade = 0;
+          for (let j = 0; j < np; j++) {
+            if (j === i) continue; const q = P[j], dx = p.x - q.x, dy = p.y - q.y, d2 = dx * dx + dy * dy;
+            if (d2 < 49) shade += (1 - Math.sqrt(d2) / 7) * (0.11 + Math.min(q.biomass, 2) * 0.05);
+          }
+          p.shade = shade < 0.7 ? shade : 0.7;
+        }
+
         // ── plants: grow, photosynthesize, restock & set seed ──
         const flowers = this.allFlowers();
         const fset = new Set(flowers);
@@ -190,6 +203,17 @@
         if (this.plants.length >= PLANT_CAP) this.plants.shift();
         this.plants.push(p); return p; },
       growNicheOn: function (plant) { return plant.growNiche(this.rng); },
+      // cull — pull a weed: remove the nearest plant (thinning frees light for its neighbours), else a colony
+      cullAt: function (x, y, rad) {
+        rad = rad || 4.5; const r2 = rad * rad;
+        let pi = -1, pd = r2;
+        for (let i = 0; i < this.plants.length; i++) { const p = this.plants[i], d = (p.x - x) * (p.x - x) + (p.y - y) * (p.y - y); if (d < pd) { pd = d; pi = i; } }
+        if (pi >= 0) { const p = this.plants[pi]; this.plants.splice(pi, 1); return { kind: 'plant', ref: p }; }
+        let ci = -1, cd = r2;
+        for (let i = 0; i < this.colonies.length; i++) { const c = this.colonies[i], d = (c.x - x) * (c.x - x) + (c.y - y) * (c.y - y); if (d < cd) { cd = d; ci = i; } }
+        if (ci >= 0) { const c = this.colonies[ci]; this.colonies.splice(ci, 1); return { kind: 'colony', ref: c }; }
+        return null;
+      },
 
       serialize: function () {
         this._ensureIds();

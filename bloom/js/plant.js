@@ -33,7 +33,7 @@
         this.age++;
         // ── photosynthesis (light → sugar), scaled by canopy (leaf area grows with biomass) ──
         const canopy = 0.25 + Math.min(this.biomass, 1.5) / 1.5 * 0.75;
-        this.sugar += PHOTO_K * field.lightAt(this.x, this.y) * canopy;
+        this.sugar += PHOTO_K * field.lightAt(this.x, this.y) * (1 - (this.shade || 0)) * canopy;
         // ── respiration: the second law — a steady leak that scales with size (never makes sugar) ──
         this.sugar -= 0.008 * (0.5 + this.biomass);
         if (this.sugar < 0) this.sugar = 0;

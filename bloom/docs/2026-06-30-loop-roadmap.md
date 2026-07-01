@@ -64,8 +64,11 @@ colonies establish or visibly starve — cold pulsing ring). The batch:
 - [x] **light → designable 2D field** (even default + sun/shade paint brush, visible lightscape). DONE.
 - [x] **sugar legibility** — inspect shows a plant's sugar→niche meter + its light level (full sun/shade) +
       "✓ ready" / "needs more sun"; a ripe golden bud glints over plants that can grow a niche. DONE.
-- [ ] **cull tool + crowding/self-shade** — a remove tool (cull a flower/plant/colony); plants shade each
-      other so a dense clump is dim → thinning frees light+sugar. Light + pollination + pruning reinforce.
+- [x] **cull tool + crowding/self-shade** — DONE. Plants now shade neighbours (sim computes `plant.shade`
+      from nearby plants' proximity+biomass, capped 0.7; photosynthesis ×(1−shade)). The ✂ cull tool removes
+      the nearest plant (or a stray colony). Verified: a 6-plant clump shades each other 60%; cull 3 → survivors
+      drop to 22% (more light). Inspect shows "crowded −X% · thin them (✂)". Default garden unaffected (mild
+      shade at normal spacing); soul + harness 75/75 green.
 - [ ] **local seeding + fitness-based death + GRADUAL drifting-species speciation** — offspring seed near the
       parent; the crowded-out plant is the least-pollinated nearby one; a species tag drifts with the genome and
       cross-fertility falls off gradually with genetic distance → isolated/differently-lit clusters diverge.
