@@ -197,15 +197,31 @@
     if (opts.effects) {
       for (let e = 0; e < opts.effects.length; e++) {
         const ef = opts.effects[e], k = ef.age / 46, fade = (1 - k) * (1 - k);
-        if (ef.t === 'read') { // a bright filament tracing a good read — the merge, made a moment in the world
+        if (ef.t === 'read') { // the merge, made a moment: a white-hot spark races the read into the world, then flares
           const x0 = Math.round((ef.x0 + 0.5) * S), y0 = Math.round((ef.y0 + 0.5) * S);
           const x1 = Math.round((ef.x1 + 0.5) * S), y1 = Math.round((ef.y1 + 0.5) * S);
-          const rc = hueRGB(ef.hue, 0.85, 0.65), boost = ef.boost || 1, steps = 8;
-          for (let s = 0; s <= steps; s++) {
-            const t = s / steps;
-            addPx(Math.round(x0 + (x1 - x0) * t), Math.round(y0 + (y1 - y0) * t), rc[0], rc[1], rc[2], fade * ef.eff * boost * 0.7);
+          const rc = hueRGB(ef.hue, 0.90, 0.72), boost = ef.boost || 1, eff = ef.eff * boost;
+          const TRAVEL = 0.72;                       // fraction of the life spent racing to the flower
+          if (k < TRAVEL) {
+            const p = k / TRAVEL;                     // 0..1 along the path
+            const hx = Math.round(x0 + (x1 - x0) * p), hy = Math.round(y0 + (y1 - y0) * p);
+            // a hue-tinted comet tail trailing the head back toward the bee
+            const TAIL = 7;
+            for (let s = 1; s <= TAIL; s++) {
+              const tp = Math.max(0, p - s * 0.05);
+              addPx(Math.round(x0 + (x1 - x0) * tp), Math.round(y0 + (y1 - y0) * tp), rc[0], rc[1], rc[2], eff * (1 - s / (TAIL + 1)) * 0.5);
+            }
+            // the head: a hue bloom under a near-WHITE hot core — this is what reads as light, not a colored line
+            glow(hx, hy, Math.max(2, (S * 0.55) | 0), rc[0], rc[1], rc[2], eff * 0.40);
+            glow(hx, hy, Math.max(1, (S * 0.32) | 0), 255, 252, 240, eff * 0.60);
+            addPx(hx, hy, 255, 253, 245, Math.min(0.95, eff * 1.1));
+          } else {
+            const q = (k - TRAVEL) / (1 - TRAVEL);    // 0..1 over the arrival
+            const fl = (1 - q) * eff;                 // flare blooms bright then fades as the effect retires
+            glow(x1, y1, Math.max(3, (S * (0.6 + q * 0.8)) | 0), rc[0], rc[1], rc[2], fl * 0.50);
+            glow(x1, y1, Math.max(2, (S * 0.40) | 0), 255, 250, 235, fl * 0.60);
+            addPx(x1, y1, 255, 252, 244, Math.min(0.90, fl));
           }
-          glow(x1, y1, Math.max(2, (S * 0.5) | 0), rc[0], rc[1], rc[2], fade * ef.eff * boost * 0.35);
           continue;
         }
         const cx = Math.round((ef.x + 0.5) * S), cy = Math.round((ef.y + 0.5) * S);
