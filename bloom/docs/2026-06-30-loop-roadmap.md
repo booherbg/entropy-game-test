@@ -112,8 +112,12 @@ is guided-mutation (the thumb on the scale that also drives the diversity collap
       polymorphic → it WEAKENED the merge (peaks 0.85) without adding diversity → reverted. **Dramatic diversity
       needs the MORPHOLOGY work (bigger form-space, start varied, stronger drift) — the thread Blaine deferred to
       co-design. Flag for him.** Soul + harness 75/75 green.
-- [ ] **C. fitness = bounded rate + gentle plant senescence** — cap fitness / short window + soft age-mortality
-      so frozen incumbents yield to seedlings → turnover, grid evolution keeps moving.
+- [x] **C. fitness = bounded rate + gentle plant senescence** — DONE. fitness now CAPPED at 6 (was an unbounded
+      lifetime hoard reaching ~72 → a few un-cullable frozen incumbents); and fitness decays FASTER once a plant
+      is past age 700 (senescence) so an old mother fades and yields her slot. Verified: fitness max 0.79 (was
+      ~72), partial turnover (median plant age 3149 vs whole-run before). Honest limit: turnover is
+      reproduction-gated, so a converged (slow-reproducing) patch still turns over slowly — but the audit's core
+      problem (permanently invincible incumbents) is fixed. Soul + harness 75/75 green.
 - [ ] **D. flower constancy** (assortative visitation) — small `_pick` bias toward the just-fed `lastBeaconHue`
       → foragers self-sort into lanes → a single patch can split sympatrically (deepens speciation without a wall).
 - [ ] **E. colony population breathes with match quality** — carrying capacity tracks recent nectar inflow

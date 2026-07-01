@@ -32,7 +32,9 @@
 
       tick: function (field) {
         this.age++;
-        this.fitness *= 0.996;   // fitness fades unless renewed by setting seed (see below)
+        // fitness fades unless renewed by setting seed — and fades FASTER once a plant is past its prime, so
+        // an old "mother" senesces and yields her slot to seedlings instead of freezing the patch forever.
+        this.fitness *= (this.age > 700 ? 0.996 - Math.min(0.022, (this.age - 700) * 0.00003) : 0.996);
         // ── photosynthesis (light → sugar), scaled by canopy (leaf area grows with biomass) ──
         const canopy = 0.25 + Math.min(this.biomass, 1.5) / 1.5 * 0.75;
         this.sugar += PHOTO_K * field.lightAt(this.x, this.y) * (1 - (this.shade || 0)) * canopy;
@@ -60,8 +62,9 @@
           const fl = this.flowers[i];
           const want = 0.35 * fl.beaconIntensity * fl.honesty;
           if (this.sugar > want) { this.sugar -= want; fl.restock(want); }
-          // accumulated pollination → seed (and a plant that sets seed earns fitness — it is cared for)
-          if (fl.seedProgress >= SEED_THRESHOLD) { this.seeds++; this.fitness += 1; fl.seedProgress -= SEED_THRESHOLD; }
+          // accumulated pollination → seed (and a plant that sets seed earns fitness — it is cared for).
+          // fitness is a BOUNDED rate (capped), so a fecund plant can't become an un-cullable frozen incumbent.
+          if (fl.seedProgress >= SEED_THRESHOLD) { this.seeds++; this.fitness = Math.min(6, this.fitness + 1); fl.seedProgress -= SEED_THRESHOLD; }
         }
       },
 
