@@ -25,6 +25,8 @@
       bandY0: 20, bandY1: 46,
       locks: 0,         // how many flower grids are currently locked (the lever)
       milestones: {},   // set as they fire (for the imprint layer)
+      events: [],       // transient per-tick birth/death events (render-only; drained by the shell, not serialized)
+      plantBorn: 0, plantDied: 0,   // cumulative plant turnover (the garden's births + deaths)
 
       _ensureIds: function () {
         for (let pi = 0; pi < this.plants.length; pi++) {
@@ -46,6 +48,7 @@
 
       tick: function () {
         const rng = this.rng;
+        this.events.length = 0;   // fresh each tick
         this._ensureIds();
         // ── field dynamics ──
         this.field.diffuse('trail', 0.16);
@@ -85,7 +88,7 @@
           const np = B.makePlant(child, sx, sy, rng, parent.speciesId);
           np.biomass = 0.7; np.sugar = 3;
           np.fitness = Math.max(0.7, parent.fitness * 0.75);             // offspring inherit some of the parent's standing
-          if (this.plants.length < PLANT_CAP) { this.plants.push(np); continue; }
+          if (this.plants.length < PLANT_CAP) { this.plants.push(np); this.plantBorn++; this.events.push({ t: 'birth', x: sx, y: sy }); continue; }
           // at capacity → LOCAL competition: the seed crowds out the least-fit established plant NEAR where it
           // landed (not globally — else everything migrates to the colony). Each neighbourhood self-regulates,
           // so the garden keeps its spread and separated clusters persist and evolve on their own.
@@ -97,7 +100,12 @@
             if (d2 > 121) continue;                                      // only compete within ~11 cells of the seed
             if (q.fitness < worst) { worst = q.fitness; vi = j; }
           }
-          if (vi >= 0) this.plants[vi] = np;                            // else the seed falls on occupied/distant ground and fails
+          if (vi >= 0) {                                                 // else the seed falls on occupied/distant ground and fails
+            const victim = this.plants[vi];
+            this.events.push({ t: 'death', x: victim.x, y: victim.y });
+            this.events.push({ t: 'birth', x: sx, y: sy });
+            this.plants[vi] = np; this.plantBorn++; this.plantDied++;
+          }
         }
 
         // prune any bee target pointing at a flower that was just replaced (keeps state clean + serializable)
@@ -229,7 +237,7 @@
         rad = rad || 4.5; const r2 = rad * rad;
         let pi = -1, pd = r2;
         for (let i = 0; i < this.plants.length; i++) { const p = this.plants[i], d = (p.x - x) * (p.x - x) + (p.y - y) * (p.y - y); if (d < pd) { pd = d; pi = i; } }
-        if (pi >= 0) { const p = this.plants[pi]; this.plants.splice(pi, 1); return { kind: 'plant', ref: p }; }
+        if (pi >= 0) { const p = this.plants[pi]; this.events.push({ t: 'death', x: p.x, y: p.y }); this.plantDied++; this.plants.splice(pi, 1); return { kind: 'plant', ref: p }; }
         let ci = -1, cd = r2;
         for (let i = 0; i < this.colonies.length; i++) { const c = this.colonies[i], d = (c.x - x) * (c.x - x) + (c.y - y) * (c.y - y); if (d < cd) { cd = d; ci = i; } }
         if (ci >= 0) { const c = this.colonies[ci]; this.colonies.splice(ci, 1); return { kind: 'colony', ref: c }; }

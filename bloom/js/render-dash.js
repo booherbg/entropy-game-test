@@ -79,8 +79,9 @@
     const necG = spark(history, p => p.nectar, '#ebb446', w, h);
     const polG = spark(history, p => p.pollen, '#e8e0c8', w, h);
     function panel(title, body) { return `<div class="gph"><div class="gpt">${title}</div><svg width="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${body}</svg></div>`; }
+    const turnover = `<span style="color:#8a857a"> · the garden turns over: <b style="color:#9fd98f">${sim.plantBorn || 0}</b> sprouted &middot; <b style="color:#b08a6a">${sim.plantDied || 0}</b> wilted</span>`;
     return panel('lock-and-key fit · grid match', fitG + gmG) +
-      panel('population · foragers / plants', beeG + plG) +
+      panel('population · foragers / plants' + turnover, beeG + plG) +
       panel('stores · nectar / pollen', necG + polG);
   };
 

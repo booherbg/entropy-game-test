@@ -8,7 +8,7 @@
   const G = {
     sim: null, seed: 1, paused: false, speedIdx: 0, tool: 'inspect',
     selected: null, history: [], miles: new Set(), tick0: 0, dashClock: 0, saveClock: 0,
-    lastFit: 0, forms: [], lastFormGen: -1, lightMode: 'sun', hedgeMode: 'build', painting: false,
+    lastFit: 0, forms: [], lastFormGen: -1, lightMode: 'sun', hedgeMode: 'build', painting: false, effects: [],
   };
   const PAINT_TOOLS = { light: 1, hedge: 1 };
 
@@ -65,7 +65,7 @@
 
   function newGarden(seed, keepHash) {
     G.sim = B.makeSim(seed); G.sim.warmStart();
-    G.seed = seed; G.history = []; G.miles = new Set(['begin']); G.selected = null; G.tick0 = 0; G.forms = []; G.lastFormGen = -1;
+    G.seed = seed; G.history = []; G.miles = new Set(['begin']); G.selected = null; G.tick0 = 0; G.forms = []; G.lastFormGen = -1; G.effects = [];
     if (!keepHash) B.Persist.setHashSeed(seed);
     B.Persist.clear();
     updateSeedline();
@@ -77,9 +77,14 @@
       const n = SPEEDS[G.speedIdx].n;
       for (let i = 0; i < n; i++) {
         G.sim.tick();
+        for (let e = 0; e < G.sim.events.length; e++) { const ev = G.sim.events[e]; G.effects.push({ x: ev.x, y: ev.y, t: ev.t, age: 0 }); }
         if ((G.sim.tickCount % 30) === 0) recordHistory();
       }
+      if (G.effects.length > 80) G.effects.splice(0, G.effects.length - 80);
     }
+    // age + retire the sprout/wilt effects (every frame, even paused, so they fade rather than freeze)
+    for (let e = 0; e < G.effects.length; e++) G.effects[e].age++;
+    if (G.effects.length) G.effects = G.effects.filter(ef => ef.age < 46);
     G.lastFit = G.sim.meanFit();
     snapshotForm();
     renderWorld();
@@ -98,7 +103,7 @@
   function totColony(k) { let s = 0; for (const c of G.sim.colonies) s += c[k]; return s; }
 
   // ── render ──
-  function renderWorld() { B.Render.world($('world'), G.sim, S, { fit: G.lastFit }); }
+  function renderWorld() { B.Render.world($('world'), G.sim, S, { fit: G.lastFit, effects: G.effects }); }
   function updateGauge() {
     const f = G.lastFit;
     $('hgfill').style.width = (f * 100).toFixed(0) + '%';
