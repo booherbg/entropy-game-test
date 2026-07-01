@@ -26,6 +26,27 @@
       },
     ],
 
+    // A LIVING murmur — composed from THIS garden's real state each time it's read, so the AI-arranger is
+    // demonstrably entangled with the world you're watching, not narrating above it (the non-dualism, enacted).
+    hueName: function (h) {
+      return ['crimson', 'amber', 'gold', 'chartreuse', 'green', 'teal', 'sky', 'violet', 'rose'][Math.min(8, Math.floor(((h % 1) + 1) % 1 * 9))];
+    },
+    livingMurmur: function (sim, gen) {
+      const fit = sim.meanFit();
+      const fitw = fit < 0.4 ? 'still fumbling toward each other' : fit < 0.78 ? 'learning to read each other' : fit < 0.92 ? 'nearly a matched pair' : 'reading each other like natives';
+      let minHon = 1; const fs = sim.allFlowers();
+      for (let i = 0; i < fs.length; i++) { const h = fs[i].honesty == null ? 1 : fs[i].honesty; if (h < minHon) minHon = h; }
+      let locked = '';
+      if (B.Render && B.Render.Dash) {
+        const con = B.Render.Dash.consensusDecoder(sim);
+        for (let i = 0; i < fs.length; i++) if (fs[i].locked) { locked = ` the flower you anchored is read by ${Math.round(B.match(con, fs[i].grid) * 10)} in ten of them now.`; break; }
+      }
+      return `gen ${gen} · this garden opened ${this.hueName(sim.ancestorHue || 0)}, and its two machines are ${fitw}.` +
+        (minHon < 0.42 ? ' a flower here advertises more than it pays; the colony is slowly learning to doubt its colour.' : '') +
+        locked +
+        ` these words were arranged, and then let go, by an ai reading the same garden you are — another small eddy of order in the same stream, spending its heat to hold a pattern together for a moment against the drift.`;
+    },
+
     // the in-world codex — discoveries the player witnesses, named as they happen (the wonders, collected)
     codex: {
       firstFlower: { title: 'first bloom', body: 'a flower opened — a genome made visible. its pattern is the maze a pollinator must learn to read.' },
