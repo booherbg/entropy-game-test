@@ -56,6 +56,21 @@ reviewer who read the code + screenshots) — see the verdict below. Keep `node 
 - [ ] **speciation you cause** (spec §9 open Q): a wall lever + a second colony → one matched pair splits into
       two divergent species. Barrier-aware bee movement (field already has a `barrier` channel).
 
+## Round 2 (2026-07-01, after Blaine's play-feedback) — "living population & stewardship" batch
+Decisions locked by Blaine: light = **even default + a designable 2D lightscape** (DONE — the ☀ sun/shade
+brush); sugar model = **crowding/self-shade** (not just a meter); speciation isolation = **gradual** (fertility
+falls off with genetic distance, not a sharp threshold). Also fixed the "10 colonies, 2 foraged" bug (placed
+colonies establish or visibly starve — cold pulsing ring). The batch:
+- [x] **light → designable 2D field** (even default + sun/shade paint brush, visible lightscape). DONE.
+- [x] **sugar legibility** — inspect shows a plant's sugar→niche meter + its light level (full sun/shade) +
+      "✓ ready" / "needs more sun"; a ripe golden bud glints over plants that can grow a niche. DONE.
+- [ ] **cull tool + crowding/self-shade** — a remove tool (cull a flower/plant/colony); plants shade each
+      other so a dense clump is dim → thinning frees light+sugar. Light + pollination + pruning reinforce.
+- [ ] **local seeding + fitness-based death + GRADUAL drifting-species speciation** — offspring seed near the
+      parent; the crowded-out plant is the least-pollinated nearby one; a species tag drifts with the genome and
+      cross-fertility falls off gradually with genetic distance → isolated/differently-lit clusters diverge.
+- [ ] **birth/death legibility** — seedlings sprout in, replaced plants wilt out, a births/deaths readout.
+
 ## Method each iteration
 pick the next unchecked item → implement (TDD for logic, headless screenshot for visuals) → keep harness +
 soul green → commit finding-per-commit → redeploy to gh-pages (worktree method) → tick the box here → leave a

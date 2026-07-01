@@ -95,6 +95,12 @@
       fillDot(crownX + (sway | 0), crownY, Math.max(2, (S * 0.62) | 0), 60, 98, 54, 0.4);
       const ly = (rootY + crownY) / 2 | 0, lw = Math.max(1, (S * 0.32) | 0);
       fillDot((crownX - S * 0.6) | 0, ly, lw, 66, 104, 58, 0.42); fillDot((crownX + S * 0.6) | 0, ly - S * 0.4, lw, 66, 104, 58, 0.42);
+      // a ripe golden bud when the plant has banked enough sugar to grow a new niche (legible readiness)
+      if (p.sugar >= (B.NICHE_COST || 8) && p.niches < 4) {
+        const bx = crownX + (sway | 0), by = crownY - Math.round(S * 0.9), tw = 0.6 + 0.4 * Math.sin(tcT * 0.12 + pi);
+        glow(bx, by, Math.max(2, (S * 0.5) | 0), 255, 224, 120, 0.3 * tw);
+        fillDot(bx, by, Math.max(1, (S * 0.2) | 0), 255, 232, 150, 0.9);
+      }
       for (let fi = 0; fi < p.flowers.length; fi++) {
         const fl = p.flowers[fi];
         const bob = Math.round(Math.sin(tcT * 0.04 + fl.x * 0.7 + fl.y * 0.3) * S * 0.4);

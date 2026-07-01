@@ -12,6 +12,8 @@
   const BIOMASS_CAP = 2.0;
   const FLOWER_COST = 2.0;       // sugar to build a flower
   const NICHE_COST = 8.0;        // sugar to grow a whole new niche
+  B.NICHE_COST = NICHE_COST;     // exposed for the dashboards (the sugar-readiness meter)
+  B.SUGAR_CAP = 20.0;
   const SEED_THRESHOLD = 3.0;    // pollination accumulated → one seed
 
   B.makePlant = function (genome, x, y, rng, speciesId) {
