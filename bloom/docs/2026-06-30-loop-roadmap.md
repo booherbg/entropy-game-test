@@ -122,7 +122,13 @@ is guided-mutation (the thumb on the scale that also drives the diversity collap
       → foragers self-sort into lanes → a single patch can split sympatrically (deepens speciation without a wall).
 - [ ] **E. colony population breathes with match quality** — carrying capacity tracks recent nectar inflow
       (well-matched swarm grows toward 60, fumbling one thins toward ~15) with a FLOOR (never a survival wipe).
-- [ ] **F. reframe the post-peak sag** — render floor / murmur so the Red Queen wobble reads as vitality, not regression.
+- [x] **F. reframe the post-peak sag** — DONE. The world's WARMTH (the seasonal arc) now follows a slowly-
+      decaying high-water mark of fit (`G.seasonFit`), so once a garden reaches native it stays golden through
+      the Red Queen wobble — the oscillation reads as *alive*, not backsliding. The gauge still shows the true
+      live fit. Render/shell-only; soul + harness 75/75 green.
+- **MORPHOLOGY / dramatic diversity** — queued for a co-design chat with Blaine (his explicit ask). Brief at
+  `bloom/docs/2026-07-01-morphology-brief.md` (structure / drift / control options + my recommendation + 5 open
+  questions). NOT to be built solo — it's the coax↔command DNA line + the biggest visual lever, his call.
 - [x] **G. birth/death legibility** (original #4) — DONE. The sim emits transient per-tick birth/death events
       (render-only, not serialized, determinism-safe); the shell drains them into fading effects the shared
       painter draws — a seedling SPROUTS up in green light, a culled plant WILTS down into brown loam. Plus a

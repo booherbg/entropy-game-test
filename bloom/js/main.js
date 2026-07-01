@@ -8,7 +8,7 @@
   const G = {
     sim: null, seed: 1, paused: false, speedIdx: 0, tool: 'inspect',
     selected: null, history: [], miles: new Set(), tick0: 0, dashClock: 0, saveClock: 0,
-    lastFit: 0, forms: [], lastFormGen: -1, lightMode: 'sun', hedgeMode: 'build', painting: false, effects: [],
+    lastFit: 0, seasonFit: 0, forms: [], lastFormGen: -1, lightMode: 'sun', hedgeMode: 'build', painting: false, effects: [],
   };
   const PAINT_TOOLS = { light: 1, hedge: 1 };
 
@@ -65,7 +65,7 @@
 
   function newGarden(seed, keepHash) {
     G.sim = B.makeSim(seed); G.sim.warmStart();
-    G.seed = seed; G.history = []; G.miles = new Set(['begin']); G.selected = null; G.tick0 = 0; G.forms = []; G.lastFormGen = -1; G.effects = [];
+    G.seed = seed; G.history = []; G.miles = new Set(['begin']); G.selected = null; G.tick0 = 0; G.forms = []; G.lastFormGen = -1; G.effects = []; G.seasonFit = 0;
     if (!keepHash) B.Persist.setHashSeed(seed);
     B.Persist.clear();
     updateSeedline();
@@ -86,6 +86,9 @@
     for (let e = 0; e < G.effects.length; e++) G.effects[e].age++;
     if (G.effects.length) G.effects = G.effects.filter(ef => ef.age < 46);
     G.lastFit = G.sim.meanFit();
+    // the world's WARMTH follows a slowly-decaying high-water mark, so a native garden stays golden through the
+    // Red Queen wobble (it reads as alive, not backsliding). The gauge still shows the true live fit.
+    G.seasonFit = Math.max(G.lastFit, G.seasonFit * 0.9997);
     snapshotForm();
     renderWorld();
     updateGauge();
@@ -103,7 +106,7 @@
   function totColony(k) { let s = 0; for (const c of G.sim.colonies) s += c[k]; return s; }
 
   // ── render ──
-  function renderWorld() { B.Render.world($('world'), G.sim, S, { fit: G.lastFit, effects: G.effects }); }
+  function renderWorld() { B.Render.world($('world'), G.sim, S, { fit: G.seasonFit, effects: G.effects }); }
   function updateGauge() {
     const f = G.lastFit;
     $('hgfill').style.width = (f * 100).toFixed(0) + '%';
