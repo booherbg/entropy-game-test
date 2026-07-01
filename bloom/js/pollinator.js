@@ -75,12 +75,16 @@
       _land: function (f) {
         const r = f.visit(this.key);
         this.nectar += r.nectar; this.pollen += r.pollen;
-        // deliver pollen carried from the previous flower → pollination (same species sets seed)
-        if (this.pollenOnBody > 0 && f.speciesId === this.prevSpecies) {
-          f.receivePollen(this.pollenOnBody, r.pollination);
+        // deliver pollen carried from the PREVIOUS flower → seed set, scaled by GENETIC COMPATIBILITY between
+        // that pollen and this flower. Same/similar lineage → fertile; drifted-apart lineage → sterile. This
+        // is what lets isolated clusters become distinct species (gradually).
+        if (this.pollenOnBody > 0 && this.pollenGrid) {
+          const compat = B.geneticCompat(this.pollenGrid, this.pollenHue, f.grid, f.beaconHue);
+          if (compat > 0.02) f.receivePollen(this.pollenOnBody * compat, r.pollination * compat);
         }
-        // pick up fresh pollen on the body (viable load scaled by how well it read the flower)
+        // pick up fresh pollen from THIS flower (its genetic signature) for the next deposit
         this.pollenOnBody = r.pollination;
+        this.pollenGrid = f.grid; this.pollenHue = f.beaconHue;
         this.prevSpecies = f.speciesId;
         // net haul = reward minus any lace toxin (a mismatched generalist pays; a matched specialist is safe).
         // gentle: it lowers the forager's yield (so it raises fewer larvae) and vitality — never lethal.

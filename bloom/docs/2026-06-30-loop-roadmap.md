@@ -69,14 +69,16 @@ colonies establish or visibly starve — cold pulsing ring). The batch:
       the nearest plant (or a stray colony). Verified: a 6-plant clump shades each other 60%; cull 3 → survivors
       drop to 22% (more light). Inspect shows "crowded −X% · thin them (✂)". Default garden unaffected (mild
       shade at normal spacing); soul + harness 75/75 green.
-- [~] **local seeding + fitness-based death** — DONE (half of #3). Seeds drop NEAR the parent (dispersal 5-12
-      cells); at capacity the seed crowds out the least-fit ESTABLISHED plant within ~11 cells (LOCAL competition
-      — global death collapsed the whole garden into the colony, a real but wrong dynamic). Plants carry a
-      `fitness` that rises when they set seed and decays otherwise → an unloved flower fades and gets pruned
-      (verified: an isolated never-visited plant IS culled). Garden stays spread (x/y spread ~78/48), soul green,
-      PLANT_CAP 12→16 for room. **NEXT HALF: gradual genetic-compat speciation** — replace the discrete speciesId
-      pollination check with cross-fertility that falls off with genetic distance (grid+beacon similarity), so
-      isolated/differently-lit clusters that drift apart stop interbreeding → distinct species.
+- [x] **local seeding + fitness-based death + gradual genetic-compat speciation** — DONE (#3 complete). Seeds
+      drop NEAR the parent (5-12 cells); at capacity a seed crowds out the least-fit ESTABLISHED plant within
+      ~11 cells (LOCAL competition — global death collapsed the garden into the colony). Plants carry `fitness`
+      (rises on seed-set, decays) → an unloved flower fades + gets pruned (verified). Pollination is now gated
+      by `B.geneticCompat(gridA,hueA,gridB,hueB)` — cross-fertility falls off smoothly with genetic distance
+      (grid+beacon), replacing the discrete speciesId check. `bloom/test/speciation.js`: two isolated clusters
+      from ONE ancestor stay internally fertile (~0.9) but cross-differentiate (~0.5-0.65), and DIFFERENT light
+      drives them further apart (0.62→0.49). It's gradual/incipient (the merge is a strong attractor) — full
+      cross-sterility is the far end the player steers toward with isolation + divergent environments + time.
+      Harness 75/75, soul green. PLANT_CAP 16.
 - [ ] **birth/death legibility** — seedlings sprout in, replaced plants wilt out, a births/deaths readout.
 
 ## Method each iteration
