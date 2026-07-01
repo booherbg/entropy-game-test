@@ -36,6 +36,19 @@
         if (x < 0 || y < 0 || x >= W || y >= H) return 0;
         return light[(y | 0) * W + (x | 0)];
       },
+      blocked: function (x, y) { if (x < 0 || y < 0 || x >= W || y >= H) return false; return barrier[(y | 0) * W + (x | 0)] > 0; },
+      // is the straight line from (x0,y0) to (x1,y1) crossed by a hedge? (a forager can't reach across it)
+      rayBlocked: function (x0, y0, x1, y1) {
+        const steps = Math.max(2, (Math.hypot(x1 - x0, y1 - y0)) | 0);
+        for (let s = 1; s < steps; s++) { const t = s / steps; if (barrier[((y0 + (y1 - y0) * t) | 0) * W + ((x0 + (x1 - x0) * t) | 0)]) return true; }
+        return false;
+      },
+      // paint / clear a hedgerow (the speciation lever — bees can't cross it)
+      paintBarrier: function (cx, cy, radius, on) {
+        const x0 = Math.max(0, (cx - radius) | 0), x1 = Math.min(W - 1, (cx + radius) | 0);
+        const y0 = Math.max(0, (cy - radius) | 0), y1 = Math.min(H - 1, (cy + radius) | 0);
+        for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { const dx = x - cx, dy = y - cy; if (dx * dx + dy * dy <= radius * radius) barrier[y * W + x] = on ? 1 : 0; }
+      },
       // paint a soft sunlit (level>base) or shaded (level<base) patch — the environment-design brush
       paintLight: function (cx, cy, radius, level, strength) {
         strength = strength == null ? 0.6 : strength; const r2 = radius * radius;
