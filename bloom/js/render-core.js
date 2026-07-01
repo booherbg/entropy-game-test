@@ -148,12 +148,17 @@
         // a dark head dot toward travel — reads as a creature, not a blob
         addPx(bx, by - rr, 30, 26, 22, 0.6);
       }
-      // ── the colony: a ring brightening with its nectar store ──
+      // ── the colony: a ring that warms with its nectar store and goes COLD when starving (so a colony that
+      //    can't reach flowers reads as dying, not silently vanishing). fed = amber, starving = cold blue-grey. ──
       const cx = Math.round((col.x + 0.5) * S), cy = Math.round((col.y + 0.5) * S);
+      const health = Math.min(1, col.nectar / 6);
+      const rr = 90 + 150 * health, rg = 110 + 74 * health, rb = 140 - 28 * health;
       const lit = 0.35 + 0.65 * Math.min(1, col.nectar / 20);
+      // when critically low, pulse (a distress heartbeat)
+      const pulse = health < 0.34 ? (0.6 + 0.4 * Math.sin(tcB * 0.25)) : 1;
       const cr = Math.round(S * 1.7);
-      for (let a = 0; a < 60; a++) { const th = a / 60 * B.TAU; for (let w = 0; w < 2; w++) addPx(cx + Math.round(Math.cos(th) * (cr - w)), cy + Math.round(Math.sin(th) * (cr - w)), 240, 184, 112, 0.4 + 0.5 * lit); }
-      glow(cx, cy, cr + S, 240, 184, 112, 0.10 * lit);
+      for (let a = 0; a < 60; a++) { const th = a / 60 * B.TAU; for (let w = 0; w < 2; w++) addPx(cx + Math.round(Math.cos(th) * (cr - w)), cy + Math.round(Math.sin(th) * (cr - w)), rr, rg, rb, (0.4 + 0.5 * lit) * pulse); }
+      glow(cx, cy, cr + S, rr, rg, rb, 0.10 * lit * pulse);
     }
 
     // ── ambient motes: pollen + light drifting up on the air (sparse in the cold, thick in high summer) ──
