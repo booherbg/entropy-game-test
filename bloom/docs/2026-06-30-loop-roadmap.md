@@ -103,9 +103,15 @@ is guided-mutation (the thumb on the scale that also drives the diversity collap
       sides. BUT: the wall alone does NOT yet yield strong speciation — with gene flow cut, both isolated sides
       still land on the SAME attractor (no divergence pressure). So A is necessary but insufficient; the payoff
       needs **B (frequency-dependence)** so the two sides settle on DIFFERENT morphs. Soul + harness 75/75 green.
-- [ ] **B. negative frequency-dependent selection** — over-visited hues pay less (pool depletion / forager
-      satiation memory) → rare morphs bloom → standing diversity is maintained → the garden genuinely never
-      settles (fixes the monoculture root cause; gives speciation something to act on).
+- [~] **B. negative frequency-dependent selection** — PARTIAL. A flower of a RARE colour sets seed more
+      readily (`_rarity` in sim.tick, applied in `receivePollen`) + occasional "sport" mutations in
+      `plant.reproduce` (12% bigger jump) to throw up novelty for NFDS to hold. Result: soul dynamics IMPROVED
+      (peaks 0.98, more Red-Queen oscillation, higher sustained) and diversity holds at 1-2 hue bins across
+      seeds instead of collapsing to 1. BUT visible diversity is still modest (the merge is a strong attractor;
+      the colony converges to one morph). Tried softer/yield-weighted key inheritance to make the colony
+      polymorphic → it WEAKENED the merge (peaks 0.85) without adding diversity → reverted. **Dramatic diversity
+      needs the MORPHOLOGY work (bigger form-space, start varied, stronger drift) — the thread Blaine deferred to
+      co-design. Flag for him.** Soul + harness 75/75 green.
 - [ ] **C. fitness = bounded rate + gentle plant senescence** — cap fitness / short window + soft age-mortality
       so frozen incumbents yield to seedlings → turnover, grid evolution keeps moving.
 - [ ] **D. flower constancy** (assortative visitation) — small `_pick` bias toward the just-fed `lastBeaconHue`

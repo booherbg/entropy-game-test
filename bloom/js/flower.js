@@ -51,7 +51,7 @@
       // Pollen arriving from another flower of the SAME species sets seed, scaled by the visit quality.
       receivePollen: function (amount, pollination) {
         this.pollenOnStigma += amount;
-        this.seedProgress += amount * pollination;
+        this.seedProgress += amount * pollination * (this._rarity == null ? 1 : this._rarity); // rare colours set seed more readily
       },
     };
   };
