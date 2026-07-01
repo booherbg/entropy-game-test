@@ -11,9 +11,11 @@ gives both. Vanilla HTML/Canvas/JS, zero dependencies, saves to localStorage.
 — the world breathes on its own; pause to make weighed moves. Add `?warp=2500` to skip ahead to a merged
 garden, or `#seed=42` to grow a specific one (the same seed always grows the same garden).
 
-- **Design:** `../docs/superpowers/specs/2026-06-30-bloom-plant-pollinator-prototype-design.md`
+- **▶ HANDOFF (start here to pick this up):** `docs/2026-07-01-handoff.md` — the authoritative current-state doc.
+- **Design spec:** `../docs/superpowers/specs/2026-06-30-bloom-plant-pollinator-prototype-design.md`
 - **Live mechanisms reference:** `../docs/bloom-mechanisms.html`
 - **Build plan:** `../docs/superpowers/plans/2026-06-30-bloom-prototype.md`
+- **Critiques + loop roadmap:** `docs/2026-06-30-critique-simcity.md`, `docs/2026-06-30-loop-roadmap.md`
 
 ## The merge, in one image
 
