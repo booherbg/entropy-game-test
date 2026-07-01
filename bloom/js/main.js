@@ -9,6 +9,7 @@
     sim: null, seed: 1, paused: false, speedIdx: 0, tool: 'inspect',
     selected: null, history: [], miles: new Set(), tick0: 0, dashClock: 0, saveClock: 0,
     lastFit: 0, seasonFit: 0, forms: [], lastFormGen: -1, lightMode: 'sun', hedgeMode: 'build', painting: false, effects: [],
+    imprint: null,
   };
   const PAINT_TOOLS = { light: 1, hedge: 1 };
 
@@ -65,7 +66,7 @@
 
   function newGarden(seed, keepHash) {
     G.sim = B.makeSim(seed); G.sim.warmStart();
-    G.seed = seed; G.history = []; G.miles = new Set(['begin']); G.selected = null; G.tick0 = 0; G.forms = []; G.lastFormGen = -1; G.effects = []; G.seasonFit = 0;
+    G.seed = seed; G.history = []; G.miles = new Set(['begin']); G.selected = null; G.tick0 = 0; G.forms = []; G.lastFormGen = -1; G.effects = []; G.seasonFit = 0; G.imprint = null;
     if (!keepHash) B.Persist.setHashSeed(seed);
     B.Persist.clear();
     updateSeedline();
@@ -89,6 +90,9 @@
     // age + retire the sprout/wilt effects (every frame, even paused, so they fade rather than freeze)
     for (let e = 0; e < G.effects.length; e++) G.effects[e].age++;
     if (G.effects.length) G.effects = G.effects.filter(ef => ef.age < 46);
+    // age + retire the imprint overlay the same way (long-lived — long enough to read a full line)
+    if (G.imprint) { G.imprint.age++; if (G.imprint.age > 260) G.imprint = null; }
+    renderImprint();
     G.lastFit = G.sim.meanFit();
     // the world's WARMTH follows a slowly-decaying high-water mark, so a native garden stays golden through the
     // Red Queen wobble (it reads as alive, not backsliding). The gauge still shows the true live fit.
@@ -117,6 +121,15 @@
     $('hgcap').innerHTML = 'lock-and-key fit · <b>' + (f * 100).toFixed(0) + '%</b> · <span>' + B.Render.Dash.fitWord(f) + '</span>';
     $('gen').textContent = 'gen ' + gen();
   }
+  function renderImprint() {
+    const el = $('imprint');
+    if (!el) return;
+    if (!G.imprint) { el.style.opacity = '0'; return; }
+    const k = G.imprint.age / 260;
+    const fade = k < 0.08 ? k / 0.08 : k > 0.75 ? Math.max(0, (1 - k) / 0.25) : 1;
+    el.innerHTML = G.imprint.text + (G.imprint.who ? ' <span class="iw">— ' + G.imprint.who + '</span>' : '');
+    el.style.opacity = (fade * 0.82).toFixed(2);
+  }
   function renderDash(force) {
     $('lockkey').innerHTML = B.Render.Dash.lockKey(G.sim, G.selected);
     $('graphs').innerHTML = B.Render.Dash.graphs(G.sim, G.history);
@@ -138,7 +151,7 @@
       if (m.test()) {
         G.miles.add(m.key);
         if (m.codex && B.Content.codex[m.codex]) { const c = B.Content.codex[m.codex]; toast('<b>✦ ' + c.title + '</b> — ' + c.body); }
-        else if (m.murmur) toast('<b>✦ a murmur surfaced</b> — open ✦ murmurs to read it.');
+        else if (m.murmur) showImprint(m.murmur);
         renderMurmurs();
         // point at the second act: a finished merge is the START of the next loop (grow a niche)
         if (m.key === 'native' && !G.miles.has('niche')) {
@@ -148,6 +161,15 @@
         if (m.key === 'niche') { const nb = document.querySelector('.tool[data-tool=niche]'); if (nb) nb.classList.remove('pulse'); }
       }
     }
+  }
+
+  // round-3: the murmur drifts into the world live, instead of a toast telling you to go read it later.
+  function showImprint(key) {
+    const m = B.Content.murmurs.find(function (x) { return x.key === key; });
+    if (!m) return;
+    G.imprint = { text: m.text, who: m.who, age: 0 };
+    // best-effort tie-in to a light filament already in flight (Task 1) — not guaranteed, and that's fine.
+    for (let e = 0; e < G.effects.length; e++) { const ef = G.effects[e]; if (ef.t === 'read' && ef.age < 10) ef.boost = 1.6; }
   }
 
   let toastT = null;
