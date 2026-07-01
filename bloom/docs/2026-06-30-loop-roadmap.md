@@ -123,7 +123,11 @@ is guided-mutation (the thumb on the scale that also drives the diversity collap
 - [ ] **E. colony population breathes with match quality** — carrying capacity tracks recent nectar inflow
       (well-matched swarm grows toward 60, fumbling one thins toward ~15) with a FLOOR (never a survival wipe).
 - [ ] **F. reframe the post-peak sag** — render floor / murmur so the Red Queen wobble reads as vitality, not regression.
-- [ ] **G. birth/death legibility** (original #4) — sprout/wilt + a births/deaths readout.
+- [x] **G. birth/death legibility** (original #4) — DONE. The sim emits transient per-tick birth/death events
+      (render-only, not serialized, determinism-safe); the shell drains them into fading effects the shared
+      painter draws — a seedling SPROUTS up in green light, a culled plant WILTS down into brown loam. Plus a
+      dashboard readout: "the garden turns over: N sprouted · N wilted" (cumulative plantBorn/plantDied). Now
+      the spatial-repro / fitness-death / turnover work is all visible. Soul + harness 75/75 green.
 
 ## Method each iteration
 pick the next unchecked item → implement (TDD for logic, headless screenshot for visuals) → keep harness +

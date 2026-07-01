@@ -183,6 +183,24 @@
       addPx(px, py, 255, 240, 200, warmK);
     }
 
+    // ── birth & death made visible: a seedling sprouts up in green light; a culled plant wilts down in brown.
+    //    (render-only ephemera passed from the shell — you watch the garden turn over.) ──
+    if (opts.effects) {
+      for (let e = 0; e < opts.effects.length; e++) {
+        const ef = opts.effects[e], k = ef.age / 46, fade = (1 - k) * (1 - k);
+        const cx = Math.round((ef.x + 0.5) * S), cy = Math.round((ef.y + 0.5) * S);
+        if (ef.t === 'birth') { // a rising green shimmer + a small expanding ring
+          const ry = cy - Math.round(k * S * 2.2);
+          glow(cx, ry, Math.max(2, (S * (0.4 + k * 0.7)) | 0), 150, 240, 150, fade * 0.5);
+          for (let a = 0; a < 10; a++) { const th = a / 10 * B.TAU, rr = k * S * 2.2; addPx(cx + Math.round(Math.cos(th) * rr), cy + Math.round(Math.sin(th) * rr), 180, 255, 170, fade * 0.6); }
+        } else { // a wilting brown fade sinking into the loam
+          const sy2 = cy + Math.round(k * S * 1.6);
+          glow(cx, sy2, Math.max(2, (S * 0.6 * (1 - k * 0.5)) | 0), 150, 100, 60, fade * 0.5);
+          addPx(cx, sy2, 170, 120, 70, fade * 0.8);
+        }
+      }
+    }
+
     // ── the entropy wash: pull the whole frame toward grey when the pair is fumbling, release to full colour
     //    as they match. colour = order; grey = the second law. the screen itself measures the merge. ──
     const desat = (1 - season) * 0.6;
