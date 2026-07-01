@@ -169,9 +169,22 @@
 
       // ── the levers (steward of selection) ──
       lockFlower: function (flower, on) { flower.locked = !!on; this.locks = this.allFlowers().filter(function (f) { return f.locked; }).length; },
-      placeColony: function (x, y) { const c = B.makeColony(x | 0, y | 0, this.rng);
-        for (let i = 0; i < 8; i++) { const k = B.Genome.randomKey(this.rng); c.bees.push(B.makePollinator(k, c.x, c.y)); }
-        c.nectar = 4; c.pollen = 3; this.colonies.push(c); return c; },
+      placeColony: function (x, y) {
+        const c = B.makeColony(x | 0, y | 0, this.rng);
+        // seed the new colony toward a LOCAL bloom (if any within scout range) so its foragers can find food
+        // and establish, instead of wandering empty space and starving. decoders stay random → the grid-merge
+        // still has to happen. (Far-from-flowers placement still fails — but now visibly, see the render.)
+        const fs = this.allFlowers(), near = [];
+        for (let i = 0; i < fs.length; i++) if (Math.hypot(fs[i].x - c.x, fs[i].y - c.y) <= 42) near.push(fs[i]);
+        const localHue = near.length ? near[randint(this.rng, 0, near.length - 1)].beaconHue : null;
+        for (let i = 0; i < 10; i++) {
+          const k = B.Genome.randomKey(this.rng);
+          if (localHue != null) k.preference = (localHue + (this.rng() - 0.5) * 0.22 + 1) % 1;
+          c.bees.push(B.makePollinator(k, c.x, c.y));
+        }
+        c.nectar = 18; c.pollen = 12;   // real runway to establish while its keys evolve (was 4/3 → starved)
+        this.colonies.push(c); return c;
+      },
       plantAt: function (x, y, genome) { const g = genome || B.Genome.randomPlant(this.rng);
         const p = B.makePlant(g, x | 0, y | 0, this.rng, 0); p.biomass = 0.8; p.sugar = 4;
         if (this.plants.length >= PLANT_CAP) this.plants.shift();
