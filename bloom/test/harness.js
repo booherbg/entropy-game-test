@@ -360,6 +360,14 @@ function riggedScene(seed) {
     'same seed → identical pollinator path + colony state');
 })();
 
+(function testGoodReadStashesFilamentEvent() {
+  const s = riggedScene(76);
+  for (let t = 0; t < 400 && !s.bee.readEvent; t++) s.bee.tick(s.f, [s.fl], s.colony, B.makeRng(7));
+  ok(!!s.bee.readEvent, 'a well-matched bee stashes a readEvent after landing on a good read');
+  ok(s.bee.readEvent.eff > 0.55, 'the stashed eff clears the filament-worthy threshold');
+  ok(s.bee.readEvent.x1 === s.fl.x && s.bee.readEvent.y1 === s.fl.y, 'the event points at the flower it read');
+})();
+
 // ---- Task 8(plan): the sim ----
 section('sim — one world, deterministic tick, serialize');
 require('../js/sim.js');
@@ -402,6 +410,18 @@ require('../js/sim.js');
   ok(sa.plants === sb.plants && sa.pollinators === sb.pollinators &&
      Math.abs(sa.meanFit - sb.meanFit) < 1e-9 && Math.abs(sa.nectarTotal - sb.nectarTotal) < 1e-6,
     'serialize → load → tick matches the original (round-trip identity)');
+})();
+
+(function testReadEventDrainedIntoSimEvents() {
+  const sim = B.makeSim(77); sim.warmStart();
+  const bee = sim.colonies[0].bees[0];
+  bee.readEvent = { x0: 1, y0: 2, x1: 3, y1: 4, hue: 0.5, eff: 0.9 };
+  sim.tick();
+  const ev = sim.events.find(e => e.t === 'read');
+  ok(!!ev, 'a bee with a pending readEvent produces a read entry in sim.events after tick()');
+  ok(!!ev && ev.x0 === 1 && ev.y0 === 2 && ev.x1 === 3 && ev.y1 === 4 && ev.hue === 0.5 && ev.eff === 0.9,
+    'the read event carries the stashed coordinates + hue + eff through unchanged');
+  ok(bee.readEvent === null, 'readEvent is cleared after being drained (transient, not double-fired)');
 })();
 
 // ---- Task 13(plan): the levers ----

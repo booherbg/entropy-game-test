@@ -188,6 +188,17 @@
     if (opts.effects) {
       for (let e = 0; e < opts.effects.length; e++) {
         const ef = opts.effects[e], k = ef.age / 46, fade = (1 - k) * (1 - k);
+        if (ef.t === 'read') { // a bright filament tracing a good read — the merge, made a moment in the world
+          const x0 = Math.round((ef.x0 + 0.5) * S), y0 = Math.round((ef.y0 + 0.5) * S);
+          const x1 = Math.round((ef.x1 + 0.5) * S), y1 = Math.round((ef.y1 + 0.5) * S);
+          const rc = hueRGB(ef.hue, 0.85, 0.65), boost = ef.boost || 1, steps = 8;
+          for (let s = 0; s <= steps; s++) {
+            const t = s / steps;
+            addPx(Math.round(x0 + (x1 - x0) * t), Math.round(y0 + (y1 - y0) * t), rc[0], rc[1], rc[2], fade * ef.eff * boost * 0.7);
+          }
+          glow(x1, y1, Math.max(2, (S * 0.5) | 0), rc[0], rc[1], rc[2], fade * ef.eff * boost * 0.35);
+          continue;
+        }
         const cx = Math.round((ef.x + 0.5) * S), cy = Math.round((ef.y + 0.5) * S);
         if (ef.t === 'birth') { // a rising green shimmer + a small expanding ring
           const ry = cy - Math.round(k * S * 2.2);

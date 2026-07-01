@@ -77,7 +77,11 @@
       const n = SPEEDS[G.speedIdx].n;
       for (let i = 0; i < n; i++) {
         G.sim.tick();
-        for (let e = 0; e < G.sim.events.length; e++) { const ev = G.sim.events[e]; G.effects.push({ x: ev.x, y: ev.y, t: ev.t, age: 0 }); }
+        for (let e = 0; e < G.sim.events.length; e++) {
+          const ev = G.sim.events[e];
+          if (ev.t === 'read') G.effects.push({ t: 'read', x0: ev.x0, y0: ev.y0, x1: ev.x1, y1: ev.y1, hue: ev.hue, eff: ev.eff, age: 0 });
+          else G.effects.push({ x: ev.x, y: ev.y, t: ev.t, age: 0 });
+        }
         if ((G.sim.tickCount % 30) === 0) recordHistory();
       }
       if (G.effects.length > 80) G.effects.splice(0, G.effects.length - 80);

@@ -127,6 +127,21 @@
         // ── colonies: forage across all flowers; evolve keys ──
         for (let c = 0; c < this.colonies.length; c++) this.colonies[c].tick(this.field, flowers2, rng);
 
+        // ── drain any read-worthy visit each bee stashed this tick into the shared events stream. Bees are
+        //    ticked inside colony.tick() (colony.js), not here, so this is a light second pass rather than a
+        //    parameter threaded through colony.js/pollinator.js's signatures. ──
+        for (let c = 0; c < this.colonies.length; c++) {
+          const bees = this.colonies[c].bees;
+          for (let bi = 0; bi < bees.length; bi++) {
+            const b = bees[bi];
+            if (b.readEvent) {
+              this.events.push({ t: 'read', x0: b.readEvent.x0, y0: b.readEvent.y0,
+                x1: b.readEvent.x1, y1: b.readEvent.y1, hue: b.readEvent.hue, eff: b.readEvent.eff });
+              b.readEvent = null;
+            }
+          }
+        }
+
         this.tickCount++;
       },
 

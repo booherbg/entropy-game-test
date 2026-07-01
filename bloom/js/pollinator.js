@@ -1,6 +1,7 @@
 ;(function (root) {
   'use strict';
   const B = root.B = root.B || {};
+  const FILAMENT_EFF = 0.55;   // a read this good becomes a visible light-filament (round-3 audit item #1)
 
   // The pollinator (animal machine). Mobile; heritable key = preference (beacon hue) + decoder (the
   // reading template its body markings express). The forage loop: leave → find a flower by beacon (weighted
@@ -22,6 +23,11 @@
         this.energy -= 0.004 * this.key.speed;     // flight cost (vitality, not lethal — colony upkeep is the pressure)
 
         if (this.mode === 'out') {
+          // a small ring buffer of recent positions, so a filament (render-core.js) can be drawn from where the
+          // bee actually was a couple of ticks ago rather than the landing instant — the <1.5 landing radius
+          // collapses that into the flower's own glow, reading as a spark rather than a visible thread.
+          this._prevX2 = this._prevX1; this._prevY2 = this._prevY1;
+          this._prevX1 = this.x; this._prevY1 = this.y;
           const empty = this.target && (this.target.nectar + this.target.pollen) <= 0.01;
           if (!this.target || empty || rng() < 0.02) this.target = this._pick(flowers, field);
           const f = this.target;
@@ -87,6 +93,10 @@
       _land: function (f) {
         const r = f.visit(this.key);
         this.nectar += r.nectar; this.pollen += r.pollen;
+        this.readEvent = (r.pollination > FILAMENT_EFF)
+          ? { x0: this._prevX2 != null ? this._prevX2 : this.x, y0: this._prevY2 != null ? this._prevY2 : this.y,
+              x1: f.x, y1: f.y, hue: f.beaconHue, eff: r.pollination }
+          : this.readEvent;
         // deliver pollen carried from the PREVIOUS flower → seed set, scaled by GENETIC COMPATIBILITY between
         // that pollen and this flower. Same/similar lineage → fertile; drifted-apart lineage → sterile. This
         // is what lets isolated clusters become distinct species (gradually).
