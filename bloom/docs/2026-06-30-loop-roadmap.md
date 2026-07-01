@@ -118,8 +118,11 @@ is guided-mutation (the thumb on the scale that also drives the diversity collap
       ~72), partial turnover (median plant age 3149 vs whole-run before). Honest limit: turnover is
       reproduction-gated, so a converged (slow-reproducing) patch still turns over slowly — but the audit's core
       problem (permanently invincible incumbents) is fixed. Soul + harness 75/75 green.
-- [ ] **D. flower constancy** (assortative visitation) — small `_pick` bias toward the just-fed `lastBeaconHue`
-      → foragers self-sort into lanes → a single patch can split sympatrically (deepens speciation without a wall).
+- [x] **D. flower constancy** (assortative visitation) — DONE. A gentle bias in `pollinator._pick` toward the
+      hue a forager last fed on (Darwin's constancy). Foragers self-sort into hue-lanes → assortative
+      pollination → rarer colours keep loyal pollinators. Net win: soul still green (peaks 0.91-0.98) AND
+      diversity improved (seed 42, which collapsed to 1 hue-bin, now holds 1-2, mostly 2). Merge-safe (it
+      reinforces specialization). Harness 75/75.
 - [✗] **E. colony population breathes with match quality** — ATTEMPTED, ABANDONED (honest negative result).
       Tried a carrying capacity that tracks match quality (mean forager yield, size-independent so it bootstraps)
       with a floor + gentle emigration. It works mechanically (matched grows, fumbling stays small) BUT it
