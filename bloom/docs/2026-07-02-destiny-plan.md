@@ -73,6 +73,26 @@ biggest structural lever, and a co-design chat, not a solo build. Noted, untouch
    glyphs read as belonging to bloom; polish names/flavor with the cold-read.
 3. **Then** — either the awakening spine (Act III) or speciation (Act II), whichever the night affords.
 
+## Shipped this round (round-4, 2026-07-02) — Act III artifacts, end to end
+
+All committed to `main`, soul test green throughout (unit 27/27 · impact 5/5 · soul PASSED · harness 85/85):
+
+1. **Engine** (`js/artifact.js`, `test/artifacts.js`) — the draw, 9 bounded archetypes, procedural names
+   from the imprint's thinkers, sigils that ARE genomes in bloom's own glyph grammar, pure hooks; the
+   invariant that no-artifacts runs stay byte-identical to baseline holds by construction.
+2. **Balance pass** (`test/artifact-impact.js`) — matched control-vs-treatment over full runs. It falsified
+   the first cut (resource gifts hit saturated pools; forced decoder convergence HURT the merge because the
+   frequency-dependent Red Queen punishes uniformity), and drove the re-derivation to diversity-preserving,
+   measured effects. This finding — the system rewards diversity, punishes homogenising — is the keeper.
+3. **Playable** (`js/main.js`, `index.html`) — every garden deals a deterministic hand at genesis; a ◈ relics
+   panel (sigil + name + rarity + flavor + effect + a one-shot 'use' for poincaré); a hand-reveal toast on
+   start so it's discoverable. Load path re-derives the hand without re-running one-shot onStart effects.
+
+**Still open toward destiny (next sessions):** persist poincaré's used-state across reload; auto-open the
+hand as part of the first-run intro; then **Act II — speciation as history** (sim-layer, low collision) and
+**Act III's other half — the staged arc + awakening ending** (render/shell, coordinate with round-3 work).
+Note: `bloom/docs/2026-07-01-handoff.md` predates this round — artifacts aren't in it yet.
+
 ## The invariants (must always hold)
 
 - No artifacts → run identical to baseline (determinism preserved; soul test green).
