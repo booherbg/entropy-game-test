@@ -145,6 +145,18 @@
     },
   };
 
+  // plain-language effect lines for the draw panel (the flavor is poetry; this says what it DOES).
+  const EFFECT = {
+    'rich-loam': 'richer soil — your plants grow deeper over the run, so the garden carries more flowers.',
+    'honest-bloom': 'one flower stays perfectly honest — a reliable anchor the colony can trust.',
+    'maxwell-demon': 'poorly-fed foragers are quietly sorted toward their own flower — the merge comes faster.',
+    'founders-cache': 'the colony wakes already part-way merged — an early head start.',
+    'patient-gaze': 'the flower you are watching pulls its matched foragers harder — it amplifies your gaze.',
+    'poincare-recurrence': 'once per garden, rewind the colony’s keys back to the opening. (a button, below.)',
+    'deep-structure': 'your strongest plant grows two extra niches at once — instant depth.',
+    'red-queens-gambit': 'the honesty-and-deception dance runs wilder — a livelier, higher-variance meadow.',
+    'the-eddy': 'order holds against the drift — a good merge persists instead of wobbling apart.',
+  };
   A.CATALOG = Object.keys(ARCH).map((id) => ({ id: id, rarity: ARCH[id].rarity, weight: ARCH[id].weight }));
 
   // A sigil IS a genome — the relic is rendered in the world's own glyph grammar. Sigils are cosmetic
@@ -174,7 +186,7 @@
     const sigil = A.sigilGenome(rng, arch.rarity);
     const name = nameFor(arch, rng);
     const flavor = arch.flavor(params, rng);
-    const art = { archetype: id, rarity: arch.rarity, params: params, sigil: sigil, name: name, flavor: flavor, hooks: null };
+    const art = { archetype: id, rarity: arch.rarity, params: params, sigil: sigil, name: name, flavor: flavor, effect: EFFECT[id], lever: id === 'poincare-recurrence' ? 'recur' : null, hooks: null };
     art.hooks = arch.build(params, rngFor(id + '#hooks', seed));      // hooks close over the SAME params object → onStart can re-key it
     return art;
   };

@@ -129,6 +129,18 @@
   .murmur .mw{color:var(--amber);font-size:12.5px;margin-top:7px}
   .murmur.ai{background:linear-gradient(90deg,rgba(240,184,112,.06),transparent);border-radius:10px;padding:16px 14px;border:1px solid rgba(240,184,112,.18)}
   .murmur.ai .mt{color:var(--amberlit)}
+  /* relic cards (the artifact draw) */
+  .relic{display:flex;gap:15px;padding:15px 0;border-bottom:1px dashed var(--line);align-items:flex-start}
+  .relic:last-child{border-bottom:none}
+  .relic .sig{flex:0 0 auto;border-radius:9px;overflow:hidden;line-height:0;box-shadow:0 3px 12px rgba(0,0,0,.55)}
+  .relic .rbody{flex:1 1 auto;min-width:0}
+  .relic .rname{font-size:17px;color:var(--amberlit)}
+  .relic .rrar{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;margin:2px 0 8px}
+  .relic .rflav{font-size:13px;font-style:italic;color:var(--dim);margin-bottom:7px;line-height:1.5}
+  .relic .reff{font-size:13.5px;line-height:1.5}
+  .relic.mythic{background:linear-gradient(90deg,rgba(236,210,74,.07),transparent);border-radius:10px;padding:15px;border:1px solid rgba(236,210,74,.22)}
+  .relic button.use{margin-top:9px;font-size:12px;padding:5px 13px;cursor:pointer}
+  .relic button.use:disabled{opacity:.5;cursor:default}
   .locked{opacity:.32;filter:grayscale(.5)}
   .locked .mt{filter:blur(3px);user-select:none}
   .sheet .close{float:right;background:none;border:none;font-size:20px;color:var(--dim);padding:0 4px}
@@ -171,6 +183,7 @@
       <button id="btnSpeed" title="speed">▷ 1×</button>
       <span class="gen" id="gen">gen 0</span>
       <button id="btnMurmurs" title="murmurs">✦ murmurs</button>
+      <button id="btnRelics" title="the relics you drew this garden">◈ relics</button>
       <button id="btnMenu" title="menu">≡</button>
     </div>
   </header>
@@ -219,6 +232,14 @@
       <div id="murmursList"></div>
     </div>
   </div>
+  <div class="overlay" id="relicsOv">
+    <div class="sheet">
+      <button class="close" data-close>✕</button>
+      <h2>the relics you drew</h2>
+      <div class="sub">this garden dealt you these. each is a genome, drawn from your seed — the same seed always deals the same hand.</div>
+      <div id="relicsList"></div>
+    </div>
+  </div>
   <div class="overlay" id="menuOv">
     <div class="sheet">
       <button class="close" data-close>✕</button>
@@ -251,6 +272,7 @@
   <script src="js/pollinator.js"></script>
   <script src="js/colony.js"></script>
   <script src="js/sim.js"></script>
+  <script src="js/artifact.js"></script>
   <script src="js/render-core.js"></script>
   <script src="js/render-world.js"></script>
   <script src="js/render-dash.js"></script>

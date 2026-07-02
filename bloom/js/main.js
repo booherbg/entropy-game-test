@@ -48,7 +48,10 @@
   function init() {
     const hashSeed = B.Persist.seedFromHash();
     const saved = (!hashSeed) ? B.Persist.load() : null;
-    if (saved) { G.sim = saved.sim; G.seed = G.sim.seed; G.miles = new Set(saved.meta.miles || []); G.tick0 = saved.meta.tick0 || 0; G.forms = saved.meta.forms || []; }
+    if (saved) { G.sim = saved.sim; G.seed = G.sim.seed; G.miles = new Set(saved.meta.miles || []); G.tick0 = saved.meta.tick0 || 0; G.forms = saved.meta.forms || [];
+      // re-derive the run's hand (deterministic from seed) and RE-ATTACH without re-running onStart — the
+      // one-shot genesis effects are already baked into the saved sim state; only onTick/onLever run on.
+      G.artifacts = B.Artifacts.draw(G.sim.seed, 2); G.sim.artifacts = G.artifacts; }
     else { G.seed = hashSeed || ((Math.random() * 1e9) >>> 0); newGarden(G.seed, true); }
     G.miles.add('begin');
     // ?warp=N — fast-forward the sim at boot (a skip-ahead / demo hook; also drives headless screenshots)
@@ -61,11 +64,13 @@
     // first-run intro (skippable with ?play for deep-links / screenshots)
     if (!saved && !/\bplay\b/.test(location.search)) setTimeout(() => $('menuOv').classList.add('show'), 400);
     if (/\bmurmurs\b/.test(location.search)) setTimeout(() => { renderMurmurs(); $('murmursOv').classList.add('show'); }, 200);
+    if (/\brelics\b/.test(location.search)) setTimeout(() => { renderRelics(); $('relicsOv').classList.add('show'); }, 200);
     renderMurmurs(); renderDash(true); updateSeedline();
   }
 
   function newGarden(seed, keepHash) {
     G.sim = B.makeSim(seed); G.sim.warmStart();
+    G.artifacts = B.Artifacts.draw(seed, 2); G.sim.applyArtifacts(G.artifacts);   // the run's hand — onStart fires ONCE, here at genesis
     G.seed = seed; G.history = []; G.miles = new Set(['begin']); G.selected = null; G.tick0 = 0; G.forms = []; G.lastFormGen = -1; G.effects = []; G.seasonFit = 0; G.imprint = null;
     if (!keepHash) B.Persist.setHashSeed(seed);
     B.Persist.clear();
@@ -146,6 +151,29 @@
     } else if (force) {
       $('inspect').innerHTML = '<div class="empty">tap a flower or a forager in the garden to read it.</div>';
     }
+  }
+
+  // ── the relics you drew (the RPG-draw layer) ──
+  function renderRelics() {
+    const RC = { common: '#9fd98f', uncommon: '#6fb0f0', rare: '#9a7bd0', mythic: '#ecd24a' };
+    const arts = G.artifacts || [];
+    let html = '';
+    for (let i = 0; i < arts.length; i++) {
+      const a = arts[i];
+      const btn = a.lever ? '<button class="use" data-lever="' + i + '">✦ rewind the dance · use once</button>' : '';
+      html += '<div class="relic ' + a.rarity + '">' +
+        '<div class="sig">' + B.Artifacts.sigilSVG(a, 88) + '</div>' +
+        '<div class="rbody"><div class="rname">' + a.name + '</div>' +
+        '<div class="rrar" style="color:' + RC[a.rarity] + '">' + a.rarity + '</div>' +
+        '<div class="rflav">' + a.flavor + '</div>' +
+        '<div class="reff">' + a.effect + '</div>' + btn + '</div></div>';
+    }
+    $('relicsList').innerHTML = html || '<div class="sub">no relics this garden.</div>';
+    document.querySelectorAll('#relicsList .use').forEach(function (b) {
+      b.onclick = function () { const a = G.artifacts[+b.getAttribute('data-lever')];
+        G.sim.useArtifact(a.archetype, a.lever); b.disabled = true; b.textContent = '✦ spent';
+        toast('the dance rewinds — the colony’s keys return to the opening.'); };
+    });
   }
 
   // ── milestones → toasts + murmurs ──
@@ -301,15 +329,16 @@
     $('btnPause').onclick = () => setPaused(!G.paused);
     $('btnSpeed').onclick = setSpeed;
     $('btnMurmurs').onclick = () => { renderMurmurs(); $('murmursOv').classList.add('show'); };
+    $('btnRelics').onclick = () => { renderRelics(); $('relicsOv').classList.add('show'); };
     $('btnMenu').onclick = () => { updateSeedline(); $('menuOv').classList.add('show'); };
-    document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => { $('murmursOv').classList.remove('show'); $('menuOv').classList.remove('show'); });
+    document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => { $('murmursOv').classList.remove('show'); $('relicsOv').classList.remove('show'); $('menuOv').classList.remove('show'); });
     document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('show'); }));
     $('btnNew').onclick = () => { newGarden((Math.random() * 1e9) >>> 0); $('menuOv').classList.remove('show'); renderMurmurs(); renderDash(true); toast('a new garden — a fresh, fumbling pair. coax them.'); };
     $('btnReset').onclick = () => { B.Persist.clear(); newGarden(G.seed); $('menuOv').classList.remove('show'); renderMurmurs(); renderDash(true); };
     document.addEventListener('keydown', e => {
       if (e.code === 'Space') { e.preventDefault(); setPaused(!G.paused); }
       else if (e.key === 'f') setSpeed();
-      else if (e.key === 'Escape') { $('murmursOv').classList.remove('show'); $('menuOv').classList.remove('show'); }
+      else if (e.key === 'Escape') { $('murmursOv').classList.remove('show'); $('relicsOv').classList.remove('show'); $('menuOv').classList.remove('show'); }
     });
     window.addEventListener('beforeunload', autosave);
     updateToolbarScrollHint();
