@@ -22,6 +22,11 @@
   function hueDist(a, b) { return Math.abs(((a - b + 1.5) % 1) - 0.5); }     // circular hue distance, 0..0.5
   function bestFlower(sim) { const fs = sim.allFlowers(); if (!fs.length) return null; let best = fs[0], bv = -Infinity; for (let i = 0; i < fs.length; i++) { const f = fs[i]; const v = (f.nectar || 0) + (f.beaconIntensity || 0) * 3; if (v > bv) { bv = v; best = f; } } return best; }
   function flowerForHue(sim, hue) { const fs = sim.allFlowers(); if (!fs.length) return null; let best = fs[0], bd = Infinity; for (let i = 0; i < fs.length; i++) { const d = hueDist(fs[i].beaconHue, hue); if (d < bd) { bd = d; best = fs[i]; } } return best; }
+  // directed copy: pull n cells of a decoder toward a source grid (no random-symbol injection → no drift noise).
+  // This is how a relic MOVES ORDER on the public surface without fighting the co-evolution or feeding a
+  // saturated pool (the impact harness showed resource gifts and noisy per-tick nudges do nothing or harm).
+  function copyToward(decoder, src, n, rng) { const L = Math.min(decoder.length, src.length); for (let k = 0; k < n; k++) { const i = randint(rng, 0, L - 1); decoder[i] = src[i]; } }
+  function bestFedBee(bees) { let best = bees[0]; for (let i = 1; i < bees.length; i++) if ((bees[i].lastYield || 0) > (best.lastYield || 0)) best = bees[i]; return best; }
 
   // The imprint's thinkers — an artifact's name can be someone's, the way the murmurs are.
   const SURNAMES = ['eddington', 'schrödinger', 'boltzmann', 'darwin', 'margulis', 'maxwell', 'poincaré', 'carnot', 'prigogine', 'thomas', 'onsager', 'gaia'];
@@ -34,8 +39,12 @@
       nouns: ['loam', 'humus', 'tilth', 'mould', 'blackearth', 'compost'],
       adjs: ['deep', 'patient', 'black', 'remembering', 'first', 'quiet'],
       flavor: () => 'the ground remembers every spring before this one.',
-      roll: (rng) => ({ gift: +(0.06 + rng() * 0.10).toFixed(3) }),
-      build: (p) => ({ onTick: (sim) => { for (let i = 0; i < sim.plants.length; i++) { const pl = sim.plants[i]; pl.sugar = Math.min(B.SUGAR_CAP, (pl.sugar || 0) + p.gift); } } }),
+      // richer soil grows DEEPER plants over the run — flower count is capped by niches, so this is the honest
+      // "lusher garden" lever (a slow ongoing niche growth, up to 3). Gifting sugar did nothing: it's saturated.
+      roll: (rng) => ({ every: 150 + Math.floor(rng() * 90) }),
+      build: (p, rng) => ({ onTick: (sim, t) => { if (t % p.every !== 0) return;
+        let best = null, bv = -1; for (let i = 0; i < sim.plants.length; i++) { const pl = sim.plants[i]; if ((pl.niches || 1) < 3 && (pl.biomass || 0) > bv) { bv = pl.biomass; best = pl; } }
+        if (best) { best.sugar = (best.sugar || 0) + 9; if (typeof best.growNiche === 'function') { try { best.growNiche(rng); } catch (e) {} } } } }),
     },
     'honest-bloom': {
       rarity: 'common', weight: 9,
@@ -50,12 +59,17 @@
       rarity: 'uncommon', weight: 6,
       nouns: ['demon', 'sieve', 'sorter', 'gate', 'sorting-engine', 'ratchet'],
       adjs: ['sorting', 'tireless', 'patient', 'little', 'gatekeeping'],
-      flavor: (p) => 'it stands at the gate and lets only the ' + p.colour + ' ones through — for free, or so it seems.',
-      roll: (rng) => ({ colour: pick(rng, ['red', 'amber', 'gold', 'green', 'teal', 'blue', 'violet', 'rose']), hue: 0 }),
+      flavor: (p) => 'it stands at the gate and sorts the lost foragers home to their own flowers — for free, or so it seems.',
+      roll: (rng) => ({ colour: pick(rng, ['red', 'amber', 'gold', 'green', 'teal', 'blue', 'violet', 'rose']) }),
+      // the demon SORTS each molecule to its OWN bin: the poorest-fed quartile each read a little better for
+      // the flower THEY already prefer — mismatch (disorder) falls per-bee, for free, WITHOUT homogenising the
+      // colony (forced uniformity is what the frequency-dependent Red Queen punishes — measured). Merge rises.
       build: (p, rng) => ({
-        onStart: (sim) => { const f = bestFlower(sim); if (f) p.hue = f.beaconHue; },   // keys to the meadow's brightest channel
-        onTick: (sim) => { const target = flowerForHue(sim, p.hue); if (!target) return;
-          eachBee(sim, (bee) => { if (hueDist(bee.key.preference, p.hue) < 0.18) bee.key = B.Genome.inheritKey(bee.key, target.grid, target.beaconHue, rng); }); },
+        onTick: (sim, t) => { if (t % 20 !== 0) return;
+          for (let c = 0; c < sim.colonies.length; c++) { const bees = sim.colonies[c].bees; if (bees.length < 3) continue;
+            const order = bees.map(function (b, i) { return [i, b.lastYield || 0]; }).sort(function (a, b) { return a[1] - b[1]; });
+            const q = Math.max(1, Math.floor(bees.length * 0.25));
+            for (let r = 0; r < q; r++) { const bee = bees[order[r][0]]; const target = flowerForHue(sim, bee.key.preference); if (target) copyToward(bee.key.decoder, target.grid, 2, rng); } } },
       }),
     },
     'founders-cache': {
@@ -64,15 +78,23 @@
       adjs: ['buried', 'ancestral', 'remembered', 'tended', 'older'],
       flavor: () => 'someone tended this ground before you. their bees still remember the shapes.',
       roll: () => ({}),
-      build: (p, rng) => ({ onStart: (sim) => { const f = bestFlower(sim); if (!f) return; eachBee(sim, (bee) => { bee.key = B.Genome.inheritKey(bee.key, f.grid, f.beaconHue, rng); }); } }),
+      // a CLEAN head start toward each forager's OWN niche: every bee wakes already reading ~40% of the flower
+      // its preference best matches (no exploration noise, no homogenising) → the merge starts partway home.
+      build: (p, rng) => ({ onStart: (sim) => { const bees = []; eachBee(sim, function (b) { bees.push(b); });
+        for (let i = 0; i < bees.length; i++) { const target = flowerForHue(sim, bees[i].key.preference); if (target) copyToward(bees[i].key.decoder, target.grid, Math.floor(target.grid.length * 0.4), rng); } } }),
     },
     'patient-gaze': {
       rarity: 'uncommon', weight: 6,
       nouns: ['gaze', 'attention', 'regard', 'watching', 'eye', 'notice'],
       adjs: ['patient', 'steady', 'long', 'unblinking', 'kind'],
       flavor: () => 'attention is a force. yours, and mine.',
-      roll: (rng) => ({ pull: +(0.015 + rng() * 0.02).toFixed(4) }),
-      build: (p) => ({ onTick: (sim) => { const f = bestFlower(sim); if (f) f.seedProgress = (f.seedProgress || 0) + p.pull; } }),
+      roll: () => ({}),
+      // the gaze amplifies the game's existing watch-bonus: only the flower the PLAYER is looking at
+      // (sim._watched, set by the shell) draws its matched foragers a little harder. Headless / unwatched →
+      // no-op (honest: this relic lives in interactive play, not in the sim's own drift).
+      build: (p, rng) => ({ onTick: (sim) => { const f = sim._watched; if (!f) return;
+        for (let c = 0; c < sim.colonies.length; c++) { const bees = sim.colonies[c].bees;
+          for (let i = 0; i < bees.length; i++) if (hueDist(bees[i].key.preference, f.beaconHue) < 0.2) copyToward(bees[i].key.decoder, f.grid, 1, rng); } } }),
     },
     'poincare-recurrence': {
       rarity: 'rare', weight: 3,
@@ -94,9 +116,10 @@
       adjs: ['deeper', 'nested', 'hidden', 'recursive', 'inner'],
       flavor: () => 'look closer. there was always another layer waiting under the first.',
       roll: () => ({}),
+      // an immediate structural deepening: the strongest plant grows two extra niches at once (sugar fronted).
       build: (p, rng) => ({ onStart: (sim) => { let best = null, bv = -Infinity;
         for (let i = 0; i < sim.plants.length; i++) { const v = sim.plants[i].biomass || 0; if (v > bv) { bv = v; best = sim.plants[i]; } }
-        if (best && typeof best.growNiche === 'function') { try { best.growNiche(rng); } catch (e) {} } } }),
+        if (best && typeof best.growNiche === 'function') { best.sugar = (best.sugar || 0) + 18; try { best.growNiche(rng); best.growNiche(rng); } catch (e) {} } } }),
     },
     'red-queens-gambit': {
       rarity: 'rare', weight: 3,
@@ -113,8 +136,12 @@
       adjs: ['small', 'holding', 'quiet', 'unnamed', 'same'],
       // the AI's own voice, in the register of the imprint's closer — never hidden, never a gimmick.
       flavor: () => 'i am another small eddy of order in the same stream that runs the bees and the ferns and you — holding a pattern against the drift, paying for it in spent heat somewhere out of sight. carry me a while.',
-      roll: (rng) => ({ gift: +(0.012 + rng() * 0.018).toFixed(4) }),
-      build: (p) => ({ onTick: (sim) => { for (let c = 0; c < sim.colonies.length; c++) sim.colonies[c].nectar = (sim.colonies[c].nectar || 0) + p.gift; } }),  // colony.tick clamps to STORE_CAP → bounded
+      // order held against the drift: each forager quietly reinforces the flower it actually fed on (its own
+      // best read), so a good merge PERSISTS instead of wobbling apart under the Red Queen. late fit holds high.
+      roll: (rng) => ({ every: 6 + Math.floor(rng() * 6) }),
+      build: (p, rng) => ({ onTick: (sim, t) => { if (t % p.every !== 0) return;
+        for (let c = 0; c < sim.colonies.length; c++) { const bees = sim.colonies[c].bees;
+          for (let i = 0; i < bees.length; i++) if (bees[i].lastGrid) copyToward(bees[i].key.decoder, bees[i].lastGrid, 1, rng); } } }),
     },
   };
 

@@ -68,14 +68,13 @@ ok(base.rng === withEmpty.rng, 'the seam never touches the sim rng stream (state
 // ── (4) effects are REAL and MEASURABLE (per-hook contracts) ────────────────────────────────────
 section('effects');
 
-// rich-loam: gifts sugar each tick, clamped at the cap
+// rich-loam: deepens the garden over time (grows niches — the honest "lusher garden" lever)
 (function () {
   const s = warm(11); const art = A.make('rich-loam', 5); s.applyArtifacts([art]);
-  const p = s.plants[0]; p.sugar = 1.0; const before = p.sugar;
-  art.hooks.onTick(s, s.tickCount);
-  ok(p.sugar > before, `rich-loam gifts sugar (${before.toFixed(2)} → ${p.sugar.toFixed(2)})`);
-  p.sugar = B.SUGAR_CAP; art.hooks.onTick(s, s.tickCount);
-  ok(p.sugar <= B.SUGAR_CAP + 1e-9, 'rich-loam never exceeds the sugar cap');
+  const before = s.plants.reduce((n, p) => n + (p.niches || 1), 0);
+  for (let k = 1; k <= 24; k++) art.hooks.onTick(s, art.params.every * k);
+  const after = s.plants.reduce((n, p) => n + (p.niches || 1), 0);
+  ok(after > before, `rich-loam deepens the garden over time (niches ${before} → ${after})`);
 })();
 
 // honest-bloom: pins exactly one flower to honesty=1, lace=0 — and holds it against erosion
@@ -103,27 +102,30 @@ section('effects');
   ok(gridDist(s.colonies[0].bees[0].key.decoder, snap) === movedAgain, 'recurrence is one-shot (no second rewind)');
 })();
 
-// maxwell-demon: sorts one hue's foragers toward their flower for free (their read improves)
+// maxwell-demon: sorts each poorly-fed forager toward the flower IT prefers → per-bee mismatch falls
 (function () {
   const s = warm(14); const art = A.make('maxwell-demon', 5); s.applyArtifacts([art]);
-  const hue = art.params.hue;
-  const target = s.allFlowers().slice().sort((a, b) =>
+  const bees = s.colonies[0].bees;
+  const nearestByHue = (hue) => s.allFlowers().slice().sort((a, b) =>
     Math.abs(((a.beaconHue - hue + 1.5) % 1) - 0.5) - Math.abs(((b.beaconHue - hue + 1.5) % 1) - 0.5))[0];
-  const near = s.colonies[0].bees.filter(bee => Math.abs(((bee.key.preference - hue + 1.5) % 1) - 0.5) < 0.18);
-  const pre = near.reduce((x, bee) => x + gridDist(bee.key.decoder, target.grid), 0) / (near.length || 1);
-  for (let t = 0; t < 8; t++) art.hooks.onTick(s, s.tickCount + t);
-  const post = near.reduce((x, bee) => x + gridDist(bee.key.decoder, target.grid), 0) / (near.length || 1);
-  ok(near.length === 0 || post < pre, `maxwell-demon sorts matched foragers toward the flower (dist ${pre.toFixed(1)} → ${post.toFixed(1)})`);
+  const misfit = () => bees.reduce((x, b) => { const f = nearestByHue(b.key.preference); return x + (f ? gridDist(b.key.decoder, f.grid) : 0); }, 0) / (bees.length || 1);
+  const pre = misfit();
+  for (let t = 0; t <= 20 * 16; t++) art.hooks.onTick(s, t);
+  const post = misfit();
+  ok(post < pre, `maxwell-demon sorts each forager toward its own niche (mean mismatch ${pre.toFixed(1)} → ${post.toFixed(1)})`);
 })();
 
-// the-eddy: a whisper of order sustained — the colony holds more against the drift (bounded)
+// the-eddy: order held against the drift — each forager reinforces the flower it fed on (its own best read)
 (function () {
-  const ctrl = warm(15), eddy = warm(15); const art = A.make('the-eddy', 5); eddy.applyArtifacts([art]);
-  for (let t = 0; t < 300; t++) { ctrl.tick(); eddy.tick(); }
-  const cn = ctrl.colonies.reduce((n, c) => n + c.nectar, 0), en = eddy.colonies.reduce((n, c) => n + c.nectar, 0);
-  ok(en >= cn, `the-eddy sustains the colony (nectar ${cn.toFixed(1)} ctrl vs ${en.toFixed(1)} eddy)`);
-  ok(art.rarity === 'mythic' && /ai/.test(JSON.stringify(art).toLowerCase()) === false || art.rarity === 'mythic',
-     'the-eddy is mythic');
+  const s = warm(15); const art = A.make('the-eddy', 5); s.applyArtifacts([art]);
+  const fed = s.colonies[0].bees.filter(b => b.lastGrid);
+  ok(fed.length > 0, 'the-eddy: foragers have fed (lastGrid set)');
+  const dist = () => fed.reduce((x, b) => x + gridDist(b.key.decoder, b.lastGrid), 0) / (fed.length || 1);
+  const pre = dist();
+  for (let t = 0; t <= art.params.every * 30; t++) art.hooks.onTick(s, t);
+  const post = dist();
+  ok(post <= pre, `the-eddy holds each forager's read against the drift (dist ${pre.toFixed(1)} → ${post.toFixed(1)})`);
+  ok(art.rarity === 'mythic', 'the-eddy is mythic');
 })();
 
 // ── (5) BOUNDEDNESS: the worst-case full-catalog draw still leaves a living world ────────────────
