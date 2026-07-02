@@ -27,6 +27,7 @@
       milestones: {},   // set as they fire (for the imprint layer)
       events: [],       // transient per-tick birth/death events (render-only; drained by the shell, not serialized)
       plantBorn: 0, plantDied: 0,   // cumulative plant turnover (the garden's births + deaths)
+      artifacts: [],    // the run's drawn relics (pure hooks over the public surface; empty → zero effect)
 
       _ensureIds: function () {
         for (let pi = 0; pi < this.plants.length; pi++) {
@@ -143,6 +144,10 @@
         }
 
         this.tickCount++;
+
+        // artifacts: pure per-tick hooks over the public surface (empty list → no-op, no rng touched → the
+        // no-artifacts run stays byte-identical to baseline; the soul test is unaffected by construction).
+        for (let ai = 0; ai < this.artifacts.length; ai++) { const a = this.artifacts[ai]; if (a.hooks && a.hooks.onTick) a.hooks.onTick(this, this.tickCount); }
       },
 
       // The headline merge metric: for each forager, how well it reads the flower its beacon best matches.
@@ -223,6 +228,10 @@
         for (let t = 0; t < 30; t++) this.tick();                  // settle: flowers stock, bees start moving
         return this;
       },
+
+      // ── artifacts (the run's drawn relics) — data in, hooks run on the public surface ──
+      applyArtifacts: function (list) { this.artifacts = list || []; for (let i = 0; i < this.artifacts.length; i++) { const a = this.artifacts[i]; if (a.hooks && a.hooks.onStart) a.hooks.onStart(this); } return this; },
+      useArtifact: function (which, lever) { const a = (typeof which === 'number') ? this.artifacts[which] : this.artifacts.filter(function (x) { return x.archetype === which; })[0]; if (a && a.hooks && a.hooks.onLever) a.hooks.onLever(this, lever || 'use'); return a; },
 
       // ── the levers (steward of selection) ──
       lockFlower: function (flower, on) { flower.locked = !!on; this.locks = this.allFlowers().filter(function (f) { return f.locked; }).length; },
