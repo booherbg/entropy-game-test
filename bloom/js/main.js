@@ -53,7 +53,8 @@
       // one-shot genesis effects are already baked into the saved sim state; only onTick/onLever run on.
       G.artifacts = B.Artifacts.draw(G.sim.seed, 2); G.sim.artifacts = G.artifacts; G.handAnnounced = true;  // a returning garden — the hand was already revealed
       const rs = saved.meta.relics || [];   // restore each relic's spent flag + poincaré's genesis snapshot (onStart doesn't run on load)
-      G.artifacts.forEach(a => { const st = rs.filter(r => r.archetype === a.archetype)[0]; if (st) { a.spent = !!st.spent; if (st.snap) a._snap = st.snap; } }); }
+      G.artifacts.forEach(a => { const st = rs.filter(r => r.archetype === a.archetype)[0]; if (st) { a.spent = !!st.spent; if (st.snap) a._snap = st.snap; } });
+      B.Persist.codexAdd(G.artifacts.map(a => a.archetype)); }
     else { G.seed = hashSeed || ((Math.random() * 1e9) >>> 0); newGarden(G.seed, true); }
     G.miles.add('begin');
     // ?warp=N — fast-forward the sim at boot (a skip-ahead / demo hook; also drives headless screenshots)
@@ -74,6 +75,7 @@
   function newGarden(seed, keepHash) {
     G.sim = B.makeSim(seed); G.sim.warmStart();
     G.artifacts = B.Artifacts.draw(seed, 2); G.sim.applyArtifacts(G.artifacts);   // the run's hand — onStart fires ONCE, here at genesis
+    B.Persist.codexAdd(G.artifacts.map(a => a.archetype));                         // the collection meta — these kinds are now discovered
     G.seed = seed; G.history = []; G.miles = new Set(['begin']); G.selected = null; G.tick0 = 0; G.forms = []; G.lastFormGen = -1; G.effects = []; G.seasonFit = 0; G.imprint = null; G.handAnnounced = false;
     if (!keepHash) B.Persist.setHashSeed(seed);
     B.Persist.clear();
@@ -182,7 +184,16 @@
         '<div class="rflav">' + a.flavor + '</div>' +
         '<div class="reff">' + a.effect + '</div>' + btn + '</div></div>';
     }
-    $('relicsList').innerHTML = html || '<div class="sub">no relics this garden.</div>';
+    // the codex — every relic KIND you've discovered across all your gardens (the "chase them" collection)
+    const cat = B.Artifacts.CATALOG, seen = new Set((B.Persist.codexGet().seen) || []);
+    let cx = '<div class="codexh">the codex · <b>' + seen.size + '</b> of ' + cat.length + ' relics discovered</div><div class="codexgrid">';
+    for (let i = 0; i < cat.length; i++) { const c = cat[i];
+      cx += seen.has(c.id)
+        ? '<div class="cx ' + c.rarity + '"><div class="cxsig">' + B.Artifacts.sigilSVG(B.Artifacts.make(c.id, 1), 46) + '</div><div class="cxn">' + c.title + '</div><div class="cxr" style="color:' + RARITY_COL[c.rarity] + '">' + c.rarity + '</div></div>'
+        : '<div class="cx locked"><div class="cxsig cxq">?</div><div class="cxn">undiscovered</div></div>';
+    }
+    cx += '</div>';
+    $('relicsList').innerHTML = (html || '<div class="sub">no relics this garden.</div>') + cx;
     document.querySelectorAll('#relicsList .use').forEach(function (b) {
       b.onclick = function () { const a = G.artifacts[+b.getAttribute('data-lever')];
         G.sim.useArtifact(a.archetype, a.lever); b.disabled = true; b.textContent = '✦ spent';

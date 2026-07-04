@@ -158,7 +158,13 @@
     'red-queens-gambit': 'the honesty-and-deception dance runs wilder — a livelier, higher-variance meadow.',
     'the-eddy': 'order holds against the drift — a good merge persists instead of wobbling apart.',
   };
-  A.CATALOG = Object.keys(ARCH).map((id) => ({ id: id, rarity: ARCH[id].rarity, weight: ARCH[id].weight }));
+  // canonical kind-names for the codex (a specific draw has a procedural name; this names the KIND).
+  const TITLE = {
+    'rich-loam': 'rich loam', 'honest-bloom': 'the honest bloom', 'maxwell-demon': 'maxwell’s demon',
+    'founders-cache': 'the founder’s cache', 'patient-gaze': 'the patient gaze', 'poincare-recurrence': 'poincaré recurrence',
+    'deep-structure': 'deep structure', 'red-queens-gambit': 'the red queen’s gambit', 'the-eddy': 'the eddy',
+  };
+  A.CATALOG = Object.keys(ARCH).map((id) => ({ id: id, rarity: ARCH[id].rarity, weight: ARCH[id].weight, title: TITLE[id], effect: EFFECT[id] }));
 
   // A sigil IS a genome — the relic is rendered in the world's own glyph grammar. Sigils are cosmetic
   // (decoupled from gameplay genomes), so they're biased toward a full mandala that reads as a bloom, not a

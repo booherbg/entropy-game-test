@@ -2,6 +2,7 @@
   'use strict';
   const B = root.B = root.B || {};
   const KEY = 'bloom.save.v1';
+  const CODEX_KEY = 'bloom.codex.v1';   // the relic kinds discovered across ALL gardens (the collection meta)
 
   B.Persist = {
     save: function (sim, meta) {
@@ -25,6 +26,9 @@
       return m ? (parseInt(m[1], 10) >>> 0) : null;
     },
     setHashSeed: function (seed) { try { history.replaceState(null, '', '#seed=' + (seed >>> 0)); } catch (e) {} },
+    // the codex — relic kinds seen across every garden you've ever grown (persists independent of the save)
+    codexGet: function () { try { return JSON.parse(localStorage.getItem(CODEX_KEY)) || { seen: [] }; } catch (e) { return { seen: [] }; } },
+    codexAdd: function (ids) { try { const c = this.codexGet(), set = new Set(c.seen || []); (ids || []).forEach(i => set.add(i)); c.seen = Array.from(set); localStorage.setItem(CODEX_KEY, JSON.stringify(c)); return c; } catch (e) { return { seen: [] }; } },
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = B;
