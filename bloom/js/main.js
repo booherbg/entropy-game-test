@@ -51,7 +51,9 @@
     if (saved) { G.sim = saved.sim; G.seed = G.sim.seed; G.miles = new Set(saved.meta.miles || []); G.tick0 = saved.meta.tick0 || 0; G.forms = saved.meta.forms || [];
       // re-derive the run's hand (deterministic from seed) and RE-ATTACH without re-running onStart — the
       // one-shot genesis effects are already baked into the saved sim state; only onTick/onLever run on.
-      G.artifacts = B.Artifacts.draw(G.sim.seed, 2); G.sim.artifacts = G.artifacts; G.handAnnounced = true; }  // a returning garden — the hand was already revealed
+      G.artifacts = B.Artifacts.draw(G.sim.seed, 2); G.sim.artifacts = G.artifacts; G.handAnnounced = true;  // a returning garden — the hand was already revealed
+      const rs = saved.meta.relics || [];   // restore each relic's spent flag + poincaré's genesis snapshot (onStart doesn't run on load)
+      G.artifacts.forEach(a => { const st = rs.filter(r => r.archetype === a.archetype)[0]; if (st) { a.spent = !!st.spent; if (st.snap) a._snap = st.snap; } }); }
     else { G.seed = hashSeed || ((Math.random() * 1e9) >>> 0); newGarden(G.seed, true); }
     G.miles.add('begin');
     // ?warp=N — fast-forward the sim at boot (a skip-ahead / demo hook; also drives headless screenshots)
@@ -170,7 +172,9 @@
     let html = '';
     for (let i = 0; i < arts.length; i++) {
       const a = arts[i];
-      const btn = a.lever ? '<button class="use" data-lever="' + i + '">✦ rewind the dance · use once</button>' : '';
+      const btn = a.lever ? (a.spent
+        ? '<button class="use" disabled>✦ spent</button>'
+        : '<button class="use" data-lever="' + i + '">✦ rewind the dance · use once</button>') : '';
       html += '<div class="relic ' + a.rarity + '">' +
         '<div class="sig">' + B.Artifacts.sigilSVG(a, 88) + '</div>' +
         '<div class="rbody"><div class="rname">' + a.name + '</div>' +
@@ -182,6 +186,7 @@
     document.querySelectorAll('#relicsList .use').forEach(function (b) {
       b.onclick = function () { const a = G.artifacts[+b.getAttribute('data-lever')];
         G.sim.useArtifact(a.archetype, a.lever); b.disabled = true; b.textContent = '✦ spent';
+        autosave();   // persist the spent state immediately, so a reload can't reuse the one-shot
         toast('the dance rewinds — the colony’s keys return to the opening.'); };
     });
   }
@@ -319,7 +324,8 @@
   function setSpeed() { G.speedIdx = (G.speedIdx + 1) % SPEEDS.length; $('btnSpeed').textContent = SPEEDS[G.speedIdx].l; }
   function setPaused(p) { G.paused = p; $('btnPause').textContent = p ? '▶' : '⏸'; }
 
-  function autosave() { B.Persist.save(G.sim, { miles: Array.from(G.miles), tick0: G.tick0, forms: G.forms }); }
+  function relicState() { return (G.artifacts || []).map(a => ({ archetype: a.archetype, spent: !!a.spent, snap: a._snap || null })); }
+  function autosave() { B.Persist.save(G.sim, { miles: Array.from(G.miles), tick0: G.tick0, forms: G.forms, relics: relicState() }); }
 
   function updateSeedline() { const el = $('seedline'); if (el) el.innerHTML = 'this garden&rsquo;s seed: <b style="color:#f0b870">' + G.seed + '</b> — the same seed always grows the same garden. it&rsquo;s in your address bar to share.'; }
 

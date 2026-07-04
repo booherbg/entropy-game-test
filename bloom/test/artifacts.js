@@ -100,6 +100,19 @@ section('effects');
   const movedAgain = gridDist(s.colonies[0].bees[0].key.decoder, snap);
   s.useArtifact('poincare-recurrence', 'recur');                   // second pull…
   ok(gridDist(s.colonies[0].bees[0].key.decoder, snap) === movedAgain, 'recurrence is one-shot (no second rewind)');
+  ok(art.spent === true, 'recurrence marks itself spent (persist-ready)');
+
+  // simulate save → reload (the shell attaches on load WITHOUT running onStart; it restores spent + snapshot)
+  const saved = JSON.parse(JSON.stringify({ spent: art.spent, snap: art._snap }));   // JSON round-trip, like localStorage
+  const gsnap0 = Int8Array.from(saved.snap[0][0]);
+  function reload(spent) { const s2 = warm(13); const a2 = A.make('poincare-recurrence', 5); s2.artifacts = [a2];
+    a2.spent = spent; a2._snap = saved.snap;                       // restore persisted state
+    const bb = s2.colonies[0].bees[0]; for (let i = 0; i < bb.key.decoder.length; i++) bb.key.decoder[i] = (bb.key.decoder[i] + 2) % 8;
+    const moved = gridDist(bb.key.decoder, gsnap0); s2.useArtifact('poincare-recurrence', 'recur');
+    return { moved, after: gridDist(s2.colonies[0].bees[0].key.decoder, gsnap0) }; }
+  const rSpent = reload(true), rFresh = reload(false);
+  ok(rSpent.after === rSpent.moved, 'a SPENT relic stays spent across reload — no reuse by reloading');
+  ok(rFresh.after < rFresh.moved, 'an UNSPENT relic survives reload usable — snapshot persisted (fixes inert-after-reload)');
 })();
 
 // maxwell-demon: sorts each poorly-fed forager toward the flower IT prefers → per-bee mismatch falls

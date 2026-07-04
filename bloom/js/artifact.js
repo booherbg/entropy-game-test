@@ -102,13 +102,14 @@
       adjs: ['eternal', 'returning', 'patient', 'inevitable', 'circling'],
       flavor: () => 'everything that can happen, will happen again. once, on your command.',
       roll: () => ({}),
-      build: () => { let snap = null, used = false;
-        return {
-          onStart: (sim) => { snap = sim.colonies.map((c) => c.bees.map((b) => Int8Array.from(b.key.decoder))); },
-          onLever: (sim, lever) => { if (used || lever !== 'recur' || !snap) return; used = true;
-            for (let c = 0; c < sim.colonies.length && c < snap.length; c++) { const bees = sim.colonies[c].bees, s = snap[c];
-              for (let i = 0; i < bees.length && i < s.length; i++) { const dec = bees[i].key.decoder; for (let k = 0; k < dec.length && k < s[i].length; k++) dec[k] = s[i][k]; } } },
-        }; },
+      // snapshot + spent live ON THE ARTIFACT (plain arrays) so the shell can persist them: poincaré is usable
+      // exactly once per garden, and survives a reload instead of going inert (onStart doesn't run on load).
+      build: (p, rng, art) => ({
+        onStart: (sim) => { art._snap = sim.colonies.map((c) => c.bees.map((b) => Array.from(b.key.decoder))); },
+        onLever: (sim, lever) => { const snap = art._snap; if (art.spent || lever !== 'recur' || !snap) return; art.spent = true;
+          for (let c = 0; c < sim.colonies.length && c < snap.length; c++) { const bees = sim.colonies[c].bees, s = snap[c];
+            for (let i = 0; i < bees.length && i < s.length; i++) { const dec = bees[i].key.decoder; for (let k = 0; k < dec.length && k < s[i].length; k++) dec[k] = s[i][k]; } } },
+      }),
     },
     'deep-structure': {
       rarity: 'rare', weight: 3,
@@ -186,8 +187,8 @@
     const sigil = A.sigilGenome(rng, arch.rarity);
     const name = nameFor(arch, rng);
     const flavor = arch.flavor(params, rng);
-    const art = { archetype: id, rarity: arch.rarity, params: params, sigil: sigil, name: name, flavor: flavor, effect: EFFECT[id], lever: id === 'poincare-recurrence' ? 'recur' : null, hooks: null };
-    art.hooks = arch.build(params, rngFor(id + '#hooks', seed));      // hooks close over the SAME params object → onStart can re-key it
+    const art = { archetype: id, rarity: arch.rarity, params: params, sigil: sigil, name: name, flavor: flavor, effect: EFFECT[id], lever: id === 'poincare-recurrence' ? 'recur' : null, spent: false, hooks: null };
+    art.hooks = arch.build(params, rngFor(id + '#hooks', seed), art);   // hooks close over the SAME art (params re-key; spent/_snap for persistence)
     return art;
   };
 
